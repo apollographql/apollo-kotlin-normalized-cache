@@ -14,6 +14,7 @@ import com.squareup.kotlinpoet.MAP
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.SET
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
@@ -33,31 +34,13 @@ internal class CacheSchemaListener(
   override fun onSchema(schema: Schema, outputDirectory: File) {
     val packageName = (environment.arguments["packageName"] as? String
         ?: throw IllegalArgumentException("packageName argument is required and must be a String")) + ".cache"
-    val maxAges = schema.getMaxAges(environment.logger)
-    val initializer = CodeBlock.builder().apply {
-      add("mapOf(\n")
-      indent()
-      maxAges.forEach { (field, duration) ->
-        if (duration == -1) {
-          addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
-        } else {
-          addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
-        }
-      }
-      unindent()
-      add(")")
-    }
-        .build()
+    val maxAgeProperty = maxAgeProperty(schema)
+    val keyFieldsProperty = keyFieldsProperty(schema)
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")
-                .addProperty(
-                    PropertySpec.Companion.builder("maxAges", MAP
-                        .parameterizedBy(STRING, Symbols.MaxAge)
-                    )
-                        .initializer(initializer)
-                        .build()
-                )
+                .addProperty(maxAgeProperty)
+                .addProperty(keyFieldsProperty)
                 .build()
         )
         .addFileComment(
@@ -73,4 +56,53 @@ internal class CacheSchemaListener(
 
     file.writeTo(outputDirectory)
   }
+
+  private fun maxAgeProperty(schema: Schema): PropertySpec {
+    val maxAges = schema.getMaxAges(environment.logger)
+    val initializer = CodeBlock.builder().apply {
+      add("mapOf(\n")
+      indent()
+      maxAges.forEach { (field, duration) ->
+        if (duration == -1) {
+          addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
+        } else {
+          addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
+        }
+      }
+      unindent()
+      add(")")
+    }
+        .build()
+    return PropertySpec.Companion.builder("maxAges", MAP
+        .parameterizedBy(STRING, Symbols.MaxAge)
+    )
+        .initializer(initializer)
+        .build()
+  }
+
+  private fun keyFieldsProperty(schema: Schema): PropertySpec {
+    val keyFields = schema.validateAndComputeKeyFields()
+    val initializer = CodeBlock.builder().apply {
+      add("mapOf(\n")
+      indent()
+      keyFields.forEach { (type, fields) ->
+        addStatement("%S to setOf(", type)
+        indent()
+        fields.forEach { field ->
+          addStatement("%S,", field)
+        }
+        unindent()
+        addStatement("),")
+      }
+      unindent()
+      add(")")
+    }
+        .build()
+    return PropertySpec.builder("keyFields", MAP
+        .parameterizedBy(STRING, SET.parameterizedBy(STRING))
+    )
+        .initializer(initializer)
+        .build()
+  }
 }
+
