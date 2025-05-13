@@ -1,5 +1,11 @@
+@file:OptIn(ApolloExperimental::class)
+
 package com.apollographql.cache.apollocompilerplugin.internal
 
+import com.apollographql.apollo.annotations.ApolloExperimental
+import com.apollographql.apollo.ast.Schema
+import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
+import com.apollographql.apollo.compiler.SchemaListener
 import com.apollographql.cache.apollocompilerplugin.VERSION
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -21,16 +27,13 @@ private object Symbols {
   val Seconds = MemberName(Duration.Companion::class.asTypeName(), "seconds", isExtension = true)
 }
 
-internal class Codegen(
-    private val packageName: String,
-    private val outputDirectory: File,
-    private val maxAges: Map<String, Int>,
-) {
-  fun generate() {
-    generateCache()
-  }
-
-  private fun generateCache() {
+internal class CacheSchemaListener(
+    private val environment: ApolloCompilerPluginEnvironment,
+) : SchemaListener {
+  override fun onSchema(schema: Schema, outputDirectory: File) {
+    val packageName = (environment.arguments["packageName"] as? String
+        ?: throw IllegalArgumentException("packageName argument is required and must be a String")) + ".cache"
+    val maxAges = schema.getMaxAges(environment.logger)
     val initializer = CodeBlock.builder().apply {
       add("mapOf(\n")
       indent()
@@ -49,7 +52,7 @@ internal class Codegen(
         .addType(
             TypeSpec.objectBuilder("Cache")
                 .addProperty(
-                    PropertySpec.builder("maxAges", MAP
+                    PropertySpec.Companion.builder("maxAges", MAP
                         .parameterizedBy(STRING, Symbols.MaxAge)
                     )
                         .initializer(initializer)

@@ -77,9 +77,11 @@ class DoNotStoreTest {
               "email": "john@example.com",
               "sensitiveScalar": "authToken",
               "sensitiveObject": {
+                "__typename": "SensitiveObject",
                 "password": "password"
               },
               "project": {
+                "__typename": "Project",
                 "name": "Stardust"              
               }
             }
@@ -111,8 +113,9 @@ class DoNotStoreTest {
                       name = "John",
                       email = "john@example.com",
                       sensitiveScalar = "authToken",
-                      sensitiveObject = GetUserQuery.SensitiveObject("password"),
+                      sensitiveObject = GetUserQuery.SensitiveObject(__typename = "SensitiveObject", password = "password"),
                       project = GetUserQuery.Project(
+                          __typename = "Project",
                           name = "Stardust",
                       )
                   )
@@ -158,7 +161,9 @@ class DoNotStoreTest {
         {
           "data": {
             "auth": {
+              "__typename": "Auth",
               "signIn": {
+                "__typename": "SignIn",
                 "token": "aaaabbbbccc",
                 "userData": {
                   "__typename": "User",
@@ -202,7 +207,9 @@ class DoNotStoreTest {
           assertEquals(
               SignInMutation.Data(
                   SignInMutation.Auth(
+                      __typename = "Auth",
                       SignInMutation.SignIn(
+                          __typename = "SignIn",
                           token = "aaaabbbbccc",
                           userData = SignInMutation.UserData(
                               __typename = "User",
@@ -224,11 +231,11 @@ class DoNotStoreTest {
           apolloClient.apolloStore.accessCache { cache ->
             val authRecord = cache.loadRecord(CacheKey.MUTATION_ROOT.append("auth"), CacheHeaders.NONE)!!
             // No password in field key
-            assertContentEquals(listOf("signIn"), authRecord.fields.keys)
+            assertContentEquals(listOf("__typename", "signIn"), authRecord.fields.keys)
 
             val signInRecord = cache.loadRecord(CacheKey.MUTATION_ROOT.append("auth", "signIn"), CacheHeaders.NONE)!!
             // No token in record
-            assertContentEquals(listOf("userData"), signInRecord.fields.keys)
+            assertContentEquals(listOf("__typename", "userData"), signInRecord.fields.keys)
           }
         }
   }
