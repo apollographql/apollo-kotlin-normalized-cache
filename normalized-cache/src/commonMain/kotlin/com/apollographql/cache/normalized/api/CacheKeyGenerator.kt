@@ -41,17 +41,36 @@ class CacheKeyGeneratorContext(
 )
 
 /**
- * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the id
+ * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the id.
+ *
+ * Note: this uses the key fields of the **schema** type and therefore can't generate cache keys for:
+ * - unions
+ * - interfaces that have a `@typePolicy` on subtypes.
+ *
+ * For those cases, prefer [KeyFieldsCacheKeyGenerator], which uses the concrete type (`__typename`) instead.
  */
+@Deprecated("Use KeyFieldsCacheKeyGenerator instead")
 object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val keyFields = context.field.type.rawType().keyFields()
-
     return if (keyFields.isNotEmpty()) {
       CacheKey(obj["__typename"].toString(), keyFields.map { obj[it].toString() })
     } else {
       null
     }
+  }
+}
+
+/**
+ * A [CacheKeyGenerator] that uses the given key fields to compute the cache key.
+ *
+ * This uses the field's concrete type (`__typename`).
+ */
+class KeyFieldsCacheKeyGenerator(private val keyFields: Map<String, Set<String>>) : CacheKeyGenerator {
+  override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
+    val typename = obj["__typename"].toString()
+    val keyFields = keyFields[typename] ?: return null
+    return CacheKey(typename, keyFields.map { obj[it].toString() })
   }
 }
 

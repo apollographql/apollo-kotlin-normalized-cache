@@ -1,3 +1,5 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.apollo)
@@ -46,6 +48,7 @@ apollo {
     packageName.set("declarative")
     srcDir("src/commonMain/graphql/declarative")
 
+    @OptIn(ApolloExperimental::class)
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
       argument("packageName", packageName.get())
     }
@@ -55,6 +58,7 @@ apollo {
     packageName.set("donotstore")
     srcDir("src/commonMain/graphql/doNotStore")
 
+    @OptIn(ApolloExperimental::class)
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
       argument("packageName", packageName.get())
     }

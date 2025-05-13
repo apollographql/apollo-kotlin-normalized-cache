@@ -1,3 +1,5 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.apollo)
@@ -54,6 +56,11 @@ apollo {
   service("3") {
     srcDir("src/commonMain/graphql/3")
     packageName.set("com.example.three")
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("4") {
     srcDir("src/commonMain/graphql/4")

@@ -10,6 +10,11 @@ type Query {
   author(firstName: String!, lastName: String!): Author
   book(isbn: String!): Book
   books(isbns: [String!]!): [Book!]!
+
+  type2: Type2
+  union1: Union1
+  interface3: Interface3
+  union2: Union2
 }
 
 type Library {
@@ -27,3 +32,46 @@ type Book {
   title: String!
   author: Author
 }
+
+
+interface Interface1 {
+  interface1Field: String
+}
+
+interface Interface2 implements Interface1 {
+  interface1Field: String
+  interface2Field: String
+  interface2KeyField: ID!
+}
+
+type Type1 implements Interface1 {
+  interface1Field: String
+  type1Field: String
+}
+
+type Type2 implements Interface1 & Interface2 {
+  interface1Field: String
+  interface2Field: String
+  interface2KeyField: ID!
+  type2Field: String
+}
+
+union Union1 = Type1 | Type2
+
+interface Interface3 {
+  interface3Field: String
+}
+
+type Type3 implements Interface3 {
+  interface3Field: String
+  type3Field: String
+  type3KeyField: ID!
+}
+
+type Type4 implements Interface3 {
+  interface3Field: String
+  type4Field: String
+  type4KeyField: ID!
+}
+
+union Union2 = Type3 | Type4

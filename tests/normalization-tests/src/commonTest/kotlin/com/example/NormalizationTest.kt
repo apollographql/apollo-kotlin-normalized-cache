@@ -12,8 +12,8 @@ import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.CacheKeyResolver
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.KeyFieldsCacheKeyGenerator
 import com.apollographql.cache.normalized.api.ResolverContext
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -28,6 +28,7 @@ import com.example.three.GetBooksByIdsPaginatedNoCursorsQuery
 import com.example.three.GetBooksByIdsPaginatedNoCursorsWithFragmentQuery
 import com.example.three.GetBooksByIdsPaginatedQuery
 import com.example.three.GetBooksByIdsQuery
+import com.example.three.cache.Cache
 import com.example.three.type.Book
 import com.example.three.type.BookConnection
 import com.example.three.type.BookEdge
@@ -39,8 +40,10 @@ import kotlin.test.assertEquals
 
 internal object IdBasedCacheKeyResolver : CacheResolver, CacheKeyGenerator {
 
+  @Suppress("DEPRECATION")
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext) =
-    obj["id"]?.toString()?.let(::CacheKey) ?: TypePolicyCacheKeyGenerator.cacheKeyForObject(obj, context)
+    obj["id"]?.toString()?.let(::CacheKey)
+        ?: com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator.cacheKeyForObject(obj, context)
 
   override fun resolveField(context: ResolverContext): Any? {
     return FieldPolicyCacheResolver.resolveField(context)
@@ -151,7 +154,7 @@ class NormalizationTest {
         .cacheManager(
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
-                cacheKeyGenerator = TypePolicyCacheKeyGenerator,
+                cacheKeyGenerator = KeyFieldsCacheKeyGenerator(Cache.keyFields),
                 cacheResolver = object : CacheKeyResolver() {
                   override fun cacheKeyForField(context: ResolverContext): CacheKey? {
                     // Same behavior as FieldPolicyCacheResolver
@@ -180,6 +183,7 @@ class NormalizationTest {
       {
         "data": {
           "viewer": {
+            "__typename": "Viewer",
             "libraries": [
               {
                 "__typename": "Library",
@@ -225,13 +229,14 @@ class NormalizationTest {
         .cacheManager(
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
-                cacheKeyGenerator = TypePolicyCacheKeyGenerator,
+                cacheKeyGenerator = KeyFieldsCacheKeyGenerator(Cache.keyFields),
                 cacheResolver = object : CacheResolver {
                   @Suppress("UNCHECKED_CAST")
                   override fun resolveField(context: ResolverContext): Any? {
                     if (context.field.type.rawType() == BookConnection.type) {
                       val bookIds = context.field.argumentValues(context.variables)["bookIds"] as List<String>
                       return mapOf(
+                          "__typename" to BookConnection.type.name,
                           "edges" to bookIds.map {
                             mapOf(
                                 "node" to CacheKey(Book.type.name, it),
@@ -252,11 +257,13 @@ class NormalizationTest {
       {
         "data": {
           "viewer": {
+            "__typename": "Viewer",
             "libraries": [
               {
                 "__typename": "Library",
                 "id": "library-1",
                 "booksPaginated": {
+                  "__typename": "BookConnection",
                   "pageInfo": {
                     "__typename": "PageInfo",
                     "hasNextPage": false,

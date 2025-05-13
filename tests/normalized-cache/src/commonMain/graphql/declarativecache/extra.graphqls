@@ -1,3 +1,9 @@
+extend schema
+@link(
+  url: "https://specs.apollo.dev/kotlin_labs/v0.3",
+  import: ["@typePolicy", "@fieldPolicy"]
+)
+
 extend type Author @typePolicy(keyFields: "firstName lastName")
 
 extend type Book @typePolicy(keyFields: "isbn")
@@ -10,3 +16,9 @@ interface Node @typePolicy(keyFields: "id") {
 
 extend type Library implements Node
 
+
+extend interface Interface2 @typePolicy(keyFields: "interface2KeyField")
+
+extend type Type3 @typePolicy(keyFields: "type3KeyField")
+
+extend type Type4 @typePolicy(keyFields: "type4KeyField")

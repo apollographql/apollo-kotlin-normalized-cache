@@ -52,3 +52,36 @@ query GetAuthor($firstName: String!, $lastName: String!) {
   }
 }
 
+query GetType2 {
+  type2 {
+    type2Field
+  }
+}
+
+query GetUnion1 {
+  union1 {
+    ... on Type1 {
+      type1Field
+    }
+    ... on Type2 {
+      type2Field
+    }
+  }
+}
+
+query GetInterface3 {
+  interface3 {
+    interface3Field
+    ... on Type3 {
+      type3Field
+    }
+  }
+}
+
+query GetUnion2 {
+  union2 {
+    ... on Type4 {
+      type4Field
+    }
+  }
+}

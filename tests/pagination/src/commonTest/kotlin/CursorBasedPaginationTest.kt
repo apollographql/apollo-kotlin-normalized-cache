@@ -8,9 +8,7 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
-import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
@@ -45,9 +43,7 @@ class CursorBasedPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        cacheKeyGenerator = TypePolicyCacheKeyGenerator,
         metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
-        cacheResolver = FieldPolicyCacheResolver,
         recordMerger = ConnectionRecordMerger
     )
     cacheManager.clearAll()
@@ -358,9 +354,7 @@ class CursorBasedPaginationTest {
         .networkTransport(QueueTestNetworkTransport())
         .normalizedCache(
             normalizedCacheFactory = MemoryCacheFactory(),
-            cacheKeyGenerator = TypePolicyCacheKeyGenerator,
             metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
-            cacheResolver = FieldPolicyCacheResolver,
             recordMerger = ConnectionRecordMerger
         )
         .build()

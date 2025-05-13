@@ -2,7 +2,6 @@ package test
 
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.json.jsonReader
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.testing.runTest
 import okio.Buffer
@@ -40,10 +39,6 @@ class SchemaChangesTest {
         CustomScalarAdapters.Empty
     )
 
-    data.normalized(
-        operation,
-        customScalarAdapters = CustomScalarAdapters.Empty,
-        cacheKeyGenerator = TypePolicyCacheKeyGenerator,
-    )
+    data.normalized(operation)
   }
 }
