@@ -14,6 +14,7 @@ type Query {
   type2: Type2
   union1: Union1
   interface3: Interface3
+  interface5: Interface5
   union2: Union2
 }
 
@@ -75,3 +76,15 @@ type Type4 implements Interface3 {
 }
 
 union Union2 = Type3 | Type4
+
+interface Interface4 {
+  interface4Field: String
+  interface4KeyField: ID!
+}
+
+interface Interface5 implements Interface1 & Interface4 {
+  interface1Field: String
+  interface4Field: String
+  interface4KeyField: ID!
+  interface5Field: String
+}

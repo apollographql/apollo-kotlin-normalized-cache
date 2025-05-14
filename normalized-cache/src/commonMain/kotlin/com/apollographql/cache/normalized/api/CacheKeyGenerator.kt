@@ -69,7 +69,10 @@ object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
 class KeyFieldsCacheKeyGenerator(private val keyFields: Map<String, Set<String>>) : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val typename = obj["__typename"].toString()
-    val keyFields = keyFields[typename] ?: return null
+    val keyFields = keyFields[typename]
+    // If a type is unknown at build type, it might be an interface that has key fields
+        ?: context.field.type.rawType().keyFields().ifEmpty { null }
+        ?: return null
     return CacheKey(typename, keyFields.map { obj[it].toString() })
   }
 }

@@ -22,3 +22,5 @@ extend interface Interface2 @typePolicy(keyFields: "interface2KeyField")
 extend type Type3 @typePolicy(keyFields: "type3KeyField")
 
 extend type Type4 @typePolicy(keyFields: "type4KeyField")
+
+extend interface Interface4 @typePolicy(keyFields: "interface4KeyField")

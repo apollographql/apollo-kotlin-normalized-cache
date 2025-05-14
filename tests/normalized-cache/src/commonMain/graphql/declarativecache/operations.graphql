@@ -85,3 +85,9 @@ query GetUnion2 {
     }
   }
 }
+
+query GetInterface5 {
+  interface5 {
+    interface5Field
+  }
+}

@@ -13,6 +13,7 @@ import declarativecache.GetAuthorQuery
 import declarativecache.GetBookQuery
 import declarativecache.GetBooksQuery
 import declarativecache.GetInterface3Query
+import declarativecache.GetInterface5Query
 import declarativecache.GetOtherBookQuery
 import declarativecache.GetOtherLibraryQuery
 import declarativecache.GetPromoAuthorQuery
@@ -51,6 +52,7 @@ class DeclarativeCacheTest {
   @Test
   fun typePolicyWithAbstractTypes() = runTest {
     val cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = KeyFieldsCacheKeyGenerator(Cache.keyFields))
+
     val type2Data = GetType2Query.Data(GetType2Query.Type2(__typename = "Type2", type2Field = "type1Field", interface2KeyField = "42"))
     cacheManager.writeOperation(GetType2Query(), type2Data)
     val type2CacheKey = CacheKey("Type2", "42")
@@ -78,6 +80,15 @@ class DeclarativeCacheTest {
     cacheManager.writeOperation(GetUnion2Query(), union2Data)
     val union2Record = cacheManager.accessCache { it.loadRecord(type4CacheKey, CacheHeaders.NONE) }
     assertNotNull(union2Record)
+
+    cacheManager.clearAll()
+    // An unknown type is returned, we fallback to the interface's key field
+    val interface5Data =
+      GetInterface5Query.Data(GetInterface5Query.Interface5(__typename = "UnknownType", interface5Field = "interface5Field", interface4KeyField = "42"))
+    cacheManager.writeOperation(GetInterface5Query(), interface5Data)
+    val interface5CacheKey = CacheKey("UnknownType", "42")
+    val interface5Record = cacheManager.accessCache { it.loadRecord(interface5CacheKey, CacheHeaders.NONE) }
+    assertNotNull(interface5Record)
   }
 
   @Test
