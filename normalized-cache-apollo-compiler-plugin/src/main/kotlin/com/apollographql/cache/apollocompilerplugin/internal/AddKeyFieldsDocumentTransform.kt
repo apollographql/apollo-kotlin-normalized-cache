@@ -14,6 +14,7 @@ import com.apollographql.apollo.ast.GQLOperationDefinition
 import com.apollographql.apollo.ast.GQLSelection
 import com.apollographql.apollo.ast.GQLUnionTypeDefinition
 import com.apollographql.apollo.ast.Schema
+import com.apollographql.apollo.ast.SourceAwareException
 import com.apollographql.apollo.ast.definitionFromScope
 import com.apollographql.apollo.ast.rawType
 import com.apollographql.apollo.ast.responseName
@@ -70,6 +71,17 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
       return this
     }
     val keyFields = schema.keyFields(parentType)
+
+    this.filterIsInstance<GQLField>().forEach {
+      // Disallow fields whose alias conflicts with a key field, or is "__typename"
+      if (keyFields.contains(it.alias) || it.alias == "__typename") {
+        throw SourceAwareException(
+            error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
+            sourceLocation = it.sourceLocation
+        )
+      }
+    }
+
     val fieldNames = parentFields + this.filterIsInstance<GQLField>().map { it.responseName() }
 
     val alreadyHandledTypes = mutableSetOf<String>()
@@ -95,8 +107,8 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
       }
     }
 
-    // Interfaces and unions: add key fields of all possible types in inline fragments
-    val inlineFragmentsToAdd = if (isRoot) {
+    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
+    val inlineFragmentsToAdd = if (isRoot && keyFields.isEmpty()) {
       val parentTypeDefinition = schema.typeDefinition(parentType)
       val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
         schema.possibleTypes(parentTypeDefinition)
@@ -120,19 +132,8 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
       emptySet()
     }
 
-
     val fieldNamesToAdd = (keyFields - fieldNames)
-
-    newSelections.filterIsInstance<GQLField>().forEach {
-      // Verify that the fields we add won't overwrite an existing alias.
-      // This is not 100% correct as this validation should be made more globally.
-      check(!fieldNamesToAdd.contains(it.alias)) {
-        "Field ${it.alias}: ${it.name} in $parentType conflicts with key fields"
-      }
-    }
-
     newSelections = newSelections + fieldNamesToAdd.map { buildField(it) } + inlineFragmentsToAdd
-
     newSelections = if (isRoot) {
       // Remove the __typename if it exists and add it again at the top, so we're guaranteed to have it at the beginning of json parsing.
       // Also remove any @include/@skip directive on __typename.
