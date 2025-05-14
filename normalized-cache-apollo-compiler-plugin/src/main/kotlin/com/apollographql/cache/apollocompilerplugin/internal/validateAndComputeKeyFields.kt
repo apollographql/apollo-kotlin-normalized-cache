@@ -19,6 +19,11 @@ internal fun Schema.validateAndComputeKeyFields(): Map<String, Set<String>> {
   return keyFieldsCache.filterValues { it.isNotEmpty() }
 }
 
+/**
+  * Returns the key fields for this type definition.
+  * 
+  * If an interface defines key fields, its subtypes inherit those keyfields. It is an error trying to redefine the key fields in a subtype.
+  */
 private fun Schema.keyFields(
     typeDefinition: GQLTypeDefinition,
     keyFieldsCache: MutableMap<String, Set<String>>,
