@@ -81,7 +81,7 @@ internal class CacheSchemaListener(
   }
 
   private fun keyFieldsProperty(schema: Schema): PropertySpec {
-    val keyFields = schema.validateAndComputeKeyFields()
+    val keyFields = schema.getObjectKeyFields()
     val initializer = CodeBlock.builder().apply {
       add("mapOf(\n")
       indent()

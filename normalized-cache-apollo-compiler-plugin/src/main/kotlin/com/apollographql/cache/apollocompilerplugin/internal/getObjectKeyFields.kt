@@ -11,20 +11,25 @@ import com.apollographql.apollo.ast.Schema.Companion.TYPE_POLICY
 import com.apollographql.apollo.ast.SourceAwareException
 import com.apollographql.apollo.ast.parseAsGQLSelections
 
-internal fun Schema.validateAndComputeKeyFields(): Map<String, Set<String>> {
+/**
+ * Returns the key fields for each object type in the schema.
+ */
+internal fun Schema.getObjectKeyFields(): Map<String, Set<String>> {
   val keyFieldsCache = mutableMapOf<String, Set<String>>()
-  typeDefinitions.values.filter { it.canHaveKeyFields() }.forEach {
-    keyFields(it, keyFieldsCache)
-  }
-  return keyFieldsCache.filterValues { it.isNotEmpty() }
+  return typeDefinitions.values
+      .filter { it is GQLObjectTypeDefinition }
+      .associate {
+        it.name to validateAndComputeKeyFields(it, keyFieldsCache)
+      }
+      .filterValues { it.isNotEmpty() }
 }
 
 /**
-  * Returns the key fields for this type definition.
-  * 
-  * If an interface defines key fields, its subtypes inherit those keyfields. It is an error trying to redefine the key fields in a subtype.
-  */
-private fun Schema.keyFields(
+ * Returns the key fields for this type definition.
+ *
+ * If an interface defines key fields, its subtypes inherit those key fields. It is an error trying to redefine the key fields in a subtype.
+ */
+private fun Schema.validateAndComputeKeyFields(
     typeDefinition: GQLTypeDefinition,
     keyFieldsCache: MutableMap<String, Set<String>>,
 ): Set<String> {
@@ -39,7 +44,7 @@ private fun Schema.keyFields(
     else -> error("Cannot get directives for $typeDefinition")
   }
 
-  val interfacesKeyFields = interfaces.map { keyFields(typeDefinitions[it]!!, keyFieldsCache) }
+  val interfacesKeyFields = interfaces.map { validateAndComputeKeyFields(typeDefinitions[it]!!, keyFieldsCache) }
       .filter { it.isNotEmpty() }
   val distinct = interfacesKeyFields.distinct()
   if (distinct.size > 1) {
@@ -72,11 +77,6 @@ private fun Schema.keyFields(
 
   return ret
 }
-
-private fun GQLTypeDefinition.canHaveKeyFields(): Boolean {
-  return this is GQLObjectTypeDefinition || this is GQLInterfaceTypeDefinition
-}
-
 
 private fun List<GQLDirective>.toKeyFields(): Set<String> = extractFields("keyFields")
 
