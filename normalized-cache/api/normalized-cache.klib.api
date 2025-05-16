@@ -265,6 +265,12 @@ final class com.apollographql.cache.normalized.api/IdCacheKeyResolver : com.apol
     final fun listOfCacheKeysForField(com.apollographql.cache.normalized.api/ResolverContext): kotlin.collections/List<com.apollographql.cache.normalized.api/CacheKey?>? // com.apollographql.cache.normalized.api/IdCacheKeyResolver.listOfCacheKeysForField|listOfCacheKeysForField(com.apollographql.cache.normalized.api.ResolverContext){}[0]
 }
 
+final class com.apollographql.cache.normalized.api/KeyFieldsCacheKeyGenerator : com.apollographql.cache.normalized.api/CacheKeyGenerator { // com.apollographql.cache.normalized.api/KeyFieldsCacheKeyGenerator|null[0]
+    constructor <init>(kotlin.collections/Map<kotlin/String, kotlin.collections/Set<kotlin/String>>) // com.apollographql.cache.normalized.api/KeyFieldsCacheKeyGenerator.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.collections.Set<kotlin.String>>){}[0]
+
+    final fun cacheKeyForObject(kotlin.collections/Map<kotlin/String, kotlin/Any?>, com.apollographql.cache.normalized.api/CacheKeyGeneratorContext): com.apollographql.cache.normalized.api/CacheKey? // com.apollographql.cache.normalized.api/KeyFieldsCacheKeyGenerator.cacheKeyForObject|cacheKeyForObject(kotlin.collections.Map<kotlin.String,kotlin.Any?>;com.apollographql.cache.normalized.api.CacheKeyGeneratorContext){}[0]
+}
+
 final class com.apollographql.cache.normalized.api/MaxAgeContext { // com.apollographql.cache.normalized.api/MaxAgeContext|null[0]
     constructor <init>(kotlin.collections/List<com.apollographql.cache.normalized.api/MaxAgeContext.Field>) // com.apollographql.cache.normalized.api/MaxAgeContext.<init>|<init>(kotlin.collections.List<com.apollographql.cache.normalized.api.MaxAgeContext.Field>){}[0]
 

@@ -180,8 +180,8 @@ class ClientSideCacheControlTest {
   }
 
   private fun mergeCompanyQueryResults(client: ApolloClient, secondsAgo: Int) {
-    val data = GetCompanyQuery.Data(GetCompanyQuery.Company("42"))
-    val records = data.normalized(GetCompanyQuery()).values
+    val data = declarative.GetCompanyQuery.Data(declarative.GetCompanyQuery.Company(__typename = "Company", id = "42"))
+    val records = data.normalized(declarative.GetCompanyQuery()).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }
@@ -258,15 +258,16 @@ class ClientSideCacheControlTest {
   }
 
   private fun mergeUserQueryResults(client: ApolloClient, secondsAgo: Int) {
-    val data = GetUserQuery.Data(GetUserQuery.User("John", "john@doe.com", true))
-    val records = data.normalized(GetUserQuery()).values
+    val data =
+      declarative.GetUserQuery.Data(declarative.GetUserQuery.User(__typename = "User", name = "John", email = "john@doe.com", admin = true))
+    val records = data.normalized(declarative.GetUserQuery()).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }
   }
 
   private fun mergeProjectQueryResults(client: ApolloClient, secondsAgo: Int) {
-    val data = declarative.GetProjectQuery.Data(declarative.GetProjectQuery.Project("42", "Stardust"))
+    val data = declarative.GetProjectQuery.Data(declarative.GetProjectQuery.Project(__typename = "Project", id = "42", name = "Stardust"))
     val records = data.normalized(declarative.GetProjectQuery()).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)

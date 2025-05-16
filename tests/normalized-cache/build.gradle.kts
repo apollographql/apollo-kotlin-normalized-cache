@@ -1,3 +1,5 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.apollo)
@@ -75,6 +77,11 @@ apollo {
     packageName.set("declarativecache")
     srcDir(file("src/commonMain/graphql/declarativecache"))
     generateOptionalOperationVariables.set(false)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
 
   service("fragmentnormalizer") {

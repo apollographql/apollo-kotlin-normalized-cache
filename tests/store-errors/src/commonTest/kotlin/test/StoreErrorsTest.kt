@@ -300,6 +300,7 @@ class StoreErrorsTest {
                       bestFriend = null,
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
+                              __typename = "Project",
                               lead = MeWithBestFriendQuery.Lead(
                                   __typename = "User",
                                   id = "3",
@@ -390,6 +391,7 @@ class StoreErrorsTest {
               DefaultProjectQuery.Data(
                   project = null,
                   project2 = DefaultProjectQuery.Project2(
+                      __typename = "Project",
                       id = "44",
                       name = "Atlantis",
                       description = "The lost city of water"
@@ -444,6 +446,7 @@ class StoreErrorsTest {
               "id": "1",
               "firstName0": "John",
               "mainProject": {
+                "__typename": "Project",
                 "id": "1",
                 "lead0": {
                   "id": "2",
@@ -485,6 +488,7 @@ class StoreErrorsTest {
                       id = "1",
                       firstName0 = "John",
                       mainProject = WithFragmentsQuery.MainProject(
+                          __typename = "Project",
                           id = "1",
                           lead0 = WithFragmentsQuery.Lead0(
                               id = "2",
@@ -497,7 +501,6 @@ class StoreErrorsTest {
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"
                           ),
-                          __typename = "User",
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",

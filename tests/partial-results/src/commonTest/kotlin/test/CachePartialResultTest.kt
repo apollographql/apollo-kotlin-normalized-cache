@@ -288,6 +288,7 @@ class CachePartialResultTest {
                       ),
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
+                              __typename = "Project",
                               lead = MeWithBestFriendQuery.Lead(
                                   __typename = "User",
                                   id = "3",
@@ -329,6 +330,7 @@ class CachePartialResultTest {
                       ),
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
+                              __typename = "Project",
                               lead = null,
                               users = listOf(
                                   MeWithBestFriendQuery.User(
@@ -368,6 +370,7 @@ class CachePartialResultTest {
                       bestFriend = null,
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
+                              __typename = "Project",
                               lead = null,
                               users = listOf(
                                   MeWithBestFriendQuery.User(
@@ -457,11 +460,13 @@ class CachePartialResultTest {
           assertEquals(
               DefaultProjectQuery.Data(
                   project = DefaultProjectQuery.Project(
+                      __typename = "Project",
                       id = "42",
                       name = "El Dorado",
                       description = "The lost city of gold"
                   ),
                   project2 = DefaultProjectQuery.Project2(
+                      __typename = "Project",
                       id = "44",
                       name = "Atlantis",
                       description = "The lost city of water"
@@ -575,6 +580,7 @@ class CachePartialResultTest {
               "id": "1",
               "firstName0": "John",
               "mainProject": {
+                "__typename": "Project",
                 "id": "1",
                 "lead0": {
                   "id": "2",
@@ -609,6 +615,7 @@ class CachePartialResultTest {
                       id = "1",
                       firstName0 = "John",
                       mainProject = WithFragmentsQuery.MainProject(
+                          __typename = "Project",
                           id = "1",
                           lead0 = WithFragmentsQuery.Lead0(
                               id = "2",
@@ -621,7 +628,6 @@ class CachePartialResultTest {
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"
                           ),
-                          __typename = "User",
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",
@@ -658,6 +664,7 @@ class CachePartialResultTest {
                       id = "1",
                       firstName0 = "John",
                       mainProject = WithFragmentsQuery.MainProject(
+                          __typename = "Project",
                           id = "1",
                           lead0 = null,
                       ),
@@ -666,7 +673,6 @@ class CachePartialResultTest {
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"
                           ),
-                          __typename = "User",
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",
@@ -771,6 +777,7 @@ class CachePartialResultTest {
               "firstName": "John",
               "lastName": "Smith",
               "employeeInfo": {
+                "__typename": "EmployeeInfo",
                 "id": "1",
                 "salary": 100000,
                 "department": "Engineering"
@@ -797,6 +804,7 @@ class CachePartialResultTest {
                       firstName = "John",
                       lastName = "Smith",
                       employeeInfo = MeWithEmployeeInfoQuery.EmployeeInfo(
+                          __typename = "EmployeeInfo",
                           id = "1",
                           salary = 100000,
                           department = "Engineering"
@@ -839,6 +847,7 @@ class CachePartialResultTest {
               "firstName": "John",
               "lastName": "Smith",
               "departmentInfo": {
+                "__typename": "DepartmentInfo",
                 "id": "1",
                 "name": "Engineering"
               }

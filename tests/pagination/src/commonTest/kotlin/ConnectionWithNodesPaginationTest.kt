@@ -4,9 +4,7 @@ import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
-import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
@@ -37,9 +35,7 @@ class ConnectionWithNodesPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        cacheKeyGenerator = TypePolicyCacheKeyGenerator,
         metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-        cacheResolver = FieldPolicyCacheResolver,
         recordMerger = ConnectionRecordMerger
     )
     cacheManager.clearAll()

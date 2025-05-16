@@ -442,6 +442,11 @@ public final class com/apollographql/cache/normalized/api/IdCacheKeyResolver : c
 	public fun listOfCacheKeysForField (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/util/List;
 }
 
+public final class com/apollographql/cache/normalized/api/KeyFieldsCacheKeyGenerator : com/apollographql/cache/normalized/api/CacheKeyGenerator {
+	public fun <init> (Ljava/util/Map;)V
+	public fun cacheKeyForObject-z2_y8R0 (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKeyGeneratorContext;)Ljava/lang/String;
+}
+
 public abstract interface class com/apollographql/cache/normalized/api/MaxAge {
 }
 

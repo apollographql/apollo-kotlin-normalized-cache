@@ -1,9 +1,3 @@
-public final class com/apollographql/cache/apollocompilerplugin/ApolloCacheCompilerPlugin : com/apollographql/apollo/compiler/ApolloCompilerPlugin {
-	public fun <init> (Ljava/lang/String;Lcom/apollographql/apollo/compiler/ApolloCompilerPluginLogger;)V
-	public fun foreignSchemas ()Ljava/util/List;
-	public fun schemaListener ()Lcom/apollographql/apollo/compiler/SchemaListener;
-}
-
 public final class com/apollographql/cache/apollocompilerplugin/ApolloCacheCompilerPluginProvider : com/apollographql/apollo/compiler/ApolloCompilerPluginProvider {
 	public fun <init> ()V
 	public fun create (Lcom/apollographql/apollo/compiler/ApolloCompilerPluginEnvironment;)Lcom/apollographql/apollo/compiler/ApolloCompilerPlugin;
