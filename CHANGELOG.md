@@ -1,6 +1,10 @@
 # Next version (unreleased)
 
 - The computation of cache keys when multiple key fields are used has changed to avoid potential collisions. Note: this can lead to cache misses after upgrading to this version. (#80)
+- Make SQL cache more robust. (#152)
+- Support simple list cases in `FieldPolicyCacheResolver`. (#142)
+- Fragments selecting the key fields are now automatically added for union members and interface possible types by the compiler plugin. (#141)
+- Introduce `CacheKey.Scope`. (#102)
 
 # Version 1.0.0-alpha.1
 
