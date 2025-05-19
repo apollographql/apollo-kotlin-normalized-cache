@@ -151,8 +151,8 @@ class DeclarativeCacheTest {
     val booksCacheResponse = cacheManager.readOperation(booksQuery)
     val booksData = booksCacheResponse.data!!
     assertEquals(2, booksData.books.size)
-    assertEquals(GetBooksQuery.Book("Promo", "42", "Book"), booksData.books[0])
-    assertEquals(GetBooksQuery.Book("Other Book", "43", "Book"), booksData.books[1])
+    assertEquals(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"), booksData.books[0])
+    assertEquals(GetBooksQuery.Book(__typename = "Book", title = "Other Book", isbn = "43"), booksData.books[1])
   }
 
   @Test

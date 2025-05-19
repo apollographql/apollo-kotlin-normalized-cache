@@ -47,7 +47,8 @@ class CacheKeyGeneratorContext(
  * - unions
  * - interfaces that have a `@typePolicy` on subtypes.
  *
- * For those cases, prefer `fun TypePolicyCacheKeyGenerator(typePolicies, keyScope)`, which uses the concrete type (`__typename`) instead.
+ * For those cases, prefer `fun TypePolicyCacheKeyGenerator(typePolicies, keyScope)`, which uses the concrete type (found in `__typename`)
+ * instead.
  */
 @Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies, keyScope) instead")
 object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
@@ -64,7 +65,7 @@ object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
 /**
  * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the cache key.
  *
- * This uses the field's concrete type (`__typename`).
+ * This uses the key fields of the field's concrete type (found in `__typename`).
  *
  * @param typePolicies the type policies as declared in the schema via `@typePolicy`.
  * @param keyScope the scope of the generated cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the concrete type name, or
