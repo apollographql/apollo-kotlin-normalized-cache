@@ -22,6 +22,7 @@ import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.apollo.network.http.HttpInfo
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
+import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
@@ -67,7 +68,7 @@ fun ApolloClient.Builder.normalizedCache(
     @Suppress("DEPRECATION")
     cacheKeyGenerator: CacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
-    cacheResolver: CacheResolver = FieldPolicyCacheResolver,
+    cacheResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
     recordMerger: RecordMerger = DefaultRecordMerger,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,

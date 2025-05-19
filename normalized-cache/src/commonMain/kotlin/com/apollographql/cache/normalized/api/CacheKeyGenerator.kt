@@ -47,9 +47,9 @@ class CacheKeyGeneratorContext(
  * - unions
  * - interfaces that have a `@typePolicy` on subtypes.
  *
- * For those cases, prefer `TypePolicyCacheKeyGenerator(typePolicies: Map<String, TypePolicy>)`, which uses the concrete type (`__typename`) instead.
+ * For those cases, prefer `fun TypePolicyCacheKeyGenerator(typePolicies, keyScope)`, which uses the concrete type (`__typename`) instead.
  */
-@Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies: Map<String, TypePolicy>) instead")
+@Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies, keyScope) instead")
 object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val keyFields = context.field.type.rawType().keyFields()

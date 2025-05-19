@@ -4,7 +4,6 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheResolver
-import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
@@ -169,7 +168,8 @@ class DeclarativeCacheTest {
           }
         }
 
-        return FieldPolicyCacheResolver.resolveField(context)
+        @Suppress("DEPRECATION")
+        return com.apollographql.cache.normalized.api.FieldPolicyCacheResolver.resolveField(context)
       }
     }
     val cacheManager = CacheManager(MemoryCacheFactory(), cacheResolver = cacheResolver)

@@ -161,13 +161,13 @@ object DefaultCacheResolver : CacheResolver {
  */
 class CacheControlCacheResolver(
     private val maxAgeProvider: MaxAgeProvider,
-    private val delegateResolver: CacheResolver = FieldPolicyCacheResolver,
+    private val delegateResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
 ) : CacheResolver {
   /**
    * Creates a new [CacheControlCacheResolver] with no max ages. Use this constructor if you want to consider only the expiration dates.
    */
   constructor(
-      delegateResolver: CacheResolver = FieldPolicyCacheResolver,
+      delegateResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
   ) : this(
       maxAgeProvider = DefaultMaxAgeProvider,
       delegateResolver = delegateResolver,
@@ -229,7 +229,16 @@ class CacheControlCacheResolver(
 
 /**
  * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
+ *
+ * Note: this namespaces the keys with the **schema** type and therefore will lead to cache misses for:
+ * - unions
+ * - interfaces that have a `@typePolicy` on subtypes.
+ *
+ * For those cases:
+ * - if your keys are unique across the whole service, use `FieldPolicyCacheResolver(keyScope = CacheKey.Scope.SERVICE)`
+ * - otherwise there is no way to resolve the cache key automatically
  */
+@Deprecated("Use FieldPolicyCacheResolver(keyScope) instead")
 object FieldPolicyCacheResolver : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
     val keyArgsValues = context.field.argumentValues(context.variables) { it.definition.isKey }.values
@@ -260,6 +269,10 @@ object FieldPolicyCacheResolver : CacheResolver {
 
 /**
  * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
+ *
+ * Note: using a [CacheKey.Scope.TYPE] `keyScope` namespaces the keys with the **schema** type and therefore will lead to cache misses for:
+ * - unions
+ * - interfaces that have a `@typePolicy` on subtypes.
  *
  * @param keyScope the scope of the computed cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the schema type name, or
  * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.

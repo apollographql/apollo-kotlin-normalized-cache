@@ -11,7 +11,6 @@ import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.CacheKeyResolver
 import com.apollographql.cache.normalized.api.CacheResolver
-import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -45,7 +44,8 @@ internal object IdBasedCacheKeyResolver : CacheResolver, CacheKeyGenerator {
         ?: com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator.cacheKeyForObject(obj, context)
 
   override fun resolveField(context: ResolverContext): Any? {
-    return FieldPolicyCacheResolver.resolveField(context)
+    @Suppress("DEPRECATION")
+    return com.apollographql.cache.normalized.api.FieldPolicyCacheResolver.resolveField(context)
   }
 }
 
@@ -245,7 +245,8 @@ class NormalizationTest {
                       )
                     }
 
-                    return FieldPolicyCacheResolver.resolveField(context)
+                    @Suppress("DEPRECATION")
+                    return com.apollographql.cache.normalized.api.FieldPolicyCacheResolver.resolveField(context)
                   }
                 }
             )
