@@ -12,7 +12,6 @@ import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.CacheKeyResolver
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
-import com.apollographql.cache.normalized.api.KeyFieldsCacheKeyGenerator
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -154,7 +153,7 @@ class NormalizationTest {
         .cacheManager(
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
-                cacheKeyGenerator = KeyFieldsCacheKeyGenerator(Cache.keyFields),
+                cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(Cache.typePolicies),
                 cacheResolver = object : CacheKeyResolver() {
                   override fun cacheKeyForField(context: ResolverContext): CacheKey? {
                     // Same behavior as FieldPolicyCacheResolver
@@ -229,7 +228,7 @@ class NormalizationTest {
         .cacheManager(
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
-                cacheKeyGenerator = KeyFieldsCacheKeyGenerator(Cache.keyFields),
+                cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(Cache.typePolicies),
                 cacheResolver = object : CacheResolver {
                   @Suppress("UNCHECKED_CAST")
                   override fun resolveField(context: ResolverContext): Any? {

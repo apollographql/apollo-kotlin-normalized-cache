@@ -54,26 +54,26 @@ class WatcherTest {
     apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
   }
 
-  private val episodeHeroNameData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("R2-D2"))
-  private val episodeHeroNameChangedData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("Artoo"))
-  private val episodeHeroNameChangedTwoData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("ArTwo"))
+  private val episodeHeroNameData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("Droid", "R2-D2"))
+  private val episodeHeroNameChangedData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("Droid", "Artoo"))
+  private val episodeHeroNameChangedTwoData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("Droid", "ArTwo"))
 
-  private val episodeHeroNameWithIdData = EpisodeHeroNameWithIdQuery.Data(EpisodeHeroNameWithIdQuery.Hero("2001", "R2-D2"))
+  private val episodeHeroNameWithIdData = EpisodeHeroNameWithIdQuery.Data(EpisodeHeroNameWithIdQuery.Hero("Droid", "2001", "R2-D2"))
 
 
   private val heroAndFriendsNamesWithIDsData = HeroAndFriendsNamesWithIDsQuery.Data(
-      HeroAndFriendsNamesWithIDsQuery.Hero("2001", "R2-D2", listOf(
-          HeroAndFriendsNamesWithIDsQuery.Friend("1000", "Luke Skywalker"),
-          HeroAndFriendsNamesWithIDsQuery.Friend("1002", "Han Solo"),
-          HeroAndFriendsNamesWithIDsQuery.Friend("1003", "Leia Organa"),
+      HeroAndFriendsNamesWithIDsQuery.Hero("Droid", "2001", "R2-D2", listOf(
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1000", "Luke Skywalker"),
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1002", "Han Solo"),
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1003", "Leia Organa"),
       )
       )
   )
   private val heroAndFriendsNamesWithIDsNameChangedData = HeroAndFriendsNamesWithIDsQuery.Data(
-      HeroAndFriendsNamesWithIDsQuery.Hero("1000", "Luke Skywalker", listOf(
-          HeroAndFriendsNamesWithIDsQuery.Friend("2001", "Artoo"),
-          HeroAndFriendsNamesWithIDsQuery.Friend("1002", "Han Solo"),
-          HeroAndFriendsNamesWithIDsQuery.Friend("1003", "Leia Organa"),
+      HeroAndFriendsNamesWithIDsQuery.Hero("Human", "1000", "Luke Skywalker", listOf(
+          HeroAndFriendsNamesWithIDsQuery.Friend("Droid", "2001", "Artoo"),
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1002", "Han Solo"),
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1003", "Leia Organa"),
       )
       )
   )
@@ -172,6 +172,7 @@ class WatcherTest {
     // Someone writes to the store directly
     val data = EpisodeHeroNameWithIdQuery.Data(
         EpisodeHeroNameWithIdQuery.Hero(
+            "Droid",
             "2001",
             "Artoo"
         )

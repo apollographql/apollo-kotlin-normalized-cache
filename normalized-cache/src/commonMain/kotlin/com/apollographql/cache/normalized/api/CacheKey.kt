@@ -36,6 +36,10 @@ value class CacheKey(
    */
   constructor(typename: String, vararg values: String) : this(typename, values.toList())
 
+  constructor(values: List<String>) : this(
+      values.joinToString("+") { it.replace("\\", "\\\\").replace("+", "\\+") }
+  )
+
   internal fun keyToString(): String {
     return key
   }
@@ -46,6 +50,11 @@ value class CacheKey(
     val QUERY_ROOT = CacheKey("QUERY_ROOT")
     val MUTATION_ROOT = CacheKey("MUTATION_ROOT")
     val SUBSCRIPTION_ROOT = CacheKey("SUBSCRIPTION_ROOT")
+  }
+
+  enum class Scope {
+    TYPE,
+    SERVICE,
   }
 }
 

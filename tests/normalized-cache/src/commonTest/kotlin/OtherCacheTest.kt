@@ -37,7 +37,8 @@ class OtherCacheTest {
   private lateinit var cacheManager: CacheManager
 
   private suspend fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver())
+    cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(keyScope = CacheKey.Scope.SERVICE), cacheResolver = IdCacheKeyResolver(keyScope = CacheKey.Scope.SERVICE))
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
   }
@@ -74,7 +75,7 @@ class OtherCacheTest {
 
     // Some details are not present in the master query, we should get a cache miss
     val e = apolloClient.query(CharacterDetailsQuery("1002")).fetchPolicy(FetchPolicy.CacheOnly).execute().exception as CacheMissException
-    assertTrue(e.message!!.contains("Object '${CacheKey("Character:1002").keyToString()}' has no field named '__typename'"))
+    assertTrue(e.message!!.contains("Object '${CacheKey("1002").keyToString()}' has no field named 'birthDate'"))
   }
 
 
@@ -178,6 +179,7 @@ class OtherCacheTest {
     val mutation = UpdateReviewWithoutVariableMutation()
     val data = UpdateReviewWithoutVariableMutation.Data(
         UpdateReviewWithoutVariableMutation.UpdateReview(
+            __typename = "Review",
             "0",
             5,
             "Great"

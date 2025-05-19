@@ -49,6 +49,11 @@ apollo {
   service("main") {
     packageName.set("main")
     srcDir(file("src/commonMain/graphql/main"))
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
 
   service("httpcache") {
@@ -65,6 +70,11 @@ apollo {
     sealedClassesForEnumsMatching.set(listOf("Episode"))
     generateOptionalOperationVariables.set(false)
     mapScalar("Color", "kotlin.String")
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
 
   service("circular") {

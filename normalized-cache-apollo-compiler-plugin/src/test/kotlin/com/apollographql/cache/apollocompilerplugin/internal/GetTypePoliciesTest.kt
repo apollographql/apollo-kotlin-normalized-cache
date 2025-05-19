@@ -3,6 +3,7 @@
 package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
+import com.apollographql.apollo.ast.ForeignSchema
 import com.apollographql.apollo.ast.SourceAwareException
 import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
@@ -12,9 +13,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class ValidateAndComputeKeyFieldsTest {
+class GetTypePoliciesTest {
   @Test
-  fun keyFieldsOnObject() {
+  fun simpleTypePolicies() {
     // language=GraphQL
     val schema = """
       type Query {
@@ -58,13 +59,15 @@ class ValidateAndComputeKeyFieldsTest {
         ).getOrThrow()
 
     val expected = mapOf(
-        "User" to setOf("id"),
-        "Lion" to setOf("kingdom", "species"),
-        "Circle" to setOf("id"),
-        "Square" to setOf("radius"),
+        "User" to TypePolicy(keyFields = setOf("id")),
+        "Animal" to TypePolicy(keyFields = setOf("kingdom", "species")),
+        "Lion" to TypePolicy(keyFields = setOf("kingdom", "species")),
+        "HasId" to TypePolicy(keyFields = setOf("id")),
+        "Circle" to TypePolicy(keyFields = setOf("id")),
+        "Square" to TypePolicy(keyFields = setOf("radius")),
     )
 
-    assertEquals(expected, schema.getObjectKeyFields())
+    assertEquals(expected, schema.getTypePolicies())
   }
 
   // TODO: Ignored because the same checks are already done in validateAsSchema in v4.
@@ -97,12 +100,12 @@ class ValidateAndComputeKeyFieldsTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = emptyList()
+                foreignSchemas = listOf(ForeignSchema("cache", "v0.1", cacheGQLDefinitions))
             )
         ).getOrThrow()
 
     assertFailsWith<SourceAwareException> {
-      schema.getObjectKeyFields()
+      schema.getTypePolicies()
     }.apply {
       assertEquals("""
         e: null: (14, 1): Apollo: Type 'Lion' cannot inherit different keys from different interfaces:
@@ -139,12 +142,12 @@ class ValidateAndComputeKeyFieldsTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = emptyList()
+                foreignSchemas = listOf(ForeignSchema("cache", "v0.1", cacheGQLDefinitions))
             )
         ).getOrThrow()
 
     assertFailsWith<SourceAwareException> {
-      schema.getObjectKeyFields()
+      schema.getTypePolicies()
     }.apply {
       assertEquals("""
         e: null: (10, 1): Type 'Lion' cannot have key fields since it implements the following interfaces which also have key fields: Animal: [kingdom, species]

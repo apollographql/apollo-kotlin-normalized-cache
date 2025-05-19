@@ -39,7 +39,7 @@ class CacheFlagsTest {
   @Test
   fun doNotStore() = runTest(before = { setUp() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     apolloClient.enqueueTestResponse(query, data)
 
     apolloClient.query(query).doNotStore(true).execute()
@@ -73,7 +73,7 @@ class CacheFlagsTest {
   @Test
   fun doNotStoreWhenSetInResponse() = runTest {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     cacheManager = CacheManager(MemoryCacheFactory())
     val queueTestNetworkTransport = QueueTestNetworkTransport()

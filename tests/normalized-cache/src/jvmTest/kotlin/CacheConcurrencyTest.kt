@@ -33,7 +33,7 @@ class CacheConcurrencyTest {
     0.until(concurrency).map {
       launch(dispatcher) {
         val query = CharacterNameByIdQuery((it / 2).toString())
-        apolloClient.enqueueTestResponse(query, CharacterNameByIdQuery.Data(CharacterNameByIdQuery.Character(name = it.toString())))
+        apolloClient.enqueueTestResponse(query, CharacterNameByIdQuery.Data(CharacterNameByIdQuery.Character("Droid", name = it.toString())))
         apolloClient.query(query).execute()
       }
     }.joinAll()

@@ -75,21 +75,27 @@ abstract class CacheKeyResolver : CacheResolver {
  *
  * @param idFields possible names of the argument containing the id for objects
  * @param idListFields possible names of the argument containing the ids for lists
+ * @param keyScope the scope of the computed cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the schema type name, or
+ * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
  *
  * @see IdCacheKeyGenerator
  */
 class IdCacheKeyResolver(
     private val idFields: List<String> = listOf("id"),
     private val idListFields: List<String> = listOf("ids"),
+    private val keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
 ) : CacheKeyResolver() {
   override fun cacheKeyForField(context: ResolverContext): CacheKey? {
     val fieldKey = context.getFieldKey()
     if (context.parent[fieldKey] != null) {
       return null
     }
-    val typeName = context.field.type.rawType().name
     val id = idFields.firstNotNullOfOrNull { context.field.argumentValue(it, context.variables).getOrNull()?.toString() } ?: return null
-    return CacheKey(typeName, id)
+    return if (keyScope == CacheKey.Scope.TYPE) {
+      CacheKey(context.field.type.rawType().name, id)
+    } else {
+      CacheKey(id)
+    }
   }
 
   override fun listOfCacheKeysForField(context: ResolverContext): List<CacheKey?>? {
@@ -97,9 +103,16 @@ class IdCacheKeyResolver(
     if (context.parent[fieldKey] != null) {
       return null
     }
-    val typeName = context.field.type.rawType().name
     val ids = idListFields.firstNotNullOfOrNull { context.field.argumentValue(it, context.variables).getOrNull() as? List<*> }
         ?: return null
-    return ids.map { id -> id?.toString()?.let { CacheKey(typeName, it) } }
+    return ids.map { id ->
+      id?.toString()?.let {
+        if (keyScope == CacheKey.Scope.TYPE) {
+          CacheKey(context.field.type.rawType().name, it)
+        } else {
+          CacheKey(it)
+        }
+      }
+    }
   }
 }

@@ -28,7 +28,7 @@ class IdCacheKeyGeneratorTest {
     )
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUser2Query("42")
-    apolloClient.enqueueTestResponse(query, GetUser2Query.Data(GetUser2Query.User2(id = "42", name = "John", email = "a@a.com")))
+    apolloClient.enqueueTestResponse(query, GetUser2Query.Data(GetUser2Query.User2(__typename = "User", id = "42", name = "John", email = "a@a.com")))
     apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
     val user = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().dataOrThrow().user2!!
     assertEquals("John", user.name)
@@ -44,7 +44,7 @@ class IdCacheKeyGeneratorTest {
     )
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUserByIdQuery("42")
-    apolloClient.enqueueTestResponse(query, GetUserByIdQuery.Data(GetUserByIdQuery.UserById(userId = "42", name = "John", email = "a@a.com")))
+    apolloClient.enqueueTestResponse(query, GetUserByIdQuery.Data(GetUserByIdQuery.UserById(__typename = "User", userId = "42", name = "John", email = "a@a.com")))
     apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
     val user = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().dataOrThrow().userById!!
     assertEquals("John", user.name)
@@ -64,8 +64,8 @@ class IdCacheKeyGeneratorTest {
         query1,
         GetUsersQuery.Data(
             listOf(
-                GetUsersQuery.User(id = "42", name = "John", email = "a@a.com"),
-                GetUsersQuery.User(id = "43", name = "Jane", email = "b@b.com"),
+                GetUsersQuery.User(__typename = "User", id = "42", name = "John", email = "a@a.com"),
+                GetUsersQuery.User(__typename = "User", id = "43", name = "Jane", email = "b@b.com"),
             )
         )
     )

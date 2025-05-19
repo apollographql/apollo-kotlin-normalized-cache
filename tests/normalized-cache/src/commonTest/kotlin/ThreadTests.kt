@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package test
 
 import com.apollographql.apollo.ApolloClient
@@ -24,7 +22,6 @@ import kotlin.reflect.KClass
 import kotlin.test.Test
 
 class ThreadTests {
-  @Suppress("DEPRECATION")
   class MyNormalizedCache(private val mainThreadId: String) : NormalizedCache {
     val delegate = MemoryCache()
     override fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
@@ -93,18 +90,16 @@ class ThreadTests {
 
   @Test
   fun cacheIsNotReadFromTheMainThread() = runTest {
-    @Suppress("DEPRECATION")
     if (platform() == Platform.Js) {
       return@runTest
     }
 
-    @Suppress("DEPRECATION")
     val apolloClient = ApolloClient.Builder()
         .normalizedCache(MyMemoryCacheFactory(currentThreadId()))
         .networkTransport(QueueTestNetworkTransport())
         .build()
 
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("Luke"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero("Human", "Luke"))
     val query = HeroNameQuery()
     apolloClient.enqueueTestResponse(query, data)
 

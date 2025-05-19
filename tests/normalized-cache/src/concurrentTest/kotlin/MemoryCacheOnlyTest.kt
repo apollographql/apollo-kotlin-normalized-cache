@@ -26,7 +26,7 @@ class MemoryCacheOnlyTest {
     val cacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())).also { it.clearAll() }
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUserQuery()
-    apolloClient.enqueueTestResponse(query, GetUserQuery.Data(GetUserQuery.User("John", "a@a.com")))
+    apolloClient.enqueueTestResponse(query, GetUserQuery.Data(GetUserQuery.User(__typename = "User", "John", "a@a.com")))
     apolloClient.query(query).memoryCacheOnly(true).execute()
     val dump: Map<KClass<*>, Map<CacheKey, Record>> = cacheManager.dump()
     assertEquals(2, dump[MemoryCache::class]!!.size)
@@ -37,7 +37,7 @@ class MemoryCacheOnlyTest {
   fun memoryCacheOnlyDoesNotReadFromSqlCache() = runTest {
     val cacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())).also { it.clearAll() }
     val query = GetUserQuery()
-    cacheManager.writeOperation(query, GetUserQuery.Data(GetUserQuery.User("John", "a@a.com")))
+    cacheManager.writeOperation(query, GetUserQuery.Data(GetUserQuery.User(__typename = "User", "John", "a@a.com")))
 
     val store2 = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
     val apolloClient = ApolloClient.Builder().serverUrl("unused").cacheManager(store2).build()

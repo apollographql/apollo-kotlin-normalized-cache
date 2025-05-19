@@ -127,18 +127,18 @@ class NormalizerTest {
     val records = records(HeroAndFriendsNamesWithIDsQuery(Episode.JEDI), "HeroAndFriendsNameWithIdsResponse.json")
     val record = records.get(CacheKey.QUERY_ROOT)
     val heroReference = record!![TEST_FIELD_KEY_JEDI] as CacheKey?
-    assertEquals(CacheKey("Character:2001"), heroReference)
+    assertEquals(CacheKey("Droid:2001"), heroReference)
     val heroRecord = records.get(heroReference!!)
     assertEquals(heroRecord!!["name"], "R2-D2")
     assertEquals(
         listOf(
-            CacheKey("Character:1000"),
-            CacheKey("Character:1002"),
-            CacheKey("Character:1003")
+            CacheKey("Human:1000"),
+            CacheKey("Human:1002"),
+            CacheKey("Human:1003")
         ),
         heroRecord["friends"]
     )
-    val luke = records.get(CacheKey("Character:1000"))
+    val luke = records.get(CacheKey("Human:1000"))
     assertEquals(luke!!["name"], "Luke Skywalker")
   }
 
@@ -148,18 +148,18 @@ class NormalizerTest {
     val records = records(HeroAndFriendsNamesWithIDForParentOnlyQuery(Episode.JEDI), "HeroAndFriendsNameWithIdsParentOnlyResponse.json")
     val record = records[CacheKey.QUERY_ROOT]
     val heroReference = record!![TEST_FIELD_KEY_JEDI] as CacheKey?
-    assertEquals(CacheKey("Character:2001"), heroReference)
+    assertEquals(CacheKey("Droid:2001"), heroReference)
     val heroRecord = records.get(heroReference!!)
     assertEquals(heroRecord!!["name"], "R2-D2")
     assertEquals(
         listOf(
-            CacheKey("Character:2001").append("friends", "0"),
-            CacheKey("Character:2001").append("friends", "1"),
-            CacheKey("Character:2001").append("friends", "2")
+            CacheKey("Droid:2001").append("friends", "0"),
+            CacheKey("Droid:2001").append("friends", "1"),
+            CacheKey("Droid:2001").append("friends", "2")
         ),
         heroRecord["friends"]
     )
-    val luke = records.get(CacheKey("Character:2001").append("friends", "0"))
+    val luke = records.get(CacheKey("Droid:2001").append("friends", "0"))
     assertEquals(luke!!["name"], "Luke Skywalker")
   }
 

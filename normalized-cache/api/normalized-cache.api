@@ -274,6 +274,7 @@ public final class com/apollographql/cache/normalized/api/CacheKey {
 	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
 	public static fun constructor-impl (Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
 	public static fun constructor-impl (Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String;
+	public static fun constructor-impl (Ljava/util/List;)Ljava/lang/String;
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
 	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
@@ -291,6 +292,14 @@ public final class com/apollographql/cache/normalized/api/CacheKey$Companion {
 	public final fun getSUBSCRIPTION_ROOT-mqw0cJ0 ()Ljava/lang/String;
 }
 
+public final class com/apollographql/cache/normalized/api/CacheKey$Scope : java/lang/Enum {
+	public static final field SERVICE Lcom/apollographql/cache/normalized/api/CacheKey$Scope;
+	public static final field TYPE Lcom/apollographql/cache/normalized/api/CacheKey$Scope;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/CacheKey$Scope;
+	public static fun values ()[Lcom/apollographql/cache/normalized/api/CacheKey$Scope;
+}
+
 public abstract interface class com/apollographql/cache/normalized/api/CacheKeyGenerator {
 	public abstract fun cacheKeyForObject-z2_y8R0 (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKeyGeneratorContext;)Ljava/lang/String;
 }
@@ -299,6 +308,11 @@ public final class com/apollographql/cache/normalized/api/CacheKeyGeneratorConte
 	public fun <init> (Lcom/apollographql/apollo/api/CompiledField;Lcom/apollographql/apollo/api/Executable$Variables;)V
 	public final fun getField ()Lcom/apollographql/apollo/api/CompiledField;
 	public final fun getVariables ()Lcom/apollographql/apollo/api/Executable$Variables;
+}
+
+public final class com/apollographql/cache/normalized/api/CacheKeyGeneratorKt {
+	public static final fun TypePolicyCacheKeyGenerator (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;
+	public static synthetic fun TypePolicyCacheKeyGenerator$default (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;
 }
 
 public abstract class com/apollographql/cache/normalized/api/CacheKeyResolver : com/apollographql/cache/normalized/api/CacheResolver {
@@ -319,6 +333,8 @@ public final class com/apollographql/cache/normalized/api/CacheResolver$Resolved
 }
 
 public final class com/apollographql/cache/normalized/api/CacheResolverKt {
+	public static final fun FieldPolicyCacheResolver (Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)Lcom/apollographql/cache/normalized/api/CacheResolver;
+	public static synthetic fun FieldPolicyCacheResolver$default (Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheResolver;
 	public static final fun getFieldKey (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/String;
 }
 
@@ -429,22 +445,17 @@ public final class com/apollographql/cache/normalized/api/GlobalMaxAgeProvider :
 
 public final class com/apollographql/cache/normalized/api/IdCacheKeyGenerator : com/apollographql/cache/normalized/api/CacheKeyGenerator {
 	public fun <init> ()V
-	public fun <init> ([Ljava/lang/String;)V
-	public synthetic fun <init> ([Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)V
+	public synthetic fun <init> ([Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun cacheKeyForObject-z2_y8R0 (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKeyGeneratorContext;)Ljava/lang/String;
 }
 
 public final class com/apollographql/cache/normalized/api/IdCacheKeyResolver : com/apollographql/cache/normalized/api/CacheKeyResolver {
 	public fun <init> ()V
-	public fun <init> (Ljava/util/List;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun cacheKeyForField-fLoEQYY (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/String;
 	public fun listOfCacheKeysForField (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/util/List;
-}
-
-public final class com/apollographql/cache/normalized/api/KeyFieldsCacheKeyGenerator : com/apollographql/cache/normalized/api/CacheKeyGenerator {
-	public fun <init> (Ljava/util/Map;)V
-	public fun cacheKeyForObject-z2_y8R0 (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKeyGeneratorContext;)Ljava/lang/String;
 }
 
 public abstract interface class com/apollographql/cache/normalized/api/MaxAge {
@@ -621,6 +632,11 @@ public final class com/apollographql/cache/normalized/api/ResolverContext {
 public final class com/apollographql/cache/normalized/api/SchemaCoordinatesMaxAgeProvider : com/apollographql/cache/normalized/api/MaxAgeProvider {
 	public synthetic fun <init> (Ljava/util/Map;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getMaxAge-5sfh64U (Lcom/apollographql/cache/normalized/api/MaxAgeContext;)J
+}
+
+public final class com/apollographql/cache/normalized/api/TypePolicy {
+	public fun <init> (Ljava/util/Set;)V
+	public final fun getKeyFields ()Ljava/util/Set;
 }
 
 public final class com/apollographql/cache/normalized/api/TypePolicyCacheKeyGenerator : com/apollographql/cache/normalized/api/CacheKeyGenerator {

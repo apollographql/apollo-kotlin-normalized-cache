@@ -14,10 +14,10 @@ import com.squareup.kotlinpoet.MAP
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.SET
 import com.squareup.kotlinpoet.STRING
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.withIndent
 import java.io.File
 import kotlin.time.Duration
 
@@ -26,6 +26,7 @@ private object Symbols {
   val MaxAgeInherit = MaxAge.nestedClass("Inherit")
   val MaxAgeDuration = MaxAge.nestedClass("Duration")
   val Seconds = MemberName(Duration.Companion::class.asTypeName(), "seconds", isExtension = true)
+  val TypePolicy = ClassName("com.apollographql.cache.normalized.api", "TypePolicy")
 }
 
 internal class CacheSchemaListener(
@@ -34,13 +35,11 @@ internal class CacheSchemaListener(
   override fun onSchema(schema: Schema, outputDirectory: File) {
     val packageName = (environment.arguments["packageName"] as? String
         ?: throw IllegalArgumentException("packageName argument is required and must be a String")) + ".cache"
-    val maxAgeProperty = maxAgeProperty(schema)
-    val keyFieldsProperty = keyFieldsProperty(schema)
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")
-                .addProperty(maxAgeProperty)
-                .addProperty(keyFieldsProperty)
+                .addProperty(maxAgeProperty(schema))
+                .addProperty(typePoliciesProperty(schema))
                 .build()
         )
         .addFileComment(
@@ -53,7 +52,6 @@ internal class CacheSchemaListener(
             """.trimIndent()
         )
         .build()
-
     file.writeTo(outputDirectory)
   }
 
@@ -61,48 +59,53 @@ internal class CacheSchemaListener(
     val maxAges = schema.getMaxAges(environment.logger)
     val initializer = CodeBlock.builder().apply {
       add("mapOf(\n")
-      indent()
-      maxAges.forEach { (field, duration) ->
-        if (duration == -1) {
-          addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
-        } else {
-          addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
+      withIndent {
+        maxAges.forEach { (field, duration) ->
+          if (duration == -1) {
+            addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
+          } else {
+            addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
+          }
         }
       }
-      unindent()
       add(")")
     }
         .build()
-    return PropertySpec.Companion.builder("maxAges", MAP
-        .parameterizedBy(STRING, Symbols.MaxAge)
+    return PropertySpec.Companion.builder(
+        name = "maxAges",
+        type = MAP.parameterizedBy(STRING, Symbols.MaxAge)
     )
         .initializer(initializer)
         .build()
   }
 
-  private fun keyFieldsProperty(schema: Schema): PropertySpec {
-    val keyFields = schema.getObjectKeyFields()
+  private fun typePoliciesProperty(schema: Schema): PropertySpec {
+    val typePolicies = schema.getTypePolicies()
     val initializer = CodeBlock.builder().apply {
       add("mapOf(\n")
-      indent()
-      keyFields.forEach { (type, fields) ->
-        addStatement("%S to setOf(", type)
-        indent()
-        fields.forEach { field ->
-          addStatement("%S,", field)
+      withIndent {
+        typePolicies.forEach { (type, typePolicy) ->
+          addStatement("%S to %T(", type, Symbols.TypePolicy)
+          withIndent {
+            addStatement("keyFields = setOf(")
+            withIndent {
+              typePolicy.keyFields.forEach { keyField ->
+                addStatement("%S, ", keyField)
+              }
+            }
+            add("),\n")
+          }
+          addStatement("),")
         }
-        unindent()
-        addStatement("),")
       }
-      unindent()
       add(")")
     }
         .build()
-    return PropertySpec.builder("keyFields", MAP
-        .parameterizedBy(STRING, SET.parameterizedBy(STRING))
+    return PropertySpec.builder(
+        name = "typePolicies",
+        type = MAP.parameterizedBy(STRING, Symbols.TypePolicy)
     )
         .initializer(initializer)
         .build()
   }
 }
-

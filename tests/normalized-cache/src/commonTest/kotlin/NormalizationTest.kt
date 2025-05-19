@@ -23,7 +23,7 @@ class NormalizationTest {
     apolloClient.enqueueTestResponse(
       query,
       RepositoryListQuery.Data(
-        listOf(RepositoryListQuery.Repository("42"))
+          listOf(RepositoryListQuery.Repository(__typename = "Repository", id = "42"))
       )
     )
     apolloClient.query(query).execute()

@@ -18,7 +18,7 @@ class CacheResolverTest {
     val resolver = object : CacheResolver {
       override fun resolveField(context: ResolverContext): Any? {
         return when (context.field.name) {
-          "hero" -> mapOf("name" to "Luke")
+          "hero" -> mapOf("name" to "Luke", "__typename" to "Human")
           else -> DefaultCacheResolver.resolveField(context)
         }
       }

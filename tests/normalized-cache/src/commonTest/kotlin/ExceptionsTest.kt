@@ -97,6 +97,7 @@ class ExceptionsTest {
       {
         "data": {
           "hero": {
+            "__typename": "Droid",
             "name": "R2-D2",
             "friends": null
           }

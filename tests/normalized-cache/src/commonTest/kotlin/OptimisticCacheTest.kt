@@ -59,12 +59,15 @@ class OptimisticCacheTest {
 
     val mutationId = uuid4()
     val data = HeroAndFriendsNamesQuery.Data(HeroAndFriendsNamesQuery.Hero(
+        "Droid",
         "R222-D222",
         listOf(
             HeroAndFriendsNamesQuery.Friend(
+                "Human",
                 "SuperMan"
             ),
             HeroAndFriendsNamesQuery.Friend(
+                "Human",
                 "Batman"
             )
         )
@@ -108,12 +111,15 @@ class OptimisticCacheTest {
 
     val mutationId = uuid4()
     val data = HeroAndFriendsNamesFragment(
+        "Droid",
         "R222-D222",
         listOf(
             HeroAndFriendsNamesFragment.Friend(
+                "Human",
                 "SuperMan"
             ),
             HeroAndFriendsNamesFragment.Friend(
+                "Human",
                 "Batman"
             )
         )
@@ -159,14 +165,17 @@ class OptimisticCacheTest {
     // now write some optimistic updates for query1
     val data1 = HeroAndFriendsNamesWithIDsQuery.Data(
         HeroAndFriendsNamesWithIDsQuery.Hero(
+            "Droid",
             "2001",
             "R222-D222",
             listOf(
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1000",
                     "SuperMan"
                 ),
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1003",
                     "Batman"
                 )
@@ -200,6 +209,7 @@ class OptimisticCacheTest {
 
     // write optimistic data2
     val data2 = HeroNameWithIdQuery.Data(HeroNameWithIdQuery.Hero(
+        "Human",
         "1000",
         "Beast"
     )
@@ -306,9 +316,10 @@ class OptimisticCacheTest {
     apolloClient.mutation(updateReviewMutation).optimisticUpdates(
         UpdateReviewMutation.Data(
             UpdateReviewMutation.UpdateReview(
-                "empireReview2",
-                5,
-                "Great"
+                __typename = "Review",
+                id = "empireReview2",
+                stars = 5,
+                commentary = "Great"
             )
         )
     ).execute()
@@ -329,7 +340,6 @@ class OptimisticCacheTest {
     assertEquals<Any?>("Amazing", watcherData?.reviews?.get(2)?.commentary)
 
     // after mutation with rolled back optimistic updates
-    @Suppress("DEPRECATION")
     watcherData = channel.awaitElement()
     assertEquals<Any?>(3, watcherData?.reviews?.size)
     assertEquals<Any?>("empireReview1", watcherData?.reviews?.get(0)?.id)
@@ -361,14 +371,17 @@ class OptimisticCacheTest {
 
     val data1 = HeroAndFriendsNamesWithIDsQuery.Data(
         HeroAndFriendsNamesWithIDsQuery.Hero(
+            "Droid",
             "2001",
             "R222-D222",
             listOf(
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1000",
                     "Robocop"
                 ),
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1003",
                     "Batman"
                 )
@@ -383,6 +396,7 @@ class OptimisticCacheTest {
       cacheManager.publish(it)
     }
     val data2 = HeroNameWithIdQuery.Data(HeroNameWithIdQuery.Hero(
+        "Human",
         "1000",
         "Spiderman"
     )

@@ -74,7 +74,7 @@ class FetchPolicyTest {
   @Test
   fun cacheFirst() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
@@ -104,7 +104,7 @@ class FetchPolicyTest {
   fun cacheFirstExecuteThrowing() = runTest(before = { setUp() }, after = { tearDown() }) {
     apolloClient = apolloClient.newBuilder().build()
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
@@ -144,7 +144,7 @@ class FetchPolicyTest {
     apolloClient = apolloClient.newBuilder().build()
 
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
@@ -188,7 +188,7 @@ class FetchPolicyTest {
   @Test
   fun networkFirst() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
@@ -227,7 +227,7 @@ class FetchPolicyTest {
   fun networkFirstExecuteThrowing() = runTest(before = { setUp() }, after = { tearDown() }) {
     apolloClient = apolloClient.newBuilder().build()
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
@@ -269,7 +269,7 @@ class FetchPolicyTest {
     apolloClient = apolloClient.newBuilder().build()
 
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
@@ -320,7 +320,7 @@ class FetchPolicyTest {
   @Test
   fun cacheOnly() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     // First query should hit the network and save in cache
     mockServer.enqueueString(query.composeJsonResponse(data))
@@ -340,7 +340,7 @@ class FetchPolicyTest {
   @Test
   fun networkOnly() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly)
 
@@ -360,7 +360,7 @@ class FetchPolicyTest {
   fun networkOnlyThrowing() = runTest(before = { setUp() }, after = { tearDown() }) {
     apolloClient = apolloClient.newBuilder().build()
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly)
 
@@ -386,7 +386,7 @@ class FetchPolicyTest {
   @Test
   fun cacheAndNetwork() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     var caught: Throwable? = null
 
     // Initial state: everything fails
@@ -458,7 +458,7 @@ class FetchPolicyTest {
     apolloClient = apolloClient.newBuilder().build()
 
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     var caught: Throwable? = null
     // Initial state: everything fails
     // Cache Error + Network Error => Error
@@ -545,7 +545,8 @@ class FetchPolicyTest {
               this,
               CharacterNameByIdQuery.Data(
                   CharacterNameByIdQuery.Character(
-                      "Luke"
+                      __typename = "Human",
+                      name = "Luke"
                   )
               )
           )
@@ -568,7 +569,8 @@ class FetchPolicyTest {
               this,
               HeroNameQuery.Data(
                   HeroNameQuery.Hero(
-                      "Leila"
+                      __typename = "Human",
+                      name = "Leila"
                   )
               )
           )
@@ -597,7 +599,8 @@ class FetchPolicyTest {
               this,
               HeroNameQuery.Data(
                   HeroNameQuery.Hero(
-                      "Chewbacca"
+                      __typename = "Wookie",
+                      name = "Chewbacca"
                   )
               )
           )
@@ -626,7 +629,7 @@ class FetchPolicyTest {
   @Test
   fun isFromCache() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
-    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
     mockServer.enqueueString(query.composeJsonResponse(data))
 
     // NetworkOnly / hit

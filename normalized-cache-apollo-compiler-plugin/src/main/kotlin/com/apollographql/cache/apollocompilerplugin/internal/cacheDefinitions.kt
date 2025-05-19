@@ -2,7 +2,7 @@ package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.ast.parseAsGQLDocument
 
-private val cacheControlDefinitions_0_1 = """
+private val cacheDefinitions_0_1 = """
   ""${'"'}
   Possible values for the `@cacheControl` `scope` argument (unused on the client).
   ""${'"'}
@@ -64,4 +64,4 @@ private val cacheControlDefinitions_0_1 = """
   ) repeatable on OBJECT | INTERFACE
 """.trimIndent()
 
-internal val cacheControlGQLDefinitions = cacheControlDefinitions_0_1.parseAsGQLDocument().getOrThrow().definitions
+internal val cacheGQLDefinitions = cacheDefinitions_0_1.parseAsGQLDocument().getOrThrow().definitions

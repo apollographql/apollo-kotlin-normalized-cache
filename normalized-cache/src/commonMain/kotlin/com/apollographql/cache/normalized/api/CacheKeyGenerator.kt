@@ -41,15 +41,15 @@ class CacheKeyGeneratorContext(
 )
 
 /**
- * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the id.
+ * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the cache key.
  *
  * Note: this uses the key fields of the **schema** type and therefore can't generate cache keys for:
  * - unions
  * - interfaces that have a `@typePolicy` on subtypes.
  *
- * For those cases, prefer [KeyFieldsCacheKeyGenerator], which uses the concrete type (`__typename`) instead.
+ * For those cases, prefer `TypePolicyCacheKeyGenerator(typePolicies: Map<String, TypePolicy>)`, which uses the concrete type (`__typename`) instead.
  */
-@Deprecated("Use KeyFieldsCacheKeyGenerator instead")
+@Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies: Map<String, TypePolicy>) instead")
 object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val keyFields = context.field.type.rawType().keyFields()
@@ -62,18 +62,29 @@ object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
 }
 
 /**
- * A [CacheKeyGenerator] that uses the given key fields to compute the cache key.
+ * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the cache key.
  *
  * This uses the field's concrete type (`__typename`).
+ *
+ * @param typePolicies the type policies as declared in the schema via `@typePolicy`.
+ * @param keyScope the scope of the generated cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the concrete type name, or
+ * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
  */
-class KeyFieldsCacheKeyGenerator(private val keyFields: Map<String, Set<String>>) : CacheKeyGenerator {
+fun TypePolicyCacheKeyGenerator(
+    typePolicies: Map<String, TypePolicy>,
+    keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+) = object : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
-    val typename = obj["__typename"].toString()
-    val keyFields = keyFields[typename]
-    // If a type is unknown at build type, it might be an interface that has key fields
-        ?: context.field.type.rawType().keyFields().ifEmpty { null }
+    val typeName = obj["__typename"].toString()
+    val typePolicy = typePolicies[typeName]
+    // If a type is unknown at build type, it might be an interface that has a type policy
+        ?: typePolicies[context.field.type.rawType().name]
         ?: return null
-    return CacheKey(typename, keyFields.map { obj[it].toString() })
+    return if (keyScope == CacheKey.Scope.TYPE) {
+      CacheKey(typeName, typePolicy.keyFields.map { obj[it].toString() })
+    } else {
+      CacheKey(typePolicy.keyFields.map { obj[it].toString() })
+    }
   }
 }
 
@@ -81,14 +92,24 @@ class KeyFieldsCacheKeyGenerator(private val keyFields: Map<String, Set<String>>
  * A [CacheKeyGenerator] that uses the given id fields to compute the cache key.
  * If the id field(s) is/are missing, the object is considered to not have an id.
  *
+ * @param idFields the possible names of the fields to use as id. The first present one is used.
+ * @param keyScope the scope of the generated cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the concrete type name, or
+ * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
+ *
  * @see IdCacheKeyResolver
  */
-class IdCacheKeyGenerator(private vararg val idFields: String = arrayOf("id")) : CacheKeyGenerator {
+class IdCacheKeyGenerator(
+    private vararg val idFields: String = arrayOf("id"),
+    private val keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+) : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val values = idFields.map {
       (obj[it] ?: return null).toString()
     }
-    val typeName = context.field.type.rawType().name
-    return CacheKey(typeName, values)
+    return if (keyScope == CacheKey.Scope.TYPE) {
+      CacheKey(obj["__typename"].toString(), values)
+    } else {
+      CacheKey(values)
+    }
   }
 }

@@ -43,7 +43,8 @@ class StoreTest {
   private lateinit var cacheManager: CacheManager
 
   private fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver())
+    cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(keyScope = CacheKey.Scope.SERVICE), cacheResolver = IdCacheKeyResolver(keyScope = CacheKey.Scope.SERVICE))
     apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
   }
 
@@ -53,7 +54,7 @@ class StoreTest {
     assertFriendIsCached("1002", "Han Solo")
 
     // remove the root query object
-    var removed = cacheManager.remove(CacheKey("Character:2001"))
+    var removed = cacheManager.remove(CacheKey("2001"))
     assertEquals(true, removed)
 
     // Trying to get the full response should fail
@@ -64,7 +65,7 @@ class StoreTest {
     assertFriendIsCached("1002", "Han Solo")
 
     // remove a single object from the list
-    removed = cacheManager.remove(CacheKey("Character:1002"))
+    removed = cacheManager.remove(CacheKey("1002"))
     assertEquals(true, removed)
 
     // Trying to get the full response should fail
@@ -86,7 +87,7 @@ class StoreTest {
     assertFriendIsCached("1003", "Leia Organa")
 
     // Now remove multiple keys
-    val removed = cacheManager.remove(listOf(CacheKey("Character:1002"), CacheKey("Character:1000")))
+    val removed = cacheManager.remove(listOf(CacheKey("1002"), CacheKey("1000")))
 
     assertEquals(2, removed)
 
@@ -132,12 +133,14 @@ class StoreTest {
             HeroAndFriendsWithFragmentsQuery.Hero(
                 __typename = "Droid",
                 heroWithFriendsFragment = HeroWithFriendsFragment(
+                    "Droid",
                     id = "2001",
                     name = "R2-D2",
                     friends = listOf(
                         HeroWithFriendsFragment.Friend(
                             __typename = "Human",
                             humanWithIdFragment = HumanWithIdFragment(
+                                __typename = "Human",
                                 id = "1000",
                                 name = "Luke Skywalker"
                             )
@@ -151,7 +154,7 @@ class StoreTest {
 
     // Remove fields from HeroWithFriendsFragment
     val fragment = HeroWithFriendsFragmentImpl()
-    val cacheKey = CacheKey("Character:2001")
+    val cacheKey = CacheKey("2001")
     val fragmentData = apolloClient.apolloStore.readFragment(
         fragment = fragment,
         cacheKey = cacheKey,
@@ -178,7 +181,7 @@ class StoreTest {
     assertFriendIsCached("1003", "Leia Organa")
 
     // test remove root query object
-    val removed = cacheManager.remove(CacheKey("Character:2001"), true)
+    val removed = cacheManager.remove(CacheKey("2001"), true)
     assertEquals(true, removed)
 
     // Nothing should be cached anymore
@@ -195,7 +198,7 @@ class StoreTest {
     storeAllFriends()
 
     cacheManager.accessCache {
-      it.remove(CacheKey("Character:1000"), false)
+      it.remove(CacheKey("1000"), false)
     }
     assertFriendIsNotCached("1000")
   }
@@ -215,18 +218,22 @@ class StoreTest {
     val query = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
     apolloClient.enqueueTestResponse(query, HeroAndFriendsNamesWithIDsQuery.Data(
         HeroAndFriendsNamesWithIDsQuery.Hero(
+            "Droid",
             "2001",
             "R2-D2",
             listOf(
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1000",
                     "Luke Skywalker"
                 ),
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1002",
                     "Han Solo"
                 ),
                 HeroAndFriendsNamesWithIDsQuery.Friend(
+                    "Human",
                     "1003",
                     "Leia Organa"
                 ),

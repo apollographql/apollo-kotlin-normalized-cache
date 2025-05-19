@@ -228,7 +228,7 @@ class CacheControlCacheResolver(
 }
 
 /**
- * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise
+ * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
  */
 object FieldPolicyCacheResolver : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
@@ -255,5 +255,29 @@ object FieldPolicyCacheResolver : CacheResolver {
       }
     }
     return CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
+  }
+}
+
+/**
+ * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
+ *
+ * @param keyScope the scope of the computed cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the schema type name, or
+ * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
+ */
+fun FieldPolicyCacheResolver(
+    keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+) = object : CacheResolver {
+  override fun resolveField(context: ResolverContext): Any? {
+    val keyArgsValues = context.field.argumentValues(context.variables) { it.definition.isKey }.values.map { it.toString() }
+
+    if (keyArgsValues.isNotEmpty()) {
+      return if (keyScope == CacheKey.Scope.TYPE) {
+        CacheKey(context.field.type.rawType().name, keyArgsValues)
+      } else {
+        CacheKey(keyArgsValues)
+      }
+    }
+
+    return DefaultCacheResolver.resolveField(context)
   }
 }

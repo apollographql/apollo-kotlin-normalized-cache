@@ -45,7 +45,7 @@ class StoreTest {
 
     val heroWithFriendsFragment = cacheManager.readFragment(
         HeroWithFriendsFragmentImpl(),
-        CacheKey("Character:2001"),
+        CacheKey("Droid:2001"),
     ).data
     assertEquals(heroWithFriendsFragment.id, "2001")
     assertEquals(heroWithFriendsFragment.name, "R2-D2")
@@ -59,7 +59,7 @@ class StoreTest {
 
     var fragment = cacheManager.readFragment(
         HumanWithIdFragmentImpl(),
-        CacheKey("Character:1000"),
+        CacheKey("Human:1000"),
     ).data
 
     assertEquals(fragment.id, "1000")
@@ -67,14 +67,14 @@ class StoreTest {
 
     fragment = cacheManager.readFragment(
         HumanWithIdFragmentImpl(),
-        CacheKey("Character:1002"),
+        CacheKey("Human:1002"),
     ).data
     assertEquals(fragment.id, "1002")
     assertEquals(fragment.name, "Han Solo")
 
     fragment = cacheManager.readFragment(
         HumanWithIdFragmentImpl(),
-        CacheKey("Character:1003"),
+        CacheKey("Human:1003"),
     ).data
     assertEquals(fragment.id, "1003")
     assertEquals(fragment.name, "Leia Organa")
@@ -101,7 +101,7 @@ class StoreTest {
 
     cacheManager.writeFragment(
         HeroWithFriendsFragmentImpl(),
-        CacheKey("Character:2001"),
+        CacheKey("Droid:2001"),
         HeroWithFriendsFragmentImpl.Data(
             id = "2001",
             name = "R222-D222",
@@ -122,7 +122,7 @@ class StoreTest {
 
     cacheManager.writeFragment(
         HumanWithIdFragmentImpl(),
-        CacheKey("Character:1002"),
+        CacheKey("Human:1002"),
         HumanWithIdFragmentImpl.Data(
             id = "1002",
             name = "Beast"

@@ -41,6 +41,7 @@ class CacheMissLoggingInterceptorTest {
       {
         "data": {
           "hero": {
+            "__typename": "Human",
             "name": "Luke"
           }
         }

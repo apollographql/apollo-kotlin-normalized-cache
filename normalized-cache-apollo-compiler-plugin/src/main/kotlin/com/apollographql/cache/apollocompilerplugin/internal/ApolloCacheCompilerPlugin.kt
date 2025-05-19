@@ -13,7 +13,7 @@ internal class ApolloCacheCompilerPlugin(
     private val environment: ApolloCompilerPluginEnvironment,
 ) : ApolloCompilerPlugin {
   override fun foreignSchemas(): List<ForeignSchema> {
-    return listOf(ForeignSchema("cache", "v0.1", cacheControlGQLDefinitions))
+    return listOf(ForeignSchema("cache", "v0.1", cacheGQLDefinitions))
   }
 
   override fun schemaListener(): SchemaListener {
