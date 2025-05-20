@@ -4,4 +4,4 @@ extend schema
     import: ["@typePolicy"]
 )
 
-extend type Repository @typePolicy(keyFields: "id")
+extend interface Node @typePolicy(keyFields: "id")

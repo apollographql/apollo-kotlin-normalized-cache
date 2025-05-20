@@ -6,4 +6,4 @@ extend schema
 
 extend type Repository @typePolicy(keyFields: "id")
 
-extend type Organization @typePolicy(connectionFields: "repositories")
+extend type Organization @typePolicy(connectionFields: "repositories", keyFields: "id")

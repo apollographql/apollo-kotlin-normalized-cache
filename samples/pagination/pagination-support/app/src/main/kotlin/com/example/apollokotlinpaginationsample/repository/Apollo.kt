@@ -3,6 +3,7 @@ package com.example.apollokotlinpaginationsample.repository
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
 import com.apollographql.cache.normalized.fetchPolicy
@@ -12,6 +13,7 @@ import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.example.apollokotlinpaginationsample.Application
 import com.example.apollokotlinpaginationsample.BuildConfig
 import com.example.apollokotlinpaginationsample.graphql.RepositoryListQuery
+import com.example.apollokotlinpaginationsample.graphql.cache.Cache
 import com.example.apollokotlinpaginationsample.graphql.pagination.Pagination
 
 private const val SERVER_URL = "https://api.github.com/graphql"
@@ -36,6 +38,10 @@ val apolloClient: ApolloClient by lazy {
         // Normalized cache
         .normalizedCache(
             normalizedCacheFactory = memoryThenSqlCache,
+            cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(
+                typePolicies = Cache.typePolicies,
+                keyScope = CacheKey.Scope.SERVICE,
+            ),
             metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
             recordMerger = ConnectionRecordMerger
         )
@@ -50,5 +56,6 @@ suspend fun fetchAndMergeNextPage() {
 
     // 2. Fetch the next page from the network and store it in the cache
     val after = cacheResponse.data!!.organization!!.repositories.pageInfo.endCursor
-    apolloClient.query(RepositoryListQuery(after = Optional.presentIfNotNull(after))).fetchPolicy(FetchPolicy.NetworkOnly).execute()
+    apolloClient.query(RepositoryListQuery(after = Optional.presentIfNotNull(after)))
+        .fetchPolicy(FetchPolicy.NetworkOnly).execute()
 }

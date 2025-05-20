@@ -3,6 +3,7 @@ package com.example.apollokotlinpaginationsample.repository
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -11,6 +12,7 @@ import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.example.apollokotlinpaginationsample.Application
 import com.example.apollokotlinpaginationsample.BuildConfig
 import com.example.apollokotlinpaginationsample.graphql.RepositoryListQuery
+import com.example.apollokotlinpaginationsample.graphql.cache.Cache
 
 private const val SERVER_URL = "https://api.github.com/graphql"
 
@@ -32,7 +34,13 @@ val apolloClient: ApolloClient by lazy {
         )
 
         // Normalized cache
-        .normalizedCache(memoryThenSqlCache)
+        .normalizedCache(
+            memoryThenSqlCache,
+            cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(
+                typePolicies = Cache.typePolicies,
+                keyScope = CacheKey.Scope.SERVICE,
+            ),
+        )
 
         .build()
 }
@@ -44,10 +52,13 @@ suspend fun fetchAndMergeNextPage() {
 
     // 2. Fetch the next page from the network (don't update the cache yet)
     val after = cacheResponse.data!!.organization!!.repositories.pageInfo.endCursor
-    val networkResponse = apolloClient.query(RepositoryListQuery(after = Optional.presentIfNotNull(after))).fetchPolicy(FetchPolicy.NetworkOnly).execute()
+    val networkResponse =
+        apolloClient.query(RepositoryListQuery(after = Optional.presentIfNotNull(after)))
+            .fetchPolicy(FetchPolicy.NetworkOnly).execute()
 
     // 3. Merge the next page with the current list
-    val mergedList = cacheResponse.data!!.organization!!.repositories.edges!! + networkResponse.data!!.organization!!.repositories.edges!!
+    val mergedList =
+        cacheResponse.data!!.organization!!.repositories.edges!! + networkResponse.data!!.organization!!.repositories.edges!!
     val dataWithMergedList = networkResponse.data!!.copy(
         organization = networkResponse.data!!.organization!!.copy(
             repositories = networkResponse.data!!.organization!!.repositories.copy(
@@ -58,7 +69,8 @@ suspend fun fetchAndMergeNextPage() {
     )
 
     // 4. Update the cache with the merged list
-    apolloClient.apolloStore.writeOperation(operation = listQuery, data = dataWithMergedList).also { keys ->
-        apolloClient.apolloStore.publish(keys)
-    }
+    apolloClient.apolloStore.writeOperation(operation = listQuery, data = dataWithMergedList)
+        .also { keys ->
+            apolloClient.apolloStore.publish(keys)
+        }
 }

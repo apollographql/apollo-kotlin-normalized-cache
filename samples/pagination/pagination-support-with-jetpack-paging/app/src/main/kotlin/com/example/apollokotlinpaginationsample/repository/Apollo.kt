@@ -11,6 +11,7 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
 import com.apollographql.cache.normalized.fetchPolicy
@@ -21,6 +22,7 @@ import com.apollographql.cache.normalized.watch
 import com.example.apollokotlinpaginationsample.Application
 import com.example.apollokotlinpaginationsample.BuildConfig
 import com.example.apollokotlinpaginationsample.graphql.RepositoryListQuery
+import com.example.apollokotlinpaginationsample.graphql.cache.Cache
 import com.example.apollokotlinpaginationsample.graphql.pagination.Pagination
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.take
@@ -48,6 +50,10 @@ val apolloClient: ApolloClient by lazy {
         // Normalized cache
         .normalizedCache(
             normalizedCacheFactory = memoryThenSqlCache,
+            cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(
+                typePolicies = Cache.typePolicies,
+                keyScope = CacheKey.Scope.SERVICE,
+            ),
             metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
             recordMerger = ConnectionRecordMerger
         )
