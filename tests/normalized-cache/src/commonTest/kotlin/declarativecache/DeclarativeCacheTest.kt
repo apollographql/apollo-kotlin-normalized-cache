@@ -4,7 +4,9 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheResolver
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import declarativecache.GetAuthorQuery
@@ -50,7 +52,7 @@ class DeclarativeCacheTest {
   @Test
   fun typePolicyWithAbstractTypes() = runTest {
     val cacheManager =
-      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(Cache.typePolicies))
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies))
 
     val type2Data = GetType2Query.Data(GetType2Query.Type2(__typename = "Type2", type2Field = "type1Field", interface2KeyField = "42"))
     cacheManager.writeOperation(GetType2Query(), type2Data)
@@ -168,8 +170,7 @@ class DeclarativeCacheTest {
           }
         }
 
-        @Suppress("DEPRECATION")
-        return com.apollographql.cache.normalized.api.FieldPolicyCacheResolver.resolveField(context)
+        return FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE).resolveField(context)
       }
     }
     val cacheManager = CacheManager(MemoryCacheFactory(), cacheResolver = cacheResolver)

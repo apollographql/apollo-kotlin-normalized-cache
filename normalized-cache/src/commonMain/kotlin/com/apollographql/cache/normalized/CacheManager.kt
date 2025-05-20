@@ -27,6 +27,7 @@ import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.api.RecordValue
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.DefaultCacheManager
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.SharedFlow
@@ -325,8 +326,7 @@ interface CacheManager {
 
 fun CacheManager(
     normalizedCacheFactory: NormalizedCacheFactory,
-    @Suppress("DEPRECATION")
-    cacheKeyGenerator: CacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator,
+    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     cacheResolver: CacheResolver = com.apollographql.cache.normalized.api.FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
     recordMerger: RecordMerger = DefaultRecordMerger,

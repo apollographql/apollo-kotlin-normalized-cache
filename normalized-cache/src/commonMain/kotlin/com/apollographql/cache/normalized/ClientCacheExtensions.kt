@@ -36,6 +36,7 @@ import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.RecordMerger
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.ApolloCacheInterceptor
 import com.apollographql.cache.normalized.internal.WatcherInterceptor
 import com.apollographql.cache.normalized.internal.WatcherSentinel
@@ -64,8 +65,7 @@ import kotlin.time.Duration
 @JvmName("configureApolloClientBuilder2")
 fun ApolloClient.Builder.normalizedCache(
     normalizedCacheFactory: NormalizedCacheFactory,
-    @Suppress("DEPRECATION")
-    cacheKeyGenerator: CacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator,
+    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     cacheResolver: CacheResolver = com.apollographql.cache.normalized.api.FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
     recordMerger: RecordMerger = DefaultRecordMerger,

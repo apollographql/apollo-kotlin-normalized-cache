@@ -238,7 +238,7 @@ class CacheControlCacheResolver(
  * no way to resolve the cache key automatically for those cases.
  */
 @Deprecated("Use FieldPolicyCacheResolver(keyScope) instead")
-object FieldPolicyCacheResolver : CacheResolver by FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE)
+val FieldPolicyCacheResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE)
 
 /**
  * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.

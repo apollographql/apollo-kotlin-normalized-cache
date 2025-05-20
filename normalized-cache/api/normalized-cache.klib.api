@@ -579,14 +579,6 @@ final object com.apollographql.cache.normalized.api/EmptyMetadataGenerator : com
     final fun metadataForObject(kotlin/Any?, com.apollographql.cache.normalized.api/MetadataGeneratorContext): kotlin.collections/Map<kotlin/String, kotlin/Any?> // com.apollographql.cache.normalized.api/EmptyMetadataGenerator.metadataForObject|metadataForObject(kotlin.Any?;com.apollographql.cache.normalized.api.MetadataGeneratorContext){}[0]
 }
 
-final object com.apollographql.cache.normalized.api/FieldPolicyCacheResolver : com.apollographql.cache.normalized.api/CacheResolver { // com.apollographql.cache.normalized.api/FieldPolicyCacheResolver|null[0]
-    final fun resolveField(com.apollographql.cache.normalized.api/ResolverContext): kotlin/Any? // com.apollographql.cache.normalized.api/FieldPolicyCacheResolver.resolveField|resolveField(com.apollographql.cache.normalized.api.ResolverContext){}[0]
-}
-
-final object com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator : com.apollographql.cache.normalized.api/CacheKeyGenerator { // com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator|null[0]
-    final fun cacheKeyForObject(kotlin.collections/Map<kotlin/String, kotlin/Any?>, com.apollographql.cache.normalized.api/CacheKeyGeneratorContext): com.apollographql.cache.normalized.api/CacheKey? // com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator.cacheKeyForObject|cacheKeyForObject(kotlin.collections.Map<kotlin.String,kotlin.Any?>;com.apollographql.cache.normalized.api.CacheKeyGeneratorContext){}[0]
-}
-
 final const val com.apollographql.cache.normalized/VERSION // com.apollographql.cache.normalized/VERSION|{}VERSION[0]
     final fun <get-VERSION>(): kotlin/String // com.apollographql.cache.normalized/VERSION.<get-VERSION>|<get-VERSION>(){}[0]
 
@@ -594,6 +586,10 @@ final val com.apollographql.cache.normalized.api/ConnectionRecordMerger // com.a
     final fun <get-ConnectionRecordMerger>(): com.apollographql.cache.normalized.api/FieldRecordMerger // com.apollographql.cache.normalized.api/ConnectionRecordMerger.<get-ConnectionRecordMerger>|<get-ConnectionRecordMerger>(){}[0]
 final val com.apollographql.cache.normalized.api/DefaultMaxAgeProvider // com.apollographql.cache.normalized.api/DefaultMaxAgeProvider|{}DefaultMaxAgeProvider[0]
     final fun <get-DefaultMaxAgeProvider>(): com.apollographql.cache.normalized.api/MaxAgeProvider // com.apollographql.cache.normalized.api/DefaultMaxAgeProvider.<get-DefaultMaxAgeProvider>|<get-DefaultMaxAgeProvider>(){}[0]
+final val com.apollographql.cache.normalized.api/FieldPolicyCacheResolver // com.apollographql.cache.normalized.api/FieldPolicyCacheResolver|{}FieldPolicyCacheResolver[0]
+    final fun <get-FieldPolicyCacheResolver>(): com.apollographql.cache.normalized.api/CacheResolver // com.apollographql.cache.normalized.api/FieldPolicyCacheResolver.<get-FieldPolicyCacheResolver>|<get-FieldPolicyCacheResolver>(){}[0]
+final val com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator // com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator|{}TypePolicyCacheKeyGenerator[0]
+    final fun <get-TypePolicyCacheKeyGenerator>(): com.apollographql.cache.normalized.api/CacheKeyGenerator // com.apollographql.cache.normalized.api/TypePolicyCacheKeyGenerator.<get-TypePolicyCacheKeyGenerator>|<get-TypePolicyCacheKeyGenerator>(){}[0]
 final val com.apollographql.cache.normalized/CacheAndNetworkInterceptor // com.apollographql.cache.normalized/CacheAndNetworkInterceptor|{}CacheAndNetworkInterceptor[0]
     final fun <get-CacheAndNetworkInterceptor>(): com.apollographql.apollo.interceptor/ApolloInterceptor // com.apollographql.cache.normalized/CacheAndNetworkInterceptor.<get-CacheAndNetworkInterceptor>|<get-CacheAndNetworkInterceptor>(){}[0]
 final val com.apollographql.cache.normalized/CacheFirstInterceptor // com.apollographql.cache.normalized/CacheFirstInterceptor|{}CacheFirstInterceptor[0]

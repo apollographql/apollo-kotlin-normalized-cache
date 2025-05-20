@@ -29,6 +29,7 @@ import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
 import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.api.append
 import com.apollographql.cache.normalized.api.toMaxAgeField
 import com.apollographql.cache.normalized.api.withErrors
@@ -283,8 +284,7 @@ fun <D : Executable.Data> D.normalized(
     executable: Executable<D>,
     rootKey: CacheKey = CacheKey.QUERY_ROOT,
     customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
-    @Suppress("DEPRECATION")
-    cacheKeyGenerator: CacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator,
+    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
@@ -301,8 +301,7 @@ fun <D : Executable.Data> DataWithErrors.normalized(
     executable: Executable<D>,
     rootKey: CacheKey = CacheKey.QUERY_ROOT,
     customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
-    @Suppress("DEPRECATION")
-    cacheKeyGenerator: CacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator,
+    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,

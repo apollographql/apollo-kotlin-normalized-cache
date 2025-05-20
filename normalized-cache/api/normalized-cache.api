@@ -313,6 +313,7 @@ public final class com/apollographql/cache/normalized/api/CacheKeyGeneratorConte
 public final class com/apollographql/cache/normalized/api/CacheKeyGeneratorKt {
 	public static final fun TypePolicyCacheKeyGenerator (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;
 	public static synthetic fun TypePolicyCacheKeyGenerator$default (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;
+	public static final fun getTypePolicyCacheKeyGenerator ()Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;
 }
 
 public abstract class com/apollographql/cache/normalized/api/CacheKeyResolver : com/apollographql/cache/normalized/api/CacheResolver {
@@ -336,6 +337,7 @@ public final class com/apollographql/cache/normalized/api/CacheResolverKt {
 	public static final fun FieldPolicyCacheResolver (Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)Lcom/apollographql/cache/normalized/api/CacheResolver;
 	public static synthetic fun FieldPolicyCacheResolver$default (Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheResolver;
 	public static final fun getFieldKey (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/String;
+	public static final fun getFieldPolicyCacheResolver ()Lcom/apollographql/cache/normalized/api/CacheResolver;
 }
 
 public final class com/apollographql/cache/normalized/api/ConnectionEmbeddedFieldsProvider : com/apollographql/cache/normalized/api/EmbeddedFieldsProvider {
@@ -409,11 +411,6 @@ public final class com/apollographql/cache/normalized/api/FieldKeyContext {
 
 public abstract interface class com/apollographql/cache/normalized/api/FieldKeyGenerator {
 	public abstract fun getFieldKey (Lcom/apollographql/cache/normalized/api/FieldKeyContext;)Ljava/lang/String;
-}
-
-public final class com/apollographql/cache/normalized/api/FieldPolicyCacheResolver : com/apollographql/cache/normalized/api/CacheResolver {
-	public static final field INSTANCE Lcom/apollographql/cache/normalized/api/FieldPolicyCacheResolver;
-	public fun resolveField (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/Object;
 }
 
 public final class com/apollographql/cache/normalized/api/FieldRecordMerger : com/apollographql/cache/normalized/api/RecordMerger {
@@ -637,11 +634,6 @@ public final class com/apollographql/cache/normalized/api/SchemaCoordinatesMaxAg
 public final class com/apollographql/cache/normalized/api/TypePolicy {
 	public fun <init> (Ljava/util/Set;)V
 	public final fun getKeyFields ()Ljava/util/Set;
-}
-
-public final class com/apollographql/cache/normalized/api/TypePolicyCacheKeyGenerator : com/apollographql/cache/normalized/api/CacheKeyGenerator {
-	public static final field INSTANCE Lcom/apollographql/cache/normalized/api/TypePolicyCacheKeyGenerator;
-	public fun cacheKeyForObject-z2_y8R0 (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKeyGeneratorContext;)Ljava/lang/String;
 }
 
 public final class com/apollographql/cache/normalized/internal/NormalizerKt {

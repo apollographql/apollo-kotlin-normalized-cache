@@ -51,7 +51,7 @@ class CacheKeyGeneratorContext(
  * instead.
  */
 @Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies, keyScope) instead")
-object TypePolicyCacheKeyGenerator : CacheKeyGenerator {
+val TypePolicyCacheKeyGenerator: CacheKeyGenerator = object : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val keyFields = context.field.type.rawType().keyFields()
     return if (keyFields.isNotEmpty()) {
@@ -78,7 +78,8 @@ fun TypePolicyCacheKeyGenerator(
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val typeName = obj["__typename"].toString()
     val typePolicy = typePolicies[typeName]
-    // If a type is unknown at build type, it might be an interface that has a type policy
+    // The concrete type may be unknown at build type, but there might be a type policy on the schema type
+    // (only possible if the schema type is an interface)
         ?: typePolicies[context.field.type.rawType().name]
         ?: return null
     return if (keyScope == CacheKey.Scope.TYPE) {
