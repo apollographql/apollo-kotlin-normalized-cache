@@ -1,5 +1,9 @@
 # Next version (unreleased)
 
+PUT_CHANGELOG_HERE
+
+# Version 1.0.0-alpha.2
+
 - The computation of cache keys when multiple key fields are used has changed to avoid potential collisions. Note: this can lead to cache misses after upgrading to this version. (#80)
 - Make SQL cache more robust. (#152)
 - Support simple list cases in `FieldPolicyCacheResolver`. (#142)
