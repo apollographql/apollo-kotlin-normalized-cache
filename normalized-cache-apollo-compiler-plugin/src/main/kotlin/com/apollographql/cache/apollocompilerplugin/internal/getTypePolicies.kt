@@ -80,7 +80,7 @@ private fun Schema.validateAndComputeTypePolicy(
 }
 
 private fun GQLDirective.toTypePolicy(): TypePolicy {
-  val keyFields = ((arguments.single { it.name == "keyFields" }.value as GQLStringValue).value
+  val keyFields = (((arguments.singleOrNull { it.name == "keyFields" }?.value as? GQLStringValue)?.value ?: "")
       .parseAsGQLSelections().value?.map { gqlSelection ->
         (gqlSelection as GQLField).name
       } ?: throw SourceAwareException("Apollo: keyArgs should be a selectionSet", sourceLocation))
