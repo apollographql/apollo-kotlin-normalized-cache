@@ -14,7 +14,7 @@ apollo-api = { group = "com.apollographql.apollo", name = "apollo-api", version.
 apollo-mpp-utils = { group = "com.apollographql.apollo", name = "apollo-mpp-utils", version.ref = "apollo" }
 apollo-testing-support = { group = "com.apollographql.apollo", name = "apollo-testing-support", version.ref = "apollo" }
 apollo-runtime = { group = "com.apollographql.apollo", name = "apollo-runtime", version.ref = "apollo" }
-apollo-mockserver = "com.apollographql.mockserver:apollo-mockserver:0.1.0"
+apollo-mockserver = "com.apollographql.mockserver:apollo-mockserver:0.1.1"
 apollo-ast = { group = "com.apollographql.apollo", name = "apollo-ast", version.ref = "apollo" }
 apollo-compiler = { group = "com.apollographql.apollo", name = "apollo-compiler", version.ref = "apollo" }
 apollo-cache = { group = "com.apollographql.apollo", name = "apollo-normalized-cache", version.ref = "apollo" }
