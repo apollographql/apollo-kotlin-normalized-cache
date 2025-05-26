@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -32,7 +33,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.withType(KotlinJvmCompile::class.java).configureEach {
-  kotlinOptions.jvmTarget = "17"
+  compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
 }
 
 gradlePlugin {
