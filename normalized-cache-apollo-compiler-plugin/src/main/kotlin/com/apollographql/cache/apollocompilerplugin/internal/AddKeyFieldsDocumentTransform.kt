@@ -87,56 +87,56 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
       }
     }
 
-    return if (isRoot) {
-      val keyFields = schema.keyFields(parentType)
-      newSelections.filterIsInstance<GQLField>().forEach {
-        // Disallow fields whose alias conflicts with a key field, or is "__typename"
-        if (keyFields.contains(it.alias) || it.alias == "__typename") {
-          throw SourceAwareException(
-              error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
-              sourceLocation = it.sourceLocation
-          )
-        }
+    if (!isRoot) {
+      return newSelections
+    }
+
+    val keyFields = schema.keyFields(parentType)
+    newSelections.filterIsInstance<GQLField>().forEach {
+      // Disallow fields whose alias conflicts with a key field, or is "__typename"
+      if (keyFields.contains(it.alias) || it.alias == "__typename") {
+        throw SourceAwareException(
+            error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
+            sourceLocation = it.sourceLocation
+        )
       }
+    }
 
-      // Add key fields
-      val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }
-      val fieldNamesToAdd = (keyFields - fieldNames)
+    // Add key fields
+    val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }
+    val fieldNamesToAdd = (keyFields - fieldNames)
 
-      // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
-      val inlineFragmentsToAdd = if (keyFields.isEmpty()) {
-        val parentTypeDefinition = schema.typeDefinition(parentType)
-        val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
-          schema.possibleTypes(parentTypeDefinition)
-        } else {
-          emptySet()
-        }
-        possibleTypes
-            .associateWith { possibleType -> schema.keyFields(possibleType) }
-            .mapNotNull { (possibleType, possibleTypeKeyFields) ->
-              val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames
-              if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
-                GQLInlineFragment(
-                    typeCondition = GQLNamedType(null, possibleType),
-                    selections = fieldNamesToAddInInlineFragment.map { buildField(it) },
-                    directives = emptyList(),
-                    sourceLocation = null,
-                )
-              } else {
-                null
-              }
-            }
+    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
+    val inlineFragmentsToAdd = if (keyFields.isEmpty()) {
+      val parentTypeDefinition = schema.typeDefinition(parentType)
+      val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
+        schema.possibleTypes(parentTypeDefinition)
       } else {
         emptySet()
       }
-
-      val selectionsWithAdditions = newSelections + fieldNamesToAdd.map { buildField(it) } + inlineFragmentsToAdd
-      // Remove the __typename if it exists and add it again at the top, so we're guaranteed to have it at the beginning of json parsing.
-      // Also remove any @include/@skip directive on __typename.
-      listOf(buildField("__typename")) + selectionsWithAdditions.filter { (it as? GQLField)?.name != "__typename" }
+      possibleTypes
+          .associateWith { possibleType -> schema.keyFields(possibleType) }
+          .mapNotNull { (possibleType, possibleTypeKeyFields) ->
+            val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames
+            if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
+              GQLInlineFragment(
+                  typeCondition = GQLNamedType(null, possibleType),
+                  selections = fieldNamesToAddInInlineFragment.map { buildField(it) },
+                  directives = emptyList(),
+                  sourceLocation = null,
+              )
+            } else {
+              null
+            }
+          }
     } else {
-      newSelections
+      emptySet()
     }
+
+    val selectionsWithAdditions = newSelections + fieldNamesToAdd.map { buildField(it) } + inlineFragmentsToAdd
+    // Remove the __typename if it exists and add it again at the top, so we're guaranteed to have it at the beginning of json parsing.
+    // Also remove any @include/@skip directive on __typename.
+    return listOf(buildField("__typename")) + selectionsWithAdditions.filter { (it as? GQLField)?.name != "__typename" }
   }
 
   private fun GQLField.withRequiredFields(
