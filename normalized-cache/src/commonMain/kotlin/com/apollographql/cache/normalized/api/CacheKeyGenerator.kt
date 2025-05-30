@@ -78,8 +78,8 @@ fun TypePolicyCacheKeyGenerator(
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val typeName = obj["__typename"].toString()
     val typePolicy = typePolicies[typeName]
-    // The concrete type may be unknown at build type, but there might be a type policy on the schema type
-    // (only possible if the schema type is an interface)
+    // The concrete type may be unknown at build time, but there might be a type policy on the field type
+    // (only possible if the field type is an interface)
         ?: typePolicies[context.field.type.rawType().name]
         ?: return null
     return if (keyScope == CacheKey.Scope.TYPE) {
