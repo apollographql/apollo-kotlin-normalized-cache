@@ -15,6 +15,9 @@ import com.apollographql.cache.normalized.testing.keyToString
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
+import fixtures.HeroAndFriendsNameResponse
+import fixtures.HeroAndFriendsNameWithIdsResponse
+import fixtures.HeroNameResponse
 import normalizer.CharacterDetailsQuery
 import normalizer.CharacterNameByIdQuery
 import normalizer.EpisodeHeroNameQuery
@@ -50,7 +53,7 @@ class OtherCacheTest {
   @Test
   fun masterDetailSuccess() = runTest(before = { setUp() }, after = { tearDown() }) {
     // Store a query that contains all data
-    mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNameWithIdsResponse.json"))
+    mockServer.enqueueString(HeroAndFriendsNameWithIdsResponse)
     apolloClient.query(HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE))
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()
@@ -68,7 +71,7 @@ class OtherCacheTest {
   @Throws(Exception::class)
   fun masterDetailFailIncomplete() = runTest(before = { setUp() }, after = { tearDown() }) {
     // Store a query that contains all data
-    mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNameWithIdsResponse.json"))
+    mockServer.enqueueString(HeroAndFriendsNameWithIdsResponse)
     apolloClient.query(HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE))
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()
@@ -91,7 +94,7 @@ class OtherCacheTest {
   @Test
   @Throws(Exception::class)
   fun skipIncludeDirective() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNameResponse.json"))
+    mockServer.enqueueString(HeroAndFriendsNameResponse)
     apolloClient.query(HeroAndFriendsDirectivesQuery(Episode.JEDI, true, false))
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()
@@ -134,7 +137,7 @@ class OtherCacheTest {
   @Test
   fun skipIncludeDirectiveUnsatisfiedCache() = runTest(before = { setUp() }, after = { tearDown() }) {
     // Store a response that doesn't contain friends
-    mockServer.enqueueString(testFixtureToUtf8("HeroNameResponse.json"))
+    mockServer.enqueueString(HeroNameResponse)
     apolloClient.query(HeroAndFriendsDirectivesQuery(Episode.JEDI, true, true))
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()

@@ -7,11 +7,16 @@ enum class AppleTargets {
   Host,
 }
 
+enum class JsAndWasmEnvironment {
+  Node,
+  Browser,
+}
+
 fun KotlinMultiplatformExtension.configureKmp(
-    withJs: Boolean,
-    withWasm: Boolean,
+    withJs: Set<JsAndWasmEnvironment>,
+    withWasm: Set<JsAndWasmEnvironment>,
     withAndroid: Boolean,
-    withApple: AppleTargets = AppleTargets.All,
+    withApple: AppleTargets,
 ) {
   jvm()
   when (withApple) {
@@ -37,22 +42,46 @@ fun KotlinMultiplatformExtension.configureKmp(
       }
     }
   }
-  if (withJs) {
+  if (withJs.isNotEmpty()) {
     js(IR) {
-      nodejs {
-        testTask {
-          useMocha {
-            // Override default 2s timeout
-            timeout = "120s"
+      if (withJs.contains(JsAndWasmEnvironment.Browser)) {
+        browser {
+          testTask {
+            useKarma {
+              useChromeHeadless()
+            }
+          }
+        }
+      }
+      if (withJs.contains(JsAndWasmEnvironment.Node)) {
+        nodejs {
+          testTask {
+            useMocha {
+              // Override default 2s timeout
+              timeout = "120s"
+            }
           }
         }
       }
     }
   }
-  if (withWasm) {
+  if (withWasm.isNotEmpty()) {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-      nodejs()
+      if (withWasm.contains(JsAndWasmEnvironment.Browser)) {
+        browser {
+          testTask {
+            useKarma {
+              useChromeHeadless()
+            }
+          }
+        }
+      }
+      if (withWasm.contains(JsAndWasmEnvironment.Node)) {
+        // Mocha test framework for Wasm target is not supported
+        // See https://youtrack.jetbrains.com/issue/KT-74612
+        nodejs()
+      }
     }
   }
   if (withAndroid) {
@@ -75,14 +104,14 @@ fun KotlinMultiplatformExtension.configureKmp(
           }
         }
       }
-      if (withJs || withWasm) {
+      if (withJs.isNotEmpty() || withWasm.isNotEmpty()) {
         group("jsCommon") {
-          if (withJs) {
+          if (withJs.isNotEmpty()) {
             group("js") {
               withJs()
             }
           }
-          if (withWasm) {
+          if (withWasm.isNotEmpty()) {
             group("wasmJs") {
               withWasmJs()
             }

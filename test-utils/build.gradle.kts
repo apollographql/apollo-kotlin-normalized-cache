@@ -6,9 +6,10 @@ group = "com.apollographql.cache"
 
 kotlin {
   configureKmp(
-      withJs = true,
-      withWasm = true,
+      withJs = setOf(JsAndWasmEnvironment.Node),
+      withWasm = setOf(JsAndWasmEnvironment.Node),
       withAndroid = false,
+      withApple = AppleTargets.All,
   )
 
   sourceSets {
@@ -21,7 +22,13 @@ kotlin {
     }
     getByName("jsMain") {
       dependencies {
-        api(libs.okio.nodefilesystem)
+        api(libs.kotlin.stdlib.js)
+      }
+    }
+
+    getByName("wasmJsMain") {
+      dependencies {
+        api(libs.kotlin.stdlib.wasm.js)
       }
     }
   }

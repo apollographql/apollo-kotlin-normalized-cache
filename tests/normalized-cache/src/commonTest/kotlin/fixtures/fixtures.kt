@@ -1,13 +1,155 @@
+package fixtures
+
+const val HeroTypeDependentAliasedFieldResponseHuman = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Human",
+      "property": "Tatooine"
+    }
+  }
+}
+"""
+
+const val JsonScalar = """
+{
+  "data": {
+    "json": {
+      "obj": {
+        "key": "value"
+      },
+      "list": [
+        0,
+        1,
+        2
+      ]
+    }
+  }
+}
+"""
+
+const val EpisodeHeroNameResponseNameChange = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "Artoo"
+    }
+  }
+}
+"""
+
+const val HeroParentTypeDependentFieldDroidResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2",
+      "friends": [
+        {
+          "__typename": "Human",
+          "name": "Luke Skywalker",
+          "height": 1.72
+        },
+        {
+          "__typename": "Human",
+          "name": "Han Solo",
+          "height": 1.8
+        },
+        {
+          "__typename": "Human",
+          "name": "Leia Organa",
+          "height": 1.5
+        }
+      ]
+    }
+  }
+}
+"""
+
+const val UpdateReviewResponse = """
+{
+  "data": {
+    "updateReview": {
+      "__typename": "Review",
+      "id": "empireReview2",
+      "stars": 4,
+      "commentary": "Not Bad"
+    }
+  }
+}
+"""
+
+const val EpisodeHeroNameResponseWithId = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2"
+    }
+  }
+}
+"""
+
+const val AllPlanetsNullableField = """
 {
   "data": {
     "allPlanets": {
+      "__typename": "PlanetsConnection",
       "planets": [
         {
           "__typename": "Planet",
           "name": "Tatooine",
-          "climates": null,
-          "surfaceWater": 1.0,
-          "filmConnection": null
+          "climates": [
+            "arid"
+          ],
+          "surfaceWater": 1,
+          "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
+            "totalCount": 5,
+            "films": [
+              {
+                "__typename": "Film",
+                "title": "A New Hope",
+                "producers": [
+                  "Gary Kurtz",
+                  "Rick McCallum"
+                ]
+              },
+              {
+                "__typename": "Film",
+                "title": "Return of the Jedi",
+                "producers": [
+                  "Howard G. Kazanjian",
+                  "George Lucas",
+                  "Rick McCallum"
+                ]
+              },
+              {
+                "__typename": "Film",
+                "title": "The Phantom Menace",
+                "producers": [
+                  "Rick McCallum"
+                ]
+              },
+              {
+                "__typename": "Film",
+                "title": "Attack of the Clones",
+                "producers": [
+                  "Rick McCallum"
+                ]
+              },
+              {
+                "__typename": "Film",
+                "title": "Revenge of the Sith",
+                "producers": [
+                  "Rick McCallum"
+                ]
+              }
+            ]
+          }
         },
         {
           "__typename": "Planet",
@@ -15,8 +157,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 40.0,
+          "surfaceWater": 40,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 2,
             "films": [
               {
@@ -44,8 +187,9 @@
             "temperate",
             "tropical"
           ],
-          "surfaceWater": 8.0,
+          "surfaceWater": 8,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -65,8 +209,9 @@
           "climates": [
             "frozen"
           ],
-          "surfaceWater": 100.0,
+          "surfaceWater": 100,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -86,8 +231,9 @@
           "climates": [
             "murky"
           ],
-          "surfaceWater": 8.0,
+          "surfaceWater": 8,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 3,
             "films": [
               {
@@ -123,8 +269,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 0.0,
+          "surfaceWater": 0,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -144,8 +291,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 8.0,
+          "surfaceWater": 8,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -166,8 +314,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 12.0,
+          "surfaceWater": 12,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 4,
             "films": [
               {
@@ -211,6 +360,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 4,
             "films": [
               {
@@ -252,8 +402,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 100.0,
+          "surfaceWater": 100,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -273,8 +424,9 @@
             "temperate",
             "arid"
           ],
-          "surfaceWater": 5.0,
+          "surfaceWater": 5,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -297,6 +449,7 @@
           ],
           "surfaceWater": 0.9,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -315,8 +468,9 @@
           "climates": [
             "hot"
           ],
-          "surfaceWater": 0.0,
+          "surfaceWater": 0,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -335,8 +489,9 @@
           "climates": [
             "tropical"
           ],
-          "surfaceWater": 60.0,
+          "surfaceWater": 60,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -355,8 +510,9 @@
           "climates": [
             "artificial temperate"
           ],
-          "surfaceWater": 0.0,
+          "surfaceWater": 0,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -377,6 +533,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -398,6 +555,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -419,6 +577,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -439,6 +598,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -459,6 +619,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -471,6 +632,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -481,8 +643,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 70.0,
+          "surfaceWater": 70,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -493,8 +656,9 @@
           "climates": [
             "hot"
           ],
-          "surfaceWater": 60.0,
+          "surfaceWater": 60,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -507,6 +671,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -519,6 +684,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -529,8 +695,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 98.0,
+          "surfaceWater": 98,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -541,8 +708,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 10.0,
+          "surfaceWater": 10,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 1,
             "films": [
               {
@@ -564,6 +732,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -576,6 +745,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -588,6 +758,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -598,8 +769,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 100.0,
+          "surfaceWater": 100,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -610,8 +782,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 40.0,
+          "surfaceWater": 40,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -622,8 +795,9 @@
           "climates": [
             "superheated"
           ],
-          "surfaceWater": 5.0,
+          "surfaceWater": 5,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -636,6 +810,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -650,6 +825,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -662,6 +838,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -674,8 +851,9 @@
             "arid",
             "subartic"
           ],
-          "surfaceWater": 5.0,
+          "surfaceWater": 5,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -688,6 +866,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -701,6 +880,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -713,6 +893,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -725,6 +906,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -737,6 +919,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -747,8 +930,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 20.0,
+          "surfaceWater": 20,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -760,8 +944,9 @@
             "tropical",
             "temperate"
           ],
-          "surfaceWater": 80.0,
+          "surfaceWater": 80,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -774,6 +959,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -786,6 +972,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -800,6 +987,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -812,6 +1000,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -824,6 +1013,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -836,6 +1026,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -848,6 +1039,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -860,6 +1052,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -872,6 +1065,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -884,6 +1078,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -894,8 +1089,9 @@
           "climates": [
             "frigid"
           ],
-          "surfaceWater": 100.0,
+          "surfaceWater": 100,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -908,6 +1104,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -918,8 +1115,9 @@
           "climates": [
             "temperate"
           ],
-          "surfaceWater": 25.0,
+          "surfaceWater": 25,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -932,6 +1130,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -946,6 +1145,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -958,6 +1158,7 @@
           ],
           "surfaceWater": null,
           "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
             "totalCount": 0,
             "films": []
           }
@@ -965,4 +1166,376 @@
       ]
     }
   }
+}"""
+
+const val HeroTypeDependentAliasedFieldResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "property": "Astromech"
+    }
+  }
 }
+"""
+
+const val HeroAppearsInResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Human",
+      "appearsIn": [
+        "NEWHOPE",
+        "EMPIRE",
+        "JEDI"
+      ]
+    }
+  }
+}
+"""
+
+const val HeroParentTypeDependentFieldHumanResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Human",
+      "name": "Luke Skywalker",
+      "friends": [
+        {
+          "__typename": "Human",
+          "name": "Han Solo",
+          "height": 5.905512
+        },
+        {
+          "__typename": "Human",
+          "name": "Leia Organa",
+          "height": 4.92126
+        },
+        {
+          "__typename": "Droid",
+          "name": "C-3PO"
+        },
+        {
+          "__typename": "Droid",
+          "name": "R2-D2"
+        }
+      ]
+    }
+  }
+}
+"""
+
+const val HeroAndFriendsConnectionResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2",
+      "birthDate": "1977-05-25",
+      "friendsConnection": {
+        "__typename": "FriendsConnection",
+        "totalCount": 3,
+        "edges": [
+          {
+            "__typename": "FriendsEdge",
+            "node": {
+              "__typename": "Human",
+              "id": "1000"
+            }
+          },
+          {
+            "__typename": "FriendsEdge",
+            "node": {
+              "__typename": "Human",
+              "id": "1002"
+            }
+          },
+          {
+            "__typename": "FriendsEdge",
+            "node": {
+              "__typename": "Human",
+              "id": "1003"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+"""
+
+const val JsonScalarModified = """
+{
+  "data": {
+    "json": {
+      "obj": {
+        "key2": "value2"
+      }
+    }
+  }
+}
+"""
+
+const val HeroNameWithIdResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Human",
+      "id": "1000",
+      "name": "SuperMan"
+    }
+  }
+}
+"""
+
+const val EpisodeHeroNameResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2"
+    }
+  }
+}
+"""
+
+const val ReviewsEmpireEpisodeResponse = """
+{
+  "data": {
+    "reviews": [
+      {
+        "__typename": "Review",
+        "id": "empireReview1",
+        "stars": 1,
+        "commentary": "Boring"
+      },
+      {
+        "__typename": "Review",
+        "id": "empireReview2",
+        "stars": 2,
+        "commentary": "So-so"
+      },
+      {
+        "__typename": "Review",
+        "id": "empireReview3",
+        "stars": 5,
+        "commentary": "Amazing"
+      }
+    ]
+  }
+}
+"""
+
+const val AllPlanetsListOfObjectWithNullObject = """
+{
+  "data": {
+    "allPlanets": {
+      "__typename": "PlanetsConnection",
+      "planets": [
+        {
+          "__typename": "Planet",
+          "name": "Tatooine",
+          "climates": [
+            "arid"
+          ],
+          "surfaceWater": 1,
+          "filmConnection": null
+        },
+        {
+          "__typename": "Planet",
+          "name": "Alderaan",
+          "climates": [
+            "temperate"
+          ],
+          "surfaceWater": 40,
+          "filmConnection": {
+            "__typename": "PlanetFilmsConnection",
+            "totalCount": 2,
+            "films": [
+              {
+                "__typename": "Film",
+                "title": "A New Hope",
+                "producers": [
+                  "Gary Kurtz",
+                  "Rick McCallum"
+                ]
+              },
+              {
+                "__typename": "Film",
+                "title": "Revenge of the Sith",
+                "producers": [
+                  "Rick McCallum"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}"""
+
+const val HeroAndFriendsNameResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2",
+      "friends": [
+        {
+          "__typename": "Human",
+          "name": "Luke Skywalker"
+        },
+        {
+          "__typename": "Human",
+          "name": "Han Solo"
+        },
+        {
+          "__typename": "Human",
+          "name": "Leia Organa"
+        }
+      ]
+    }
+  }
+}
+"""
+
+const val HeroNameResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2"
+    }
+  },
+  "extensions": {
+    "cost": {
+      "requestedQueryCost": 3,
+      "actualQueryCost": 3,
+      "throttleStatus": {
+        "maximumAvailable": 1000,
+        "currentlyAvailable": 997,
+        "restoreRate": 50
+      }
+    }
+  }
+}
+"""
+
+const val HeroAndFriendsNameWithIdsResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2",
+      "friends": [
+        {
+          "__typename": "Human",
+          "id": "1000",
+          "name": "Luke Skywalker"
+        },
+        {
+          "__typename": "Human",
+          "id": "1002",
+          "name": "Han Solo"
+        },
+        {
+          "__typename": "Human",
+          "id": "1003",
+          "name": "Leia Organa"
+        }
+      ]
+    }
+  }
+}
+"""
+
+const val StarshipByIdResponse = """
+{
+  "data": {
+    "starship": {
+      "__typename": "Starship",
+      "id": "Starship1",
+      "name": "SuperRocket",
+      "coordinates": [
+        [
+          100,
+          200
+        ],
+        [
+          300,
+          400
+        ],
+        [
+          500,
+          600
+        ]
+      ]
+    }
+  }
+}
+"""
+
+const val HeroAppearsInResponseWithNulls = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Human",
+      "appearsIn": [
+        null,
+        "NEWHOPE",
+        "EMPIRE",
+        null,
+        "JEDI",
+        null
+      ]
+    }
+  }
+}
+"""
+
+const val SameHeroTwiceResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "name": "R2-D2"
+    },
+    "r2": {
+      "__typename": "Droid",
+      "appearsIn": [
+        "NEWHOPE",
+        "EMPIRE",
+        "JEDI"
+      ]
+    }
+  }
+}
+"""
+
+const val HeroAndFriendsNameWithIdsParentOnlyResponse = """
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2",
+      "friends": [
+        {
+          "__typename": "Human",
+          "name": "Luke Skywalker"
+        },
+        {
+          "__typename": "Human",
+          "name": "Han Solo"
+        },
+        {
+          "__typename": "Human",
+          "name": "Leia Organa"
+        }
+      ]
+    }
+  }
+}
+"""

@@ -37,6 +37,8 @@ slf4j-nop = "org.slf4j:slf4j-nop:2.0.13"
 androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "androidx-sqlite" }
 androidx-sqlite-framework = { group = "androidx.sqlite", name = "sqlite-framework", version.ref = "androidx-sqlite" }
 androidx-startup-runtime = "androidx.startup:startup-runtime:1.1.1"
+kotlin-stdlib-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-js", version.ref = "kotlin-plugin" }
+kotlin-stdlib-wasm-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-wasm-js", version.ref = "kotlin-plugin" }
 kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version = "1.18.1" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-plugin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }

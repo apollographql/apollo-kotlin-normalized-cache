@@ -8,6 +8,7 @@ import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
+import fixtures.EpisodeHeroNameResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ class CancelTest {
 
   @Test
   fun cancelFlow() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponse.json"))
+    mockServer.enqueueString(EpisodeHeroNameResponse)
     val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).build()
 
     val job = launch {
@@ -42,7 +43,7 @@ class CancelTest {
 
   @Test
   fun canCancelQueryCacheAndNetwork() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponse.json"), 500)
+    mockServer.enqueueString(EpisodeHeroNameResponse, 500)
     val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).normalizedCache(MemoryCacheFactory()).build()
 
     val job = launch {

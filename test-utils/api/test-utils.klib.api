@@ -20,23 +20,14 @@ final enum class com.apollographql.cache.normalized.testing/Platform : kotlin/En
     final fun values(): kotlin/Array<com.apollographql.cache.normalized.testing/Platform> // com.apollographql.cache.normalized.testing/Platform.values|values#static(){}[0]
 }
 
-final val com.apollographql.cache.normalized.testing/HostFileSystem // com.apollographql.cache.normalized.testing/HostFileSystem|{}HostFileSystem[0]
-    final fun <get-HostFileSystem>(): okio/FileSystem // com.apollographql.cache.normalized.testing/HostFileSystem.<get-HostFileSystem>|<get-HostFileSystem>(){}[0]
-final val com.apollographql.cache.normalized.testing/testsPath // com.apollographql.cache.normalized.testing/testsPath|{}testsPath[0]
-    final fun <get-testsPath>(): kotlin/String // com.apollographql.cache.normalized.testing/testsPath.<get-testsPath>|<get-testsPath>(){}[0]
-
 final fun (com.apollographql.cache.normalized.api/CacheKey).com.apollographql.cache.normalized.testing/append(kotlin/Array<out kotlin/String>...): com.apollographql.cache.normalized.api/CacheKey // com.apollographql.cache.normalized.testing/append|append@com.apollographql.cache.normalized.api.CacheKey(kotlin.Array<out|kotlin.String>...){}[0]
 final fun (com.apollographql.cache.normalized.api/CacheKey).com.apollographql.cache.normalized.testing/fieldKey(kotlin/String): kotlin/String // com.apollographql.cache.normalized.testing/fieldKey|fieldKey@com.apollographql.cache.normalized.api.CacheKey(kotlin.String){}[0]
 final fun (com.apollographql.cache.normalized.api/CacheKey).com.apollographql.cache.normalized.testing/keyToString(): kotlin/String // com.apollographql.cache.normalized.testing/keyToString|keyToString@com.apollographql.cache.normalized.api.CacheKey(){}[0]
 final fun com.apollographql.cache.normalized.testing/assertErrorsEquals(com.apollographql.apollo.api/Error?, com.apollographql.apollo.api/Error?) // com.apollographql.cache.normalized.testing/assertErrorsEquals|assertErrorsEquals(com.apollographql.apollo.api.Error?;com.apollographql.apollo.api.Error?){}[0]
 final fun com.apollographql.cache.normalized.testing/assertErrorsEquals(kotlin.collections/Iterable<com.apollographql.apollo.api/Error>?, kotlin.collections/Iterable<com.apollographql.apollo.api/Error>?) // com.apollographql.cache.normalized.testing/assertErrorsEquals|assertErrorsEquals(kotlin.collections.Iterable<com.apollographql.apollo.api.Error>?;kotlin.collections.Iterable<com.apollographql.apollo.api.Error>?){}[0]
 final fun com.apollographql.cache.normalized.testing/currentThreadId(): kotlin/String // com.apollographql.cache.normalized.testing/currentThreadId|currentThreadId(){}[0]
-final fun com.apollographql.cache.normalized.testing/pathToJsonReader(kotlin/String): com.apollographql.apollo.api.json/JsonReader // com.apollographql.cache.normalized.testing/pathToJsonReader|pathToJsonReader(kotlin.String){}[0]
-final fun com.apollographql.cache.normalized.testing/pathToUtf8(kotlin/String): kotlin/String // com.apollographql.cache.normalized.testing/pathToUtf8|pathToUtf8(kotlin.String){}[0]
 final fun com.apollographql.cache.normalized.testing/platform(): com.apollographql.cache.normalized.testing/Platform // com.apollographql.cache.normalized.testing/platform|platform(){}[0]
-final fun com.apollographql.cache.normalized.testing/shouldUpdateTestFixtures(): kotlin/Boolean // com.apollographql.cache.normalized.testing/shouldUpdateTestFixtures|shouldUpdateTestFixtures(){}[0]
 final suspend fun <#A: kotlin/Any?> (kotlinx.coroutines.channels/Channel<#A>).com.apollographql.cache.normalized.testing/assertNoElement(kotlin/Long = ...) // com.apollographql.cache.normalized.testing/assertNoElement|assertNoElement@kotlinx.coroutines.channels.Channel<0:0>(kotlin.Long){0§<kotlin.Any?>}[0]
-final suspend fun <#A: kotlin/Any?> (kotlinx.coroutines.channels/Channel<#A>).com.apollographql.cache.normalized.testing/awaitElement(kotlin/Long = ...): #A // com.apollographql.cache.normalized.testing/awaitElement|awaitElement@kotlinx.coroutines.channels.Channel<0:0>(kotlin.Long){0§<kotlin.Any?>}[0]
 
 // Targets: [apple]
 final fun com.apollographql.cache.normalized.testing/runTest(kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines/CoroutineScope, kotlin/Unit>) // com.apollographql.cache.normalized.testing/runTest|runTest(kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope,kotlin.Unit>){}[0]

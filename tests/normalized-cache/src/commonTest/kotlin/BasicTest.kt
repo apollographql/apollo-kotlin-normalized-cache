@@ -12,6 +12,15 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
+import fixtures.AllPlanetsNullableField
+import fixtures.HeroAndFriendsNameResponse
+import fixtures.HeroAndFriendsNameWithIdsParentOnlyResponse
+import fixtures.HeroAndFriendsNameWithIdsResponse
+import fixtures.HeroAppearsInResponse
+import fixtures.HeroAppearsInResponseWithNulls
+import fixtures.HeroNameResponse
+import fixtures.SameHeroTwiceResponse
+import fixtures.StarshipByIdResponse
 import httpcache.AllPlanetsQuery
 import normalizer.EpisodeHeroNameQuery
 import normalizer.HeroAndFriendsNamesQuery
@@ -52,11 +61,11 @@ class BasicTest {
   }
 
   private fun <D : Query.Data> basicTest(
-      resourceName: String,
+      jsonPayload: String,
       query: Query<D>,
       block: ApolloResponse<D>.() -> Unit,
   ) = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8(resourceName))
+    mockServer.enqueueString(jsonPayload)
     var response = apolloClient.query(query)
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()
@@ -69,7 +78,7 @@ class BasicTest {
 
   @Test
   fun episodeHeroName() = basicTest(
-      "HeroNameResponse.json",
+      HeroNameResponse,
       EpisodeHeroNameQuery(Episode.EMPIRE)
   ) {
 
@@ -80,7 +89,7 @@ class BasicTest {
   @Test
   @Throws(Exception::class)
   fun heroAndFriendsNameResponse() = basicTest(
-      "HeroAndFriendsNameResponse.json",
+      HeroAndFriendsNameResponse,
       HeroAndFriendsNamesQuery(Episode.JEDI)
   ) {
 
@@ -94,7 +103,7 @@ class BasicTest {
 
   @Test
   fun heroAndFriendsNamesWithIDs() = basicTest(
-      "HeroAndFriendsNameWithIdsResponse.json",
+      HeroAndFriendsNameWithIdsResponse,
       HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
   ) {
 
@@ -113,7 +122,7 @@ class BasicTest {
   @Test
   @Throws(Exception::class)
   fun heroAndFriendsNameWithIdsForParentOnly() = basicTest(
-      "HeroAndFriendsNameWithIdsParentOnlyResponse.json",
+      HeroAndFriendsNameWithIdsParentOnlyResponse,
       HeroAndFriendsNamesWithIDForParentOnlyQuery(Episode.NEWHOPE)
   ) {
 
@@ -129,7 +138,7 @@ class BasicTest {
   @Test
   @Throws(Exception::class)
   fun heroAppearsInResponse() = basicTest(
-      "HeroAppearsInResponse.json",
+      HeroAppearsInResponse,
       HeroAppearsInQuery()
   ) {
 
@@ -142,7 +151,7 @@ class BasicTest {
 
   @Test
   fun heroAppearsInResponseWithNulls() = basicTest(
-      "HeroAppearsInResponseWithNulls.json",
+      HeroAppearsInResponseWithNulls,
       HeroAppearsInQuery()
   ) {
 
@@ -159,7 +168,7 @@ class BasicTest {
 
   @Test
   fun requestingTheSameFieldTwiceWithAnAlias() = basicTest(
-      "SameHeroTwiceResponse.json",
+      SameHeroTwiceResponse,
       SameHeroTwiceQuery()
   ) {
     assertFalse(hasErrors())
@@ -172,7 +181,7 @@ class BasicTest {
 
   @Test
   fun cacheResponseWithNullableFields() = basicTest(
-      "AllPlanetsNullableField.json",
+      AllPlanetsNullableField,
       AllPlanetsQuery()
   ) {
     assertFalse(hasErrors())
@@ -180,7 +189,7 @@ class BasicTest {
 
   @Test
   fun readList() = basicTest(
-      "HeroAndFriendsNameWithIdsResponse.json",
+      HeroAndFriendsNameWithIdsResponse,
       HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
   ) {
     assertEquals(data?.hero?.id, "2001")
@@ -196,7 +205,7 @@ class BasicTest {
 
   @Test
   fun listOfList() = basicTest(
-      "StarshipByIdResponse.json",
+      StarshipByIdResponse,
       StarshipByIdQuery("Starship1")
   ) {
     assertEquals(data?.starship?.name, "SuperRocket")

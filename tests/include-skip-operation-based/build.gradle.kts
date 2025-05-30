@@ -7,8 +7,8 @@ plugins {
 
 kotlin {
   configureKmp(
-      withJs = true,
-      withWasm = true,
+      withJs = setOf(JsAndWasmEnvironment.Node, JsAndWasmEnvironment.Browser),
+      withWasm = setOf(JsAndWasmEnvironment.Node, JsAndWasmEnvironment.Browser),
       withAndroid = false,
       withApple = AppleTargets.Host,
   )
@@ -25,7 +25,6 @@ kotlin {
       dependencies {
         implementation(libs.kotlin.test)
         implementation("com.apollographql.cache:test-utils")
-        implementation(libs.apollo.mockserver)
       }
     }
   }
