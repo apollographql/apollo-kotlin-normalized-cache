@@ -4,11 +4,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withTimeout
 
-suspend fun <T> Channel<T>.awaitElement(timeoutMillis: Long = 30000) = withTimeout(timeoutMillis) {
-  receive()
-}
-
-suspend fun <T> Channel<T>.assertNoElement(timeoutMillis: Long = 300): Unit {
+suspend fun <T> Channel<T>.assertNoElement(timeoutMillis: Long = 300) {
   try {
     withTimeout(timeoutMillis) {
       receive()

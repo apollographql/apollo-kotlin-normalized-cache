@@ -10,6 +10,8 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
+import fixtures.JsonScalar
+import fixtures.JsonScalarModified
 import normalizer.GetJsonScalarQuery
 import normalizer.type.Json
 import kotlin.test.Test
@@ -37,7 +39,7 @@ class JsonScalarTest {
   // see https://github.com/apollographql/apollo-kotlin/issues/2854
   @Test
   fun jsonScalar() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("JsonScalar.json"))
+    mockServer.enqueueString(JsonScalar)
     var response = apolloClient.query(GetJsonScalarQuery()).execute()
 
     assertFalse(response.hasErrors())
@@ -50,7 +52,7 @@ class JsonScalarTest {
     /**
      * Update the json value, it should be replaced, not merged
      */
-    mockServer.enqueueString(testFixtureToUtf8("JsonScalarModified.json"))
+    mockServer.enqueueString(JsonScalarModified)
     apolloClient.query(GetJsonScalarQuery()).fetchPolicy(FetchPolicy.NetworkFirst).execute()
     response = apolloClient.query(GetJsonScalarQuery()).fetchPolicy(FetchPolicy.CacheOnly).execute()
 

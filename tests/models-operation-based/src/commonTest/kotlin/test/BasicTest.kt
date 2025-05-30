@@ -16,7 +16,9 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
-import testFixtureToUtf8
+import fixtures.HeroParentTypeDependentField
+import fixtures.MergedFieldWithSameShape_Droid
+import fixtures.MergedFieldWithSameShape_Human
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -40,9 +42,9 @@ class BasicTest {
     mockServer.close()
   }
 
-  private fun <D : Query.Data> basicTest(resourceName: String, query: Query<D>, block: ApolloResponse<D>.() -> Unit) =
+  private fun <D : Query.Data> basicTest(jsonPayload: String, query: Query<D>, block: ApolloResponse<D>.() -> Unit) =
     runTest(before = { setUp() }, after = { tearDown() }) {
-      mockServer.enqueueString(testFixtureToUtf8(resourceName))
+      mockServer.enqueueString(jsonPayload)
       var response = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
       response.block()
       response = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute()
@@ -52,7 +54,7 @@ class BasicTest {
   @Test
   @Throws(Exception::class)
   fun heroParentTypeDependentField() = basicTest(
-      "HeroParentTypeDependentField.json",
+      HeroParentTypeDependentField,
       HeroParentTypeDependentFieldQuery(Optional.Present(Episode.NEWHOPE))
   ) {
 
@@ -69,7 +71,7 @@ class BasicTest {
 
   @Test
   fun polymorphicDroidFieldsGetParsedToDroid() = basicTest(
-      "MergedFieldWithSameShape_Droid.json",
+      MergedFieldWithSameShape_Droid,
       MergedFieldWithSameShapeQuery(Optional.Present(Episode.NEWHOPE))
   ) {
     assertFalse(hasErrors())
@@ -79,7 +81,7 @@ class BasicTest {
 
   @Test
   fun polymorphicHumanFieldsGetParsedToHuman() = basicTest(
-      "MergedFieldWithSameShape_Human.json",
+      MergedFieldWithSameShape_Human,
       MergedFieldWithSameShapeQuery(Optional.Present(Episode.NEWHOPE))
   ) {
     assertFalse(hasErrors())

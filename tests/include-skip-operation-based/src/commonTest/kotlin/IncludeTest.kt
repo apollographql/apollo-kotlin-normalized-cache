@@ -1,9 +1,5 @@
 
-import com.apollographql.apollo.api.ApolloResponse
-import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Optional
-import com.apollographql.apollo.api.json.MapJsonReader
-import com.apollographql.apollo.api.toApolloResponse
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.testing.runTest
@@ -15,10 +11,6 @@ import kotlin.test.Test
 import kotlin.test.assertNull
 
 class IncludeTest {
-  private fun <D : Operation.Data> Operation<D>.parseData(data: Map<String, Any?>): ApolloResponse<D> {
-    return MapJsonReader(mapOf("data" to data)).toApolloResponse(this)
-  }
-
   @Test
   fun getCatIncludeVariableWithDefaultQuery() = runTest {
     val operation = GetCatIncludeVariableWithDefaultQuery()

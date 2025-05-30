@@ -17,6 +17,8 @@ import com.apollographql.cache.normalized.watch
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueError
 import com.apollographql.mockserver.enqueueString
+import fixtures.EpisodeHeroNameResponseNameChange
+import fixtures.EpisodeHeroNameResponseWithId
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -104,7 +106,7 @@ class WatcherErrorHandlingTest {
 
     // The first query should get a "R2-D2" name
     val job = launch {
-      mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponseWithId.json"))
+      mockServer.enqueueString(EpisodeHeroNameResponseWithId)
       apolloClient.query(query)
           .fetchPolicy(FetchPolicy.NetworkOnly)
           .refetchPolicy(FetchPolicy.NetworkOnly)
@@ -119,7 +121,7 @@ class WatcherErrorHandlingTest {
     // Another newer call gets updated information with "Artoo"
     // Due to .refetchPolicy(FetchPolicy.NetworkOnly), a subsequent call will be executed in watch()
     // we enqueue an error so a network exception is emitted
-    mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponseNameChange.json"))
+    mockServer.enqueueString(EpisodeHeroNameResponseNameChange)
     mockServer.enqueueError(statusCode = 500)
     apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
 
@@ -185,7 +187,7 @@ class WatcherErrorHandlingTest {
 
     // The first query should get a "R2-D2" name
     val job = launch {
-      mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponseWithId.json"))
+      mockServer.enqueueString(EpisodeHeroNameResponseWithId)
       apolloClient.query(query)
           .fetchPolicy(FetchPolicy.NetworkOnly)
           .refetchPolicy(FetchPolicy.NetworkOnly)
@@ -201,7 +203,7 @@ class WatcherErrorHandlingTest {
     // Another newer call gets updated information with "Artoo"
     // Due to .refetchPolicy(FetchPolicy.NetworkOnly), a subsequent call will be executed in watch()
     // we enqueue an error so a network exception is emitted
-    mockServer.enqueueString(testFixtureToUtf8("EpisodeHeroNameResponseNameChange.json"))
+    mockServer.enqueueString(EpisodeHeroNameResponseNameChange)
     mockServer.enqueueError(statusCode = 500)
     apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
 

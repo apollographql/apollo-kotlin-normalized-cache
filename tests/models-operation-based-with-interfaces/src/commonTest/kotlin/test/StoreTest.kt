@@ -15,7 +15,8 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
-import testFixtureToUtf8
+import fixtures.HeroAndFriendsNamesWithIDs
+import fixtures.HeroAndFriendsWithTypename
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -39,7 +40,7 @@ class StoreTest {
 
   @Test
   fun readFragmentFromStore() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsWithTypename.json"))
+    mockServer.enqueueString(HeroAndFriendsWithTypename)
     apolloClient.query(HeroAndFriendsWithTypenameQuery()).execute()
 
     val heroWithFriendsFragment = cacheManager.readFragment(
@@ -84,7 +85,7 @@ class StoreTest {
    */
   @Test
   fun fragments() = runTest(before = { setUp() }, after = { tearDown() }) {
-    mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNamesWithIDs.json"))
+    mockServer.enqueueString(HeroAndFriendsNamesWithIDs)
     val query = HeroAndFriendsWithFragmentsQuery()
     var response = apolloClient.query(query).execute()
     assertEquals(response.data?.hero?.__typename, "Droid")

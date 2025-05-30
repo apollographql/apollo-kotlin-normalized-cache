@@ -10,9 +10,10 @@ Librarian.module(project)
 
 kotlin {
   configureKmp(
-      withJs = false,
-      withWasm = false,
+      withJs = emptySet(),
+      withWasm = emptySet(),
       withAndroid = true,
+      withApple = AppleTargets.All,
   )
 }
 
@@ -78,11 +79,14 @@ kotlin {
         implementation(libs.androidx.startup.runtime)
       }
     }
+
+
     getByName("androidUnitTest") {
       dependencies {
         implementation(libs.kotlin.test.junit)
       }
     }
+
     getByName("commonTest") {
       dependencies {
         implementation(libs.kotlin.test)

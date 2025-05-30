@@ -44,12 +44,12 @@ final class com.apollographql.cache.normalized.sql.internal.record/RecordQueries
     final fun <#A1: kotlin/Any> selectRecords(kotlin.collections/Collection<kotlin/String>, kotlin/Function2<kotlin/String, kotlin/ByteArray, #A1>): app.cash.sqldelight/Query<#A1> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.selectRecords|selectRecords(kotlin.collections.Collection<kotlin.String>;kotlin.Function2<kotlin.String,kotlin.ByteArray,0:0>){0§<kotlin.Any>}[0]
     final fun changes(): app.cash.sqldelight/ExecutableQuery<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.changes|changes(){}[0]
     final fun count(): app.cash.sqldelight/Query<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.count|count(){}[0]
-    final fun deleteAllRecords() // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.deleteAllRecords|deleteAllRecords(){}[0]
-    final fun deleteRecords(kotlin.collections/Collection<kotlin/String>) // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.deleteRecords|deleteRecords(kotlin.collections.Collection<kotlin.String>){}[0]
-    final fun insertOrUpdateRecord(kotlin/String, kotlin/ByteArray, kotlin/Long) // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.insertOrUpdateRecord|insertOrUpdateRecord(kotlin.String;kotlin.ByteArray;kotlin.Long){}[0]
+    final fun deleteAllRecords(): app.cash.sqldelight.db/QueryResult<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.deleteAllRecords|deleteAllRecords(){}[0]
+    final fun deleteRecords(kotlin.collections/Collection<kotlin/String>): app.cash.sqldelight.db/QueryResult<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.deleteRecords|deleteRecords(kotlin.collections.Collection<kotlin.String>){}[0]
+    final fun insertOrUpdateRecord(kotlin/String, kotlin/ByteArray, kotlin/Long): app.cash.sqldelight.db/QueryResult<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.insertOrUpdateRecord|insertOrUpdateRecord(kotlin.String;kotlin.ByteArray;kotlin.Long){}[0]
     final fun selectAllRecords(): app.cash.sqldelight/Query<com.apollographql.cache.normalized.sql.internal.record/SelectAllRecords> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.selectAllRecords|selectAllRecords(){}[0]
     final fun selectRecords(kotlin.collections/Collection<kotlin/String>): app.cash.sqldelight/Query<com.apollographql.cache.normalized.sql.internal.record/SelectRecords> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.selectRecords|selectRecords(kotlin.collections.Collection<kotlin.String>){}[0]
-    final fun trimByUpdatedDate(kotlin/Long) // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.trimByUpdatedDate|trimByUpdatedDate(kotlin.Long){}[0]
+    final fun trimByUpdatedDate(kotlin/Long): app.cash.sqldelight.db/QueryResult<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.trimByUpdatedDate|trimByUpdatedDate(kotlin.Long){}[0]
 }
 
 final class com.apollographql.cache.normalized.sql.internal.record/SelectAllRecords { // com.apollographql.cache.normalized.sql.internal.record/SelectAllRecords|null[0]

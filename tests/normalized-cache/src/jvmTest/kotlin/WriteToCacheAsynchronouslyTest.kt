@@ -10,6 +10,7 @@ import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
+import fixtures.HeroAndFriendsNameResponse
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import normalizer.HeroAndFriendsNamesQuery
@@ -52,7 +53,7 @@ class WriteToCacheAsynchronouslyTest {
     withContext(dispatcher) {
       val query = HeroAndFriendsNamesQuery(Episode.JEDI)
 
-      mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNameResponse.json"))
+      mockServer.enqueueString(HeroAndFriendsNameResponse)
       apolloClient.query(query)
           .writeToCacheAsynchronously(true)
           .execute()
@@ -71,7 +72,7 @@ class WriteToCacheAsynchronouslyTest {
     withContext(dispatcher) {
       val query = HeroAndFriendsNamesQuery(Episode.JEDI)
 
-      mockServer.enqueueString(testFixtureToUtf8("HeroAndFriendsNameResponse.json"))
+      mockServer.enqueueString(HeroAndFriendsNameResponse)
       apolloClient.query(query)
           .writeToCacheAsynchronously(false)
           .execute()

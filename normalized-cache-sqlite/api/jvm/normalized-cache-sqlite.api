@@ -42,14 +42,14 @@ public final class com/apollographql/cache/normalized/sql/internal/record/Record
 	public fun <init> (Lapp/cash/sqldelight/db/SqlDriver;)V
 	public final fun changes ()Lapp/cash/sqldelight/ExecutableQuery;
 	public final fun count ()Lapp/cash/sqldelight/Query;
-	public final fun deleteAllRecords ()V
-	public final fun deleteRecords (Ljava/util/Collection;)V
-	public final fun insertOrUpdateRecord (Ljava/lang/String;[BJ)V
+	public final fun deleteAllRecords ()Lapp/cash/sqldelight/db/QueryResult;
+	public final fun deleteRecords (Ljava/util/Collection;)Lapp/cash/sqldelight/db/QueryResult;
+	public final fun insertOrUpdateRecord (Ljava/lang/String;[BJ)Lapp/cash/sqldelight/db/QueryResult;
 	public final fun selectAllRecords ()Lapp/cash/sqldelight/Query;
 	public final fun selectAllRecords (Lkotlin/jvm/functions/Function2;)Lapp/cash/sqldelight/Query;
 	public final fun selectRecords (Ljava/util/Collection;)Lapp/cash/sqldelight/Query;
 	public final fun selectRecords (Ljava/util/Collection;Lkotlin/jvm/functions/Function2;)Lapp/cash/sqldelight/Query;
-	public final fun trimByUpdatedDate (J)V
+	public final fun trimByUpdatedDate (J)Lapp/cash/sqldelight/db/QueryResult;
 }
 
 public final class com/apollographql/cache/normalized/sql/internal/record/SelectAllRecords {

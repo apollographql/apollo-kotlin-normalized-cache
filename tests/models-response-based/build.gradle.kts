@@ -5,8 +5,8 @@ plugins {
 
 kotlin {
   configureKmp(
-      withJs = true,
-      withWasm = false,
+      withJs = setOf(JsAndWasmEnvironment.Node),
+      withWasm = emptySet(),
       withAndroid = false,
       withApple = AppleTargets.Host,
   )

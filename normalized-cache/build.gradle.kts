@@ -9,9 +9,10 @@ Librarian.module(project)
 
 kotlin {
   configureKmp(
-      withJs = true,
-      withWasm = true,
+      withJs = setOf(JsAndWasmEnvironment.Node, JsAndWasmEnvironment.Browser),
+      withWasm = setOf(JsAndWasmEnvironment.Node, JsAndWasmEnvironment.Browser),
       withAndroid = false,
+      withApple = AppleTargets.All,
   )
 
   sourceSets {
@@ -22,6 +23,18 @@ kotlin {
         implementation(libs.okio)
         api(libs.uuid)
         implementation(libs.atomicfu.library)
+      }
+    }
+
+    getByName("jsMain") {
+      dependencies {
+        api(libs.kotlin.stdlib.js)
+      }
+    }
+
+    getByName("wasmJsMain") {
+      dependencies {
+        api(libs.kotlin.stdlib.wasm.js)
       }
     }
 

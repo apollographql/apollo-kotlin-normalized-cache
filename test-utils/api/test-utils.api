@@ -1,8 +1,3 @@
-public final class com/apollographql/cache/normalized/testing/-FileSystemCommon {
-	public static final fun pathToJsonReader (Ljava/lang/String;)Lcom/apollographql/apollo/api/json/JsonReader;
-	public static final fun pathToUtf8 (Ljava/lang/String;)Ljava/lang/String;
-}
-
 public final class com/apollographql/cache/normalized/testing/CacheKeyKt {
 	public static final fun append-eNSUWrY (Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/String;
 	public static final fun fieldKey-eNSUWrY (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
@@ -12,8 +7,6 @@ public final class com/apollographql/cache/normalized/testing/CacheKeyKt {
 public final class com/apollographql/cache/normalized/testing/ChannelsKt {
 	public static final fun assertNoElement (Lkotlinx/coroutines/channels/Channel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun assertNoElement$default (Lkotlinx/coroutines/channels/Channel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun awaitElement (Lkotlinx/coroutines/channels/Channel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun awaitElement$default (Lkotlinx/coroutines/channels/Channel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/apollographql/cache/normalized/testing/CurrentThreadId_jvmCommonKt {
@@ -37,15 +30,6 @@ public final class com/apollographql/cache/normalized/testing/Platform : java/la
 
 public final class com/apollographql/cache/normalized/testing/Platform_jvmCommonKt {
 	public static final fun platform ()Lcom/apollographql/cache/normalized/testing/Platform;
-}
-
-public final class com/apollographql/cache/normalized/testing/ReadFile_concurrentKt {
-	public static final fun getHostFileSystem ()Lokio/FileSystem;
-}
-
-public final class com/apollographql/cache/normalized/testing/ReadFile_jvmKt {
-	public static final fun getTestsPath ()Ljava/lang/String;
-	public static final fun shouldUpdateTestFixtures ()Z
 }
 
 public final class com/apollographql/cache/normalized/testing/RunTestKt {
