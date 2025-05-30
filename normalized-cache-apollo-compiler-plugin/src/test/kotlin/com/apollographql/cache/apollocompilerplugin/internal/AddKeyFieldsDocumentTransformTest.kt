@@ -161,6 +161,8 @@ class AddKeyFieldsDocumentTransformTest {
               name
               id
             }
+          }
+          ... on Person {
             id
           }
           ... on Robot {
@@ -232,6 +234,8 @@ class AddKeyFieldsDocumentTransformTest {
               name
               id
             }
+          }
+          ... on Person {
             id
           }
           ... on Android {

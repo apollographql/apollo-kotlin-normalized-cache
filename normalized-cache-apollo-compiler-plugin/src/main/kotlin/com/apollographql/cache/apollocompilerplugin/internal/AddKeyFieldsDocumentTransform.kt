@@ -39,7 +39,6 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
         selections = selections.withRequiredFields(
             schema = schema,
             parentType = parentType,
-            parentFields = emptySet(),
             isRoot = false,
         )
     )
@@ -50,7 +49,6 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
         selections = selections.withRequiredFields(
             schema = schema,
             parentType = typeCondition.name,
-            parentFields = emptySet(),
             isRoot = true,
         ),
     )
@@ -64,36 +62,18 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
   private fun List<GQLSelection>.withRequiredFields(
       schema: Schema,
       parentType: String,
-      parentFields: Set<String>,
       isRoot: Boolean,
   ): List<GQLSelection> {
     if (isEmpty()) {
       return this
     }
-    val keyFields = schema.keyFields(parentType)
-
-    this.filterIsInstance<GQLField>().forEach {
-      // Disallow fields whose alias conflicts with a key field, or is "__typename"
-      if (keyFields.contains(it.alias) || it.alias == "__typename") {
-        throw SourceAwareException(
-            error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
-            sourceLocation = it.sourceLocation
-        )
-      }
-    }
-
-    val fieldNames = parentFields + this.filterIsInstance<GQLField>().map { it.responseName() }
-
-    val alreadyHandledTypes = mutableSetOf<String>()
-    var newSelections = this.map {
+    val newSelections = this.map {
       when (it) {
         is GQLInlineFragment -> {
-          alreadyHandledTypes += it.typeCondition?.name ?: parentType
           it.copy(
               selections = it.selections.withRequiredFields(
                   schema = schema,
                   parentType = it.typeCondition?.name ?: parentType,
-                  parentFields = fieldNames + keyFields,
                   isRoot = false
               )
           )
@@ -107,42 +87,56 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
       }
     }
 
-    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
-    val inlineFragmentsToAdd = if (isRoot && keyFields.isEmpty()) {
-      val parentTypeDefinition = schema.typeDefinition(parentType)
-      val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
-        schema.possibleTypes(parentTypeDefinition)
-      } else {
-        emptySet()
-      } - alreadyHandledTypes
-      possibleTypes.associateWith { schema.keyFields(it) }.mapNotNull { (possibleType, keyFields) ->
-        val fieldNamesToAddInInlineFragment = keyFields - fieldNames
-        if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
-          GQLInlineFragment(
-              typeCondition = GQLNamedType(null, possibleType),
-              selections = fieldNamesToAddInInlineFragment.map { buildField(it) },
-              directives = emptyList(),
-              sourceLocation = null,
+    return if (isRoot) {
+      val keyFields = schema.keyFields(parentType)
+      newSelections.filterIsInstance<GQLField>().forEach {
+        // Disallow fields whose alias conflicts with a key field, or is "__typename"
+        if (keyFields.contains(it.alias) || it.alias == "__typename") {
+          throw SourceAwareException(
+              error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
+              sourceLocation = it.sourceLocation
           )
-        } else {
-          null
         }
       }
-    } else {
-      emptySet()
-    }
 
-    val fieldNamesToAdd = (keyFields - fieldNames)
-    newSelections = newSelections + fieldNamesToAdd.map { buildField(it) } + inlineFragmentsToAdd
-    newSelections = if (isRoot) {
+      // Add key fields
+      val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }
+      val fieldNamesToAdd = (keyFields - fieldNames)
+
+      // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
+      val inlineFragmentsToAdd = if (keyFields.isEmpty()) {
+        val parentTypeDefinition = schema.typeDefinition(parentType)
+        val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
+          schema.possibleTypes(parentTypeDefinition)
+        } else {
+          emptySet()
+        }
+        possibleTypes
+            .associateWith { possibleType -> schema.keyFields(possibleType) }
+            .mapNotNull { (possibleType, possibleTypeKeyFields) ->
+              val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames
+              if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
+                GQLInlineFragment(
+                    typeCondition = GQLNamedType(null, possibleType),
+                    selections = fieldNamesToAddInInlineFragment.map { buildField(it) },
+                    directives = emptyList(),
+                    sourceLocation = null,
+                )
+              } else {
+                null
+              }
+            }
+      } else {
+        emptySet()
+      }
+
+      val selectionsWithAdditions = newSelections + fieldNamesToAdd.map { buildField(it) } + inlineFragmentsToAdd
       // Remove the __typename if it exists and add it again at the top, so we're guaranteed to have it at the beginning of json parsing.
       // Also remove any @include/@skip directive on __typename.
-      listOf(buildField("__typename")) + newSelections.filter { (it as? GQLField)?.name != "__typename" }
+      listOf(buildField("__typename")) + selectionsWithAdditions.filter { (it as? GQLField)?.name != "__typename" }
     } else {
       newSelections
     }
-
-    return newSelections
   }
 
   private fun GQLField.withRequiredFields(
@@ -153,7 +147,6 @@ internal class AddKeyFieldsDocumentTransform : DocumentTransform {
     val newSelectionSet = selections.withRequiredFields(
         schema = schema,
         parentType = typeDefinition.type.rawType().name,
-        parentFields = emptySet(),
         isRoot = true
     )
     return copy(selections = newSelectionSet)
