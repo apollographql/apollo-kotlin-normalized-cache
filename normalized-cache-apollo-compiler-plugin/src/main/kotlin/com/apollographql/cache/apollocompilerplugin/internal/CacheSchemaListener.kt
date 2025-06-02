@@ -3,9 +3,11 @@
 package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
+import com.apollographql.apollo.ast.GQLDocument
 import com.apollographql.apollo.ast.Schema
+import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
-import com.apollographql.apollo.compiler.SchemaListener
+import com.apollographql.apollo.compiler.CodeGenerator
 import com.apollographql.cache.apollocompilerplugin.VERSION
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -29,17 +31,18 @@ private object Symbols {
   val TypePolicy = ClassName("com.apollographql.cache.normalized.api", "TypePolicy")
 }
 
-internal class CacheSchemaListener(
+internal class CacheCodeGenerator(
     private val environment: ApolloCompilerPluginEnvironment,
-) : SchemaListener {
-  override fun onSchema(schema: Schema, outputDirectory: File) {
+) : CodeGenerator {
+  override fun generate(schema: GQLDocument, outputDirectory: File) {
+    val validSchema = schema.toSchema()
     val packageName = (environment.arguments["packageName"] as? String
         ?: throw IllegalArgumentException("packageName argument is required and must be a String")) + ".cache"
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")
-                .addProperty(maxAgeProperty(schema))
-                .addProperty(typePoliciesProperty(schema))
+                .addProperty(maxAgeProperty(validSchema))
+                .addProperty(typePoliciesProperty(validSchema))
                 .build()
         )
         .addFileComment(

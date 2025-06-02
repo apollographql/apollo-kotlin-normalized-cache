@@ -624,6 +624,7 @@ class CachePartialResultTest {
                           ),
                       ),
                       onUser = WithFragmentsQuery.OnUser(
+                          __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"
@@ -669,6 +670,7 @@ class CachePartialResultTest {
                           lead0 = null,
                       ),
                       onUser = WithFragmentsQuery.OnUser(
+                          __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"

@@ -497,6 +497,7 @@ class StoreErrorsTest {
                           ),
                       ),
                       onUser = WithFragmentsQuery.OnUser(
+                          __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
                               nickName0 = "JS"

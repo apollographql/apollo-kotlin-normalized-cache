@@ -3,7 +3,6 @@
 package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
-import com.apollographql.apollo.ast.GQLOperationDefinition
 import com.apollographql.apollo.ast.SourceAwareException
 import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
@@ -14,7 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class AddKeyFieldsDocumentTransformTest {
+class AddKeyFieldsExecutableDocumentTransformTest {
   @Test
   fun keyFieldsOnObject() {
     // language=GraphQL
@@ -326,8 +325,8 @@ private fun checkTransform(schemaText: String, operationText: String, expected: 
               foreignSchemas = emptyList(),
           )
       ).getOrThrow()
-  val operation = operationText.toGQLDocument().definitions.first() as GQLOperationDefinition
-  assertEquals(expected, AddKeyFieldsDocumentTransform().transform(schema, operation).toUtf8().trim())
+  val document = operationText.toGQLDocument()
+  assertEquals(expected, AddKeyFieldsExecutableDocumentTransform.transform(schema, document, emptyList()).toUtf8().trim())
 }
 
 private fun checkTransformThrows(schemaText: String, operationText: String, expectedMessage: String) {
@@ -339,9 +338,9 @@ private fun checkTransformThrows(schemaText: String, operationText: String, expe
               foreignSchemas = emptyList(),
           )
       ).getOrThrow()
-  val operation = operationText.toGQLDocument().definitions.first() as GQLOperationDefinition
+  val document = operationText.toGQLDocument()
   assertFailsWith<SourceAwareException> {
-    AddKeyFieldsDocumentTransform().transform(schema, operation)
+    AddKeyFieldsExecutableDocumentTransform.transform(schema, document, emptyList())
   }.apply {
     assertEquals(expectedMessage, message)
   }
