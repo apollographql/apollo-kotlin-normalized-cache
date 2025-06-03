@@ -19,5 +19,6 @@
   <toc-element topic="cache-control.md" />
   <toc-element topic="garbage-collection.md" />
   <toc-element topic="trimming.md" />
+  <toc-element topic="compiler-plugin.md" />
 
 </instance-profile>
