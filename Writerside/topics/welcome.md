@@ -39,7 +39,7 @@ dependencies {
 }
 ```
 
-2. Configure the compiler plugin
+2. Configure the [compiler plugin](compiler-plugin.md)
 
 ```kotlin
 // build.gradle.kts

@@ -102,20 +102,6 @@ extend type Book @cacheControlField(name: "cachedTitle", maxAge: 30)
 extend type Reader @cacheControlField(name: "book", inheritMaxAge: true)
 ```
 
-Then configure the Cache compiler plugin in your `build.gradle.kts`:
-
-```kotlin
-apollo {
-  service("service") {
-    packageName.set(/*...*/)
-
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%") {
-      argument("packageName", packageName.get())
-    }
-  }
-}
-```
-
 This will generate a map in `yourpackage.cache.Cache.maxAges`, that you can pass to the `SchemaCoordinatesMaxAgeProvider`:
 
 ```kotlin

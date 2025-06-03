@@ -42,7 +42,7 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 
 ## Compiler plugin
 
-Configure the compiler plugin in your `build.gradle.kts` file:
+Configure the [compiler plugin](compiler-plugin.md) in your `build.gradle.kts` file:
 
 ```kotlin
 apollo {
