@@ -1,9 +1,11 @@
 # Migration guide
 
-The Apollo Kotlin Normalized Cache used to be part of the [Apollo Kotlin main repository](https://github.com/apollographql/apollo-kotlin).
-It is now hosted in this dedicated repository and published at its own cadence and versioning scheme.
+The Normalized Cache is now hosted in this dedicated repository and published at its own cadence and versioning scheme.
 
-This guide highlights the main differences between this library and the "classic" version, and how to migrate to it.
+The Normalized Cache in the [Apollo Kotlin main repository](https://github.com/apollographql/apollo-kotlin) will not receive new features - they
+are added here instead. In the future, the main repository Normalized Cache will be deprecated and then removed.
+
+This guide highlights the main differences between this library and the main repository version, and how to migrate from it.
 
 ## Artifacts and packages
 
@@ -38,8 +40,6 @@ import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 ```
 
-In most cases, this will be enough to migrate your project, but there were a few renames and API breaking changes. Read on for more details.
-
 ## Compiler plugin
 
 Configure the compiler plugin in your `build.gradle.kts` file:
@@ -56,6 +56,9 @@ apollo {
   }
 }
 ```
+
+In most cases, updating the coordinates/imports and adding the compiler plugin will be enough to migrate your project.
+But there were also a few renames and API breaking changes - read on for more details.
 
 ## Database schema
 
