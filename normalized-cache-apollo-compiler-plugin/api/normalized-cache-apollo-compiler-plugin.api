@@ -1,6 +1,6 @@
-public final class com/apollographql/cache/apollocompilerplugin/ApolloCacheCompilerPlugin : com/apollographql/apollo/compiler/ApolloCompilerPlugin {
+public final class com/apollographql/cache/apollocompilerplugin/ApolloCacheCompilerPluginProvider : com/apollographql/apollo/compiler/ApolloCompilerPluginProvider {
 	public fun <init> ()V
-	public fun beforeCompilationStep (Lcom/apollographql/apollo/compiler/ApolloCompilerPluginEnvironment;Lcom/apollographql/apollo/compiler/ApolloCompilerRegistry;)V
+	public fun create (Lcom/apollographql/apollo/compiler/ApolloCompilerPluginEnvironment;)Lcom/apollographql/apollo/compiler/ApolloCompilerPlugin;
 }
 
 public final class com/apollographql/cache/apollocompilerplugin/VersionKt {

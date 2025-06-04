@@ -7,7 +7,7 @@ import com.apollographql.apollo.ast.GQLDocument
 import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
-import com.apollographql.apollo.compiler.CodeGenerator
+import com.apollographql.apollo.compiler.SchemaCodeGenerator
 import com.apollographql.cache.apollocompilerplugin.VERSION
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -31,9 +31,9 @@ private object Symbols {
   val TypePolicy = ClassName("com.apollographql.cache.normalized.api", "TypePolicy")
 }
 
-internal class CacheCodeGenerator(
+internal class CacheSchemaCodeGenerator(
     private val environment: ApolloCompilerPluginEnvironment,
-) : CodeGenerator {
+) : SchemaCodeGenerator {
   override fun generate(schema: GQLDocument, outputDirectory: File) {
     val validSchema = schema.toSchema()
     val packageName = (environment.arguments["packageName"] as? String
