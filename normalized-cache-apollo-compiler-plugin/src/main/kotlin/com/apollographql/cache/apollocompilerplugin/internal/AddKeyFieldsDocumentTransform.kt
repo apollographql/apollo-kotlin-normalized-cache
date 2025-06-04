@@ -23,7 +23,7 @@ import com.apollographql.apollo.ast.rootTypeDefinition
 import com.apollographql.apollo.compiler.ExecutableDocumentTransform
 
 /**
- * Add key fields and `__typename` to selections on types that declare them via `@typePolicy`.
+ * Add `__typename` to every composite selection set and key fields to selection sets on types where `@typePolicy` declare them.
  */
 internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTransform {
   override fun transform(
