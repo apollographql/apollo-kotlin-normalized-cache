@@ -8,6 +8,8 @@ import com.apollographql.apollo.compiler.ApolloCompilerPlugin
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
 import com.apollographql.cache.apollocompilerplugin.internal.ApolloCacheCompilerPlugin
 
+// ApolloCacheCompilerPluginProvider is deprecated in favor of ApolloCompilerPluginProvider, but we want to display a nice error message
+// in projects using AK < 4.3.0
 class ApolloCacheCompilerPluginProvider : @Suppress("DEPRECATION") com.apollographql.apollo.compiler.ApolloCompilerPluginProvider {
   override fun create(environment: ApolloCompilerPluginEnvironment): ApolloCompilerPlugin {
     checkCompilerVersion()
