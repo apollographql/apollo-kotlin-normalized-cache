@@ -49,4 +49,5 @@ sqldelight-plugin = { module = "app.cash.sqldelight:gradle-plugin", version.ref 
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-plugin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-plugin" }
 apollo = { id = "com.apollographql.apollo", version.ref = "apollo" }

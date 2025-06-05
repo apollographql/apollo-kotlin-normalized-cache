@@ -1,0 +1,9 @@
+type Query {
+    product: Product
+    foo: Int
+}
+
+type Product @typePolicy(keyFields: "id"){
+    id: ID!
+    price: Float
+}

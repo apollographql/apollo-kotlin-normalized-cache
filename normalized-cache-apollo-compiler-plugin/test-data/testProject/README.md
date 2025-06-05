@@ -1,0 +1,1 @@
+A project that uses Apollo Kotlin 4.2.0 to double check we are failing with a "good" error message.
