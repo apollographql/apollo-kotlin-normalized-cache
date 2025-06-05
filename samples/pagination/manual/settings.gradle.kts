@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        mavenLocal()
+        maven("https://storage.googleapis.com/apollo-previews/m2/")
         maven {
             url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         }
@@ -11,7 +11,7 @@ pluginManagement {
 }
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()
+        maven("https://storage.googleapis.com/apollo-previews/m2/")
         maven {
             url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         }
