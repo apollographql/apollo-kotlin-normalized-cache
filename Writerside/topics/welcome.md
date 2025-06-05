@@ -26,6 +26,8 @@ are added here instead. In the future, the main repository Normalized Cache will
 
 {style="warning"}
 
+The Normalized Cache requires Apollo Kotlin v4.3.0 or later.
+
 1. Add the dependencies to your project
 
 ```kotlin
