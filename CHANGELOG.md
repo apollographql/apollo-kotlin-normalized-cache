@@ -2,7 +2,19 @@
 
 PUT_CHANGELOG_HERE
 
+# Version 1.0.0-alpha.3
+_2025-06-06_
+
+> With this release, the Normalized Cache requires Apollo Kotlin 4.3.0 or later.
+> This is necessary to ensure the cache compiler plugin can be used while other compiler plugins are also used.
+
+- Update Apollo compiler plugin to 4.3 API (#169)
+- Make deprecations less annoying (#163)
+- Don't assume presence of keyFields on `@typePolicy` (#162)
+- Bump sqldelight to 2.1.0 (#167)
+
 # Version 1.0.0-alpha.2
+_2025-05-20_
 
 - The computation of cache keys when multiple key fields are used has changed to avoid potential collisions. Note: this can lead to cache misses after upgrading to this version. (#80)
 - Make SQL cache more robust. (#152)
@@ -11,6 +23,7 @@ PUT_CHANGELOG_HERE
 - Introduce `CacheKey.Scope`. (#102)
 
 # Version 1.0.0-alpha.1
+_2025-04-28_
 
 - Rename `ApolloStore` to `CacheManager` and `SimpleApolloStore` to `ApolloStore`. (#134)
 - Revert the `ApolloClient.apolloStore` deprecation - keeping the original name makes more sense now after the above rename. (#134)
