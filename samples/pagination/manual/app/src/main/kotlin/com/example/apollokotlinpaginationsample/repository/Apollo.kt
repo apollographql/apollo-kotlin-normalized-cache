@@ -4,6 +4,7 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -36,7 +37,7 @@ val apolloClient: ApolloClient by lazy {
         // Normalized cache
         .normalizedCache(
             memoryThenSqlCache,
-            cacheKeyGenerator = com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator(
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(
                 typePolicies = Cache.typePolicies,
                 keyScope = CacheKey.Scope.SERVICE,
             ),

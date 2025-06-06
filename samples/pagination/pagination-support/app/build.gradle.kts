@@ -7,7 +7,7 @@ fun prop(key: String) = project.findProperty(key).toString()
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.apollographql.apollo").version("4.2.0")
+    id("com.apollographql.apollo").version("4.3.0")
     id("org.jetbrains.kotlin.plugin.compose").version("2.1.10")
 }
 
@@ -33,7 +33,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
@@ -62,7 +65,7 @@ apollo {
     service("main") {
         packageName.set("com.example.apollokotlinpaginationsample.graphql")
 
-        plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:1.0.0-alpha.2") {
+        plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:1.0.0-alpha.3") {
             argument("packageName", packageName.get())
         }
 
@@ -76,16 +79,16 @@ apollo {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.1")
     implementation("androidx.activity:activity-compose:1.10.1")
-    implementation(platform("androidx.compose:compose-bom:2025.05.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.06.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
     implementation("com.apollographql.apollo:apollo-runtime")
-    implementation("com.apollographql.cache:normalized-cache-sqlite:1.0.0-alpha.2")
+    implementation("com.apollographql.cache:normalized-cache-sqlite:1.0.0-alpha.3")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
