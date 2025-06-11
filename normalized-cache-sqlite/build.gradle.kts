@@ -11,7 +11,7 @@ Librarian.module(project)
 kotlin {
   configureKmp(
       withJs = setOf(JsAndWasmEnvironment.Browser),
-      withWasm = emptySet(),
+      withWasm = setOf(JsAndWasmEnvironment.Browser),
       withAndroid = true,
       withApple = AppleTargets.All,
   )
