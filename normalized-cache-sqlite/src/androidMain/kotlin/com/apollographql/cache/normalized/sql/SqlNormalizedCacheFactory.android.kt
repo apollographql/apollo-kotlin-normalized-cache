@@ -5,21 +5,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.cache.normalized.sql.internal.createDriver
-import com.apollographql.cache.normalized.sql.internal.createRecordDatabase
-import com.apollographql.cache.normalized.sql.internal.getSchema
+import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
+import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import app.cash.sqldelight.db.SqlDriver
 import com.apollographql.cache.normalized.api.NormalizedCache
 
-actual fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory = object : NormalizedCacheFactory() {
-  override fun create(): NormalizedCache {
-    return SqlNormalizedCache(createRecordDatabase(driver))
-  }
-}
-
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory =
-  SqlNormalizedCacheFactory(createDriver(name, null, getSchema()))
+  SqlNormalizedCacheFactory(createDriver(name, null))
 
 /**
  * @param [name] Name of the database file, or null for an in-memory database (as per Android framework implementation).
@@ -37,19 +30,35 @@ fun SqlNormalizedCacheFactory(
     configure: ((SupportSQLiteDatabase) -> Unit)? = null,
     useNoBackupDirectory: Boolean = false,
     windowSizeBytes: Long? = null,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(
-    AndroidSqliteDriver(
-        getSchema(),
-        context.applicationContext,
-        name,
-        factory,
-        object : AndroidSqliteDriver.Callback(getSchema()) {
-          override fun onConfigure(db: SupportSQLiteDatabase) {
-            super.onConfigure(db)
-            configure?.invoke(db)
-          }
-        },
-        useNoBackupDirectory = useNoBackupDirectory,
-        windowSizeBytes = windowSizeBytes,
-    ),
-)
+): NormalizedCacheFactory {
+  val synchronousSchema = SqlRecordDatabase.Schema.synchronous()
+  return SqlNormalizedCacheFactory(
+      AndroidSqliteDriver(
+          synchronousSchema,
+          context.applicationContext,
+          name,
+          factory,
+          object : AndroidSqliteDriver.Callback(synchronousSchema) {
+            override fun onConfigure(db: SupportSQLiteDatabase) {
+              super.onConfigure(db)
+              configure?.invoke(db)
+            }
+          },
+          useNoBackupDirectory = useNoBackupDirectory,
+          windowSizeBytes = windowSizeBytes,
+      ),
+  )
+}
+
+private fun createDriver(name: String?, baseDir: String?): SqlDriver {
+  check(baseDir == null) {
+    "Apollo: Android SqlNormalizedCacheFactory doesn't support 'baseDir'"
+  }
+  return AndroidSqliteDriver(
+      SqlRecordDatabase.Schema.synchronous(),
+      ApolloInitializer.context,
+      name,
+      FrameworkSQLiteOpenHelperFactory(),
+  )
+}
+

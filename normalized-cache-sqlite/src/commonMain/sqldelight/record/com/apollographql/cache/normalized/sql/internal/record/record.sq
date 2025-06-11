@@ -29,3 +29,6 @@ DELETE FROM record WHERE key IN (SELECT key FROM record ORDER BY updated_date LI
 
 changes:
 SELECT changes();
+
+setCacheSize:
+PRAGMA cache_size = -8192;

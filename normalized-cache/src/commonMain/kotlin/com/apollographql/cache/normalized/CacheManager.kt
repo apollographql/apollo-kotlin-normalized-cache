@@ -6,7 +6,6 @@ import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
 import com.apollographql.apollo.api.Fragment
 import com.apollographql.apollo.api.Operation
-import com.apollographql.apollo.api.json.JsonNumber
 import com.apollographql.cache.normalized.CacheManager.Companion.ALL_KEYS
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
@@ -26,7 +25,6 @@ import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
-import com.apollographql.cache.normalized.api.RecordValue
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.DefaultCacheManager
 import com.benasher44.uuid.Uuid
@@ -75,7 +73,7 @@ interface CacheManager {
    *
    * @param operation the operation to read
    */
-  fun <D : Operation.Data> readOperation(
+  suspend fun <D : Operation.Data> readOperation(
       operation: Operation<D>,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
@@ -94,7 +92,7 @@ interface CacheManager {
    *
    * @return the fragment data with optional headers from the [NormalizedCache]
    */
-  fun <D : Fragment.Data> readFragment(
+  suspend fun <D : Fragment.Data> readFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
@@ -115,7 +113,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun <D : Operation.Data> writeOperation(
+  suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       data: D,
       errors: List<Error>? = null,
@@ -136,7 +134,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun <D : Operation.Data> writeOperation(
+  suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       dataWithErrors: DataWithErrors,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
@@ -157,7 +155,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun <D : Fragment.Data> writeFragment(
+  suspend fun <D : Fragment.Data> writeFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -179,7 +177,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun <D : Operation.Data> writeOptimisticUpdates(
+  suspend fun <D : Operation.Data> writeOptimisticUpdates(
       operation: Operation<D>,
       data: D,
       mutationId: Uuid,
@@ -201,7 +199,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun <D : Fragment.Data> writeOptimisticUpdates(
+  suspend fun <D : Fragment.Data> writeOptimisticUpdates(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -221,7 +219,7 @@ interface CacheManager {
    *
    * @see publish
    */
-  fun rollbackOptimisticUpdates(
+  suspend fun rollbackOptimisticUpdates(
       mutationId: Uuid,
   ): Set<String>
 
@@ -234,7 +232,7 @@ interface CacheManager {
    *
    * @return `true` if all records were successfully removed, `false` otherwise
    */
-  fun clearAll(): Boolean
+  suspend fun clearAll(): Boolean
 
   /**
    * Removes a record by its key.
@@ -247,7 +245,7 @@ interface CacheManager {
    * @param cascade whether referenced records should also be removed
    * @return `true` if the record was successfully removed, `false` otherwise
    */
-  fun remove(cacheKey: CacheKey, cascade: Boolean = true): Boolean
+  suspend fun remove(cacheKey: CacheKey, cascade: Boolean = true): Boolean
 
   /**
    * Removes a list of records by their keys.
@@ -261,7 +259,7 @@ interface CacheManager {
    * @param cascade whether referenced records should also be removed
    * @return the number of records that have been removed
    */
-  fun remove(cacheKeys: List<CacheKey>, cascade: Boolean = true): Int
+  suspend fun remove(cacheKeys: List<CacheKey>, cascade: Boolean = true): Int
 
   /**
    * Trims the store if its size exceeds [maxSizeBytes]. The amount of data to remove is determined by [trimFactor].
@@ -273,7 +271,7 @@ interface CacheManager {
    * @param trimFactor the factor of the cache size to trim.
    * @return the cache size in bytes after trimming or -1 if the operation is not supported.
    */
-  fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long
+  suspend fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long
 
   /**
    * Normalizes executable data to a map of [Record] keyed by [Record.key].
@@ -304,14 +302,14 @@ interface CacheManager {
    *
    * @param block a function that can access the cache.
    */
-  fun <R> accessCache(block: (NormalizedCache) -> R): R
+  suspend fun <R> accessCache(block: suspend (NormalizedCache) -> R): R
 
   /**
    * Dumps the content of the store for debugging purposes.
    *
    * This is a synchronous operation that might block if the underlying cache is doing IO.
    */
-  fun dump(): Map<KClass<*>, Map<CacheKey, Record>>
+  suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>>
 
   /**
    * Releases resources associated with this store.
@@ -344,41 +342,6 @@ fun CacheManager(
     maxAgeProvider = maxAgeProvider,
 )
 
-internal fun CacheManager.cacheDumpProvider(): () -> Map<String, Map<String, Pair<Int, Map<String, Any?>>>> {
-  return {
-    dump().map { (cacheClass, cacheRecords) ->
-      cacheClass.normalizedCacheName() to cacheRecords
-          .mapKeys { (key, _) -> key.keyToString() }
-          .mapValues { (_, record) ->
-            record.size to record.fields.mapValues { (_, value) ->
-              value.toExternal()
-            }
-          }
-    }.toMap()
-  }
-}
-
-private fun RecordValue.toExternal(): Any? {
-  return when (this) {
-    null -> null
-    is String -> this
-    is Boolean -> this
-    is Int -> this
-    is Long -> this
-    is Double -> this
-    is JsonNumber -> this
-    is CacheKey -> "ApolloCacheReference{${this.keyToString()}}"
-    is Error -> "ApolloCacheError{${this.message}}"
-    is List<*> -> {
-      map { it.toExternal() }
-    }
-
-    is Map<*, *> -> {
-      mapValues { it.value.toExternal() }
-    }
-
-    else -> error("Unsupported record value type: '$this'")
-  }
-}
+internal expect fun CacheManager.cacheDumpProvider(): () -> Map<String, Map<String, Pair<Int, Map<String, Any?>>>>
 
 internal expect fun KClass<*>.normalizedCacheName(): String

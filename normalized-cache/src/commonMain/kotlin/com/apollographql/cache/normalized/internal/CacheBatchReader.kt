@@ -98,7 +98,7 @@ internal class CacheBatchReader(
     }
   }
 
-  fun collectData(): CacheBatchReaderData {
+  suspend fun collectData(): CacheBatchReaderData {
     pendingReferences.add(
         PendingReference(
             key = rootKey,

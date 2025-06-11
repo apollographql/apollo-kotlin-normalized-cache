@@ -1,17 +1,20 @@
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCache : com/apollographql/cache/normalized/api/NormalizedCache {
-	public fun clearAll ()V
-	public fun dump ()Ljava/util/Map;
-	public fun loadRecord-eNSUWrY (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;)Lcom/apollographql/cache/normalized/api/Record;
-	public fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;)Ljava/util/Collection;
-	public fun merge (Lcom/apollographql/cache/normalized/api/Record;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;)Ljava/util/Set;
-	public fun merge (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;)Ljava/util/Set;
-	public fun remove (Ljava/util/Collection;Z)I
-	public fun remove-eNSUWrY (Ljava/lang/String;Z)Z
-	public fun trim (JF)J
+	public fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun merge (Lcom/apollographql/cache/normalized/api/Record;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun merge (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun remove (Ljava/util/Collection;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun remove-7OwBRqc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trim (JFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFactoryKt {
+	public static final fun SqlNormalizedCacheFactory (Lapp/cash/sqldelight/db/SqlDriver;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 }
 
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFactory_jvmKt {
-	public static final fun SqlNormalizedCacheFactory (Lapp/cash/sqldelight/db/SqlDriver;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;Ljava/util/Properties;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
@@ -38,18 +41,19 @@ public final class com/apollographql/cache/normalized/sql/internal/record/Record
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/apollographql/cache/normalized/sql/internal/record/RecordQueries : app/cash/sqldelight/TransacterImpl {
+public final class com/apollographql/cache/normalized/sql/internal/record/RecordQueries : app/cash/sqldelight/SuspendingTransacterImpl {
 	public fun <init> (Lapp/cash/sqldelight/db/SqlDriver;)V
 	public final fun changes ()Lapp/cash/sqldelight/ExecutableQuery;
 	public final fun count ()Lapp/cash/sqldelight/Query;
-	public final fun deleteAllRecords ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteRecords (Ljava/util/Collection;)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertOrUpdateRecord (Ljava/lang/String;[BJ)Lapp/cash/sqldelight/db/QueryResult;
+	public final fun deleteAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteRecords (Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun insertOrUpdateRecord (Ljava/lang/String;[BJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun selectAllRecords ()Lapp/cash/sqldelight/Query;
 	public final fun selectAllRecords (Lkotlin/jvm/functions/Function2;)Lapp/cash/sqldelight/Query;
 	public final fun selectRecords (Ljava/util/Collection;)Lapp/cash/sqldelight/Query;
 	public final fun selectRecords (Ljava/util/Collection;Lkotlin/jvm/functions/Function2;)Lapp/cash/sqldelight/Query;
-	public final fun trimByUpdatedDate (J)Lapp/cash/sqldelight/db/QueryResult;
+	public final fun setCacheSize (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun trimByUpdatedDate (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/apollographql/cache/normalized/sql/internal/record/SelectAllRecords {
@@ -78,7 +82,7 @@ public final class com/apollographql/cache/normalized/sql/internal/record/Select
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class com/apollographql/cache/normalized/sql/internal/record/SqlRecordDatabase : app/cash/sqldelight/Transacter {
+public abstract interface class com/apollographql/cache/normalized/sql/internal/record/SqlRecordDatabase : app/cash/sqldelight/SuspendingTransacter {
 	public static final field Companion Lcom/apollographql/cache/normalized/sql/internal/record/SqlRecordDatabase$Companion;
 	public abstract fun getRecordQueries ()Lcom/apollographql/cache/normalized/sql/internal/record/RecordQueries;
 }

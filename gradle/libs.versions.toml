@@ -8,6 +8,8 @@ sqldelight = "2.1.0"
 androidx-sqlite = "2.3.1"
 librarian = "0.0.8-SNAPSHOT-cd822254de75426f8f047a50bae467da872cc912"
 kotlinx-coroutines = "1.9.0"
+copyWebpackPlugin = "9.1.0"
+sqlJs = "1.8.0"
 
 [libraries]
 apollo-api = { group = "com.apollographql.apollo", name = "apollo-api", version.ref = "apollo" }
@@ -30,6 +32,7 @@ uuid = "com.benasher44:uuid:0.8.2"
 sqldelight-android = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
 sqldelight-jvm = { group = "app.cash.sqldelight", name = "sqlite-driver", version.ref = "sqldelight" }
 sqldelight-native = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
+sqldelight-webworker = { group = "app.cash.sqldelight", name = "web-worker-driver", version.ref = "sqldelight" }
 sqldelight-runtime = { group = "app.cash.sqldelight", name = "runtime", version.ref = "sqldelight" }
 truth = "com.google.truth:truth:1.1.3"
 turbine = "app.cash.turbine:turbine:1.2.0"

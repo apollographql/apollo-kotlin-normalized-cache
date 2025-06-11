@@ -6,13 +6,14 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.withDates
+import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class TrimTest {
   @Test
-  fun trimTest() {
+  fun trimTest() = runTest {
     val cacheManager = CacheManager(SqlNormalizedCacheFactory()).also { it.clearAll() }
 
     val largeString = "".padStart(1024, '?')

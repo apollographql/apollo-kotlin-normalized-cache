@@ -7,6 +7,7 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.memory.MemoryCache
+import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -15,7 +16,7 @@ import kotlin.test.assertTrue
 
 class MemoryCacheTest {
   @Test
-  fun testSaveAndLoad_singleRecord() {
+  fun testSaveAndLoad_singleRecord() = runTest {
     val lruCache = createCache()
     val testRecord = createTestRecord("1")
     lruCache.merge(testRecord, CacheHeaders.NONE, DefaultRecordMerger)
@@ -24,7 +25,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testSaveAndLoad_multipleRecord_readSingle() {
+  fun testSaveAndLoad_multipleRecord_readSingle() = runTest {
     val lruCache = createCache()
     val testRecord1 = createTestRecord("1")
     val testRecord2 = createTestRecord("2")
@@ -38,7 +39,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testSaveAndLoad_multipleRecord_readMultiple() {
+  fun testSaveAndLoad_multipleRecord_readMultiple() = runTest {
     val lruCache = createCache()
     val testRecord1 = createTestRecord("1")
     val testRecord2 = createTestRecord("2")
@@ -51,14 +52,14 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testLoad_recordNotPresent() {
+  fun testLoad_recordNotPresent() = runTest {
     val lruCache = createCache()
     val record = lruCache.loadRecord(CacheKey("key1"), CacheHeaders.NONE)
     assertNull(record)
   }
 
   @Test
-  fun testEviction() {
+  fun testEviction() = runTest {
     val testRecord1 = createTestRecord("1")
     val testRecord2 = createTestRecord("2")
     val testRecord3 = createTestRecord("3")
@@ -79,7 +80,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testEviction_recordChange() {
+  fun testEviction_recordChange() = runTest {
     val testRecord1 = createTestRecord("1")
     val testRecord2 = createTestRecord("2")
     val testRecord3 = createTestRecord("3")
@@ -109,7 +110,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testExpiresImmediately() {
+  fun testExpiresImmediately() = runTest {
     val testRecord = createTestRecord("")
     val lruCache = createCache(expireAfterMillis = 0)
     lruCache.merge(testRecord, CacheHeaders.NONE, DefaultRecordMerger)
@@ -119,7 +120,7 @@ class MemoryCacheTest {
 
 
   @Test
-  fun testDualCacheSingleRecord() {
+  fun testDualCacheSingleRecord() = runTest {
     val secondaryCache = createCache()
     val primaryCache = createCache(nextCache = secondaryCache)
 
@@ -132,7 +133,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testDualCacheMultipleRecord() {
+  fun testDualCacheMultipleRecord() = runTest {
     val secondaryCache = createCache()
     val primaryCache = createCache(nextCache = secondaryCache)
 
@@ -148,7 +149,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testDualCache_recordNotPresent() {
+  fun testDualCache_recordNotPresent() = runTest {
     val secondaryCache = createCache()
     val primaryCache = createCache(nextCache = secondaryCache)
     assertNull(primaryCache.loadRecord(CacheKey("key"), CacheHeaders.NONE))
@@ -156,7 +157,7 @@ class MemoryCacheTest {
 
 
   @Test
-  fun testDualCache_clearAll() {
+  fun testDualCache_clearAll() = runTest {
     val secondaryCache = createCache()
     val primaryCache = createCache(nextCache = secondaryCache)
 
@@ -168,12 +169,12 @@ class MemoryCacheTest {
 
     primaryCache.clearAll()
 
-    assertEquals(0, primaryCache.size)
-    assertEquals(0, secondaryCache.size)
+    assertEquals(0, primaryCache.getSize())
+    assertEquals(0, secondaryCache.getSize())
   }
 
   @Test
-  fun testDualCache_readFromNext() {
+  fun testDualCache_readFromNext() = runTest {
     val secondaryCache = createCache()
     val primaryCache = createCache(nextCache = secondaryCache)
 
@@ -186,7 +187,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testHeader_noCache() {
+  fun testHeader_noCache() = runTest {
     val lruCache = createCache()
     val testRecord = createTestRecord("1")
 
@@ -198,7 +199,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testDump() {
+  fun testDump() = runTest {
     val lruCache = createCache()
 
     val testRecord1 = createTestRecord("1")
@@ -219,7 +220,7 @@ class MemoryCacheTest {
 
 
   @Test
-  fun testRemove_cascadeFalse() {
+  fun testRemove_cascadeFalse() = runTest {
     val lruCache = createCache()
 
     val record1 = Record(
@@ -245,7 +246,7 @@ class MemoryCacheTest {
   }
 
   @Test
-  fun testRemove_cascadeTrue() {
+  fun testRemove_cascadeTrue() = runTest {
     val lruCache = createCache()
 
     val record1 = Record(
@@ -278,7 +279,7 @@ class MemoryCacheTest {
     return MemoryCache(maxSizeBytes = maxSizeBytes, expireAfterMillis = expireAfterMillis, nextCache = nextCache)
   }
 
-  private fun assertTestRecordPresentAndAccurate(testRecord: Record, cache: NormalizedCache) {
+  private suspend fun assertTestRecordPresentAndAccurate(testRecord: Record, cache: NormalizedCache) {
     val cacheRecord = checkNotNull(cache.loadRecord(testRecord.key, CacheHeaders.NONE))
     assertEquals(testRecord.key, cacheRecord.key)
     assertEquals(testRecord.fields, cacheRecord.fields)

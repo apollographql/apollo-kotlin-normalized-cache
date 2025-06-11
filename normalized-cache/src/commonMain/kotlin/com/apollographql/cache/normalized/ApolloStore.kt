@@ -35,7 +35,7 @@ class ApolloStore(
   /**
    * @see CacheManager.readOperation
    */
-  fun <D : Operation.Data> readOperation(
+  suspend fun <D : Operation.Data> readOperation(
       operation: Operation<D>,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
   ): ApolloResponse<D> = cacheManager.readOperation(
@@ -47,7 +47,7 @@ class ApolloStore(
   /**
    * @see CacheManager.readFragment
    */
-  fun <D : Fragment.Data> readFragment(
+  suspend fun <D : Fragment.Data> readFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
@@ -61,7 +61,7 @@ class ApolloStore(
   /**
    * @see CacheManager.writeOperation
    */
-  fun <D : Operation.Data> writeOperation(
+  suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       data: D,
       errors: List<Error>? = null,
@@ -77,7 +77,7 @@ class ApolloStore(
   /**
    * @see CacheManager.writeFragment
    */
-  fun <D : Operation.Data> writeOperation(
+  suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       dataWithErrors: DataWithErrors,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
@@ -91,7 +91,7 @@ class ApolloStore(
   /**
    * @see CacheManager.writeFragment
    */
-  fun <D : Fragment.Data> writeFragment(
+  suspend fun <D : Fragment.Data> writeFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -107,7 +107,7 @@ class ApolloStore(
   /**
    * @see CacheManager.writeOptimisticUpdates
    */
-  fun <D : Operation.Data> writeOptimisticUpdates(
+  suspend fun <D : Operation.Data> writeOptimisticUpdates(
       operation: Operation<D>,
       data: D,
       mutationId: Uuid,
@@ -121,7 +121,7 @@ class ApolloStore(
   /**
    * @see CacheManager.writeOptimisticUpdates
    */
-  fun <D : Fragment.Data> writeOptimisticUpdates(
+  suspend fun <D : Fragment.Data> writeOptimisticUpdates(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -137,27 +137,27 @@ class ApolloStore(
   /**
    * @see CacheManager.rollbackOptimisticUpdates
    */
-  fun rollbackOptimisticUpdates(mutationId: Uuid): Set<String> = cacheManager.rollbackOptimisticUpdates(mutationId)
+  suspend fun rollbackOptimisticUpdates(mutationId: Uuid): Set<String> = cacheManager.rollbackOptimisticUpdates(mutationId)
 
   /**
    * @see CacheManager.clearAll
    */
-  fun clearAll(): Boolean = cacheManager.clearAll()
+  suspend fun clearAll(): Boolean = cacheManager.clearAll()
 
   /**
    * @see CacheManager.remove
    */
-  fun remove(cacheKey: CacheKey, cascade: Boolean = true): Boolean = cacheManager.remove(cacheKey, cascade)
+  suspend fun remove(cacheKey: CacheKey, cascade: Boolean = true): Boolean = cacheManager.remove(cacheKey, cascade)
 
   /**
    * @see CacheManager.remove
    */
-  fun remove(cacheKeys: List<CacheKey>, cascade: Boolean = true): Int = cacheManager.remove(cacheKeys, cascade)
+  suspend fun remove(cacheKeys: List<CacheKey>, cascade: Boolean = true): Int = cacheManager.remove(cacheKeys, cascade)
 
   /**
    * @see CacheManager.trim
    */
-  fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long = cacheManager.trim(maxSizeBytes, trimFactor)
+  suspend fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long = cacheManager.trim(maxSizeBytes, trimFactor)
 
   /**
    * @see CacheManager.normalize
@@ -181,12 +181,12 @@ class ApolloStore(
   /**
    * @see CacheManager.publish
    */
-  fun <R> accessCache(block: (NormalizedCache) -> R): R = cacheManager.accessCache(block)
+  suspend fun <R> accessCache(block: suspend (NormalizedCache) -> R): R = cacheManager.accessCache(block)
 
   /**
    * @see CacheManager.dump
    */
-  fun dump(): Map<KClass<*>, Map<CacheKey, Record>> = cacheManager.dump()
+  suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> = cacheManager.dump()
 
   /**
    * @see CacheManager.dispose
@@ -205,7 +205,7 @@ class ApolloStore(
  * @param data the data to remove.
  * @return the set of field keys that have been removed.
  */
-fun <D : Operation.Data> ApolloStore.removeOperation(
+suspend fun <D : Operation.Data> ApolloStore.removeOperation(
     operation: Operation<D>,
     data: D,
     cacheHeaders: CacheHeaders = CacheHeaders.NONE,
@@ -225,7 +225,7 @@ fun <D : Operation.Data> ApolloStore.removeOperation(
  * @param cacheKey the root where to remove the fragment data from.
  * @return the set of field keys that have been removed.
  */
-fun <D : Fragment.Data> ApolloStore.removeFragment(
+suspend fun <D : Fragment.Data> ApolloStore.removeFragment(
     fragment: Fragment<D>,
     cacheKey: CacheKey,
     data: D,
@@ -234,7 +234,7 @@ fun <D : Fragment.Data> ApolloStore.removeFragment(
   return removeData(fragment, cacheKey, data, cacheHeaders)
 }
 
-private fun <D : Executable.Data> ApolloStore.removeData(
+private suspend fun <D : Executable.Data> ApolloStore.removeData(
     executable: Executable<D>,
     cacheKey: CacheKey,
     data: D,

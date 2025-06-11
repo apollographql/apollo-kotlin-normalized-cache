@@ -9,7 +9,7 @@ interface ReadOnlyNormalizedCache {
    * @param cacheHeaders The cache headers associated with the request which generated this record.
    * @return The [Record] for key. If not present return null.
    */
-  fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record?
+  suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record?
 
   /**
    * Calls through to [NormalizedCache.loadRecord]. Implementations should override this
@@ -19,7 +19,7 @@ interface ReadOnlyNormalizedCache {
    * @param keys         The set of [Record] keys to read.
    * @param cacheHeaders The cache headers associated with the request which generated this record.
    */
-  fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record>
+  suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record>
 
-  fun dump(): Map<@JvmSuppressWildcards KClass<*>, Map<CacheKey, Record>>
+  suspend fun dump(): Map<@JvmSuppressWildcards KClass<*>, Map<CacheKey, Record>>
 }

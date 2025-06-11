@@ -13,40 +13,40 @@ import kotlin.reflect.KClass
 internal class OptimisticNormalizedCache(private val wrapped: NormalizedCache) : NormalizedCache {
   private val recordJournals = ConcurrentMap<CacheKey, RecordJournal>()
 
-  override fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
+  override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
     val nonOptimisticRecord = wrapped.loadRecord(key, cacheHeaders)
     return nonOptimisticRecord.mergeJournalRecord(key)
   }
 
-  override fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
+  override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
     val nonOptimisticRecords = wrapped.loadRecords(keys, cacheHeaders).associateBy { it.key }
     return keys.mapNotNull { key ->
       nonOptimisticRecords[key].mergeJournalRecord(key)
     }
   }
 
-  override fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     return wrapped.merge(record, cacheHeaders, recordMerger)
   }
 
-  override fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     return wrapped.merge(records, cacheHeaders, recordMerger)
   }
 
-  override fun clearAll() {
+  override suspend fun clearAll() {
     wrapped.clearAll()
     recordJournals.clear()
   }
 
-  override fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
+  override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
     return remove(setOf(cacheKey), cascade) > 0
   }
 
-  override fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+  override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
     return wrapped.remove(cacheKeys, cascade) + internalRemove(cacheKeys, cascade)
   }
 
-  override fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
+  override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
     return wrapped.trim(maxSizeBytes, trimFactor)
   }
 
@@ -100,7 +100,7 @@ internal class OptimisticNormalizedCache(private val wrapped: NormalizedCache) :
     return changedCacheKeys
   }
 
-  override fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+  override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
     return mapOf(this::class to recordJournals.mapValues { (_, journal) -> journal.current }) + wrapped.dump()
   }
 

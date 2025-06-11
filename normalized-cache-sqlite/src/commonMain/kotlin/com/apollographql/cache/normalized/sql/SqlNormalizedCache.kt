@@ -17,11 +17,11 @@ class SqlNormalizedCache internal constructor(
     private val recordDatabase: RecordDatabase,
 ) : NormalizedCache {
 
-  override fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
+  override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
     return loadRecords(keys = listOf(key), cacheHeaders = cacheHeaders).firstOrNull()
   }
 
-  override fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
+  override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
     if (cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
       return emptyList()
     }
@@ -34,8 +34,9 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  override fun clearAll() {
+  override suspend fun clearAll() {
     try {
+      recordDatabase.init()
       recordDatabase.deleteAllRecords()
     } catch (e: Exception) {
       // Unable to clear the records from the database, it is possibly corrupted
@@ -43,12 +44,13 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  override fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
+  override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
     return remove(cacheKeys = listOf(cacheKey), cascade = cascade) > 0
   }
 
-  override fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+  override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
     return try {
+      recordDatabase.init()
       recordDatabase.transaction {
         internalDeleteRecords(cacheKeys.map { it.key }, cascade)
       }
@@ -59,11 +61,11 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  override fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     return merge(records = listOf(record), cacheHeaders = cacheHeaders, recordMerger = recordMerger)
   }
 
-  override fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE) || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
       return emptySet()
     }
@@ -76,11 +78,12 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  override fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+  override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+    recordDatabase.init()
     return mapOf(this::class to recordDatabase.selectAllRecords().associateBy { it.key })
   }
 
-  private fun getReferencedKeysRecursively(
+  private suspend fun getReferencedKeysRecursively(
       keys: Collection<String>,
       visited: MutableSet<String> = mutableSetOf(),
   ): Set<String> {
@@ -94,7 +97,7 @@ class SqlNormalizedCache internal constructor(
   /**
    * Assumes an enclosing transaction
    */
-  private fun internalDeleteRecords(keys: Collection<String>, cascade: Boolean): Int {
+  private suspend fun internalDeleteRecords(keys: Collection<String>, cascade: Boolean): Int {
     val referencedKeys = if (cascade) {
       getReferencedKeysRecursively(keys)
     } else {
@@ -110,7 +113,12 @@ class SqlNormalizedCache internal constructor(
    * Updates records.
    * The [records] are merged using the given [recordMerger], requiring to load the existing records from the db first.
    */
-  private fun internalUpdateRecords(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  private suspend fun internalUpdateRecords(
+      records: Collection<Record>,
+      cacheHeaders: CacheHeaders,
+      recordMerger: RecordMerger,
+  ): Set<String> {
+    recordDatabase.init()
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
     val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
     return recordDatabase.transaction {
@@ -135,7 +143,8 @@ class SqlNormalizedCache internal constructor(
    * Loads a list of records, making sure to not query more than 999 at a time
    * to help with the SQLite limitations
    */
-  private fun selectRecords(keys: Collection<CacheKey>): List<Record> {
+  private suspend fun selectRecords(keys: Collection<CacheKey>): List<Record> {
+    recordDatabase.init()
     return keys
         .map { it.key }
         .chunked(parametersMax).flatMap { chunkedKeys ->
@@ -143,11 +152,12 @@ class SqlNormalizedCache internal constructor(
         }
   }
 
-  override fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
+  override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
     try {
+      recordDatabase.init()
       val size = recordDatabase.databaseSize()
       return if (size >= maxSizeBytes) {
-        val count = recordDatabase.count().executeAsOne()
+        val count = recordDatabase.count()
         recordDatabase.trimByUpdatedDate((count * trimFactor).toLong())
         recordDatabase.vacuum()
         recordDatabase.databaseSize()

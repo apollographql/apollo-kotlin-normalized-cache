@@ -24,7 +24,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
    * @param recordMerger The [RecordMerger] to use when merging the record.
    * @return A set of record field keys that have changed. This set is returned by [RecordMerger.merge].
    */
-  fun merge(
+  suspend fun merge(
       record: Record,
       cacheHeaders: CacheHeaders,
       recordMerger: RecordMerger,
@@ -39,7 +39,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
    * @param recordMerger The [RecordMerger] to use when merging the records.
    * @return A set of record field keys that have changed. This set is returned by [RecordMerger.merge].
    */
-  fun merge(
+  suspend fun merge(
       records: Collection<Record>,
       cacheHeaders: CacheHeaders,
       recordMerger: RecordMerger,
@@ -49,7 +49,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
   /**
    * Clears all records from the cache.
    */
-  fun clearAll()
+  suspend fun clearAll()
 
   /**
    * Remove a record and potentially its referenced records from this cache and all chained caches
@@ -58,7 +58,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
    * @param cascade remove referenced records if true
    * @return `true` if at least one record was successfully removed, `false` otherwise
    */
-  fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean
+  suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean
 
   /**
    * Calls through to [NormalizedCache.remove]. Implementations should override this method
@@ -68,7 +68,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
    * @param cascade remove referenced records if true
    * @return the number of records removed
    */
-  fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int
+  suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int
 
   /**
    * Trims the cache if its size exceeds [maxSizeBytes]. The amount of data to remove is determined by [trimFactor].
@@ -80,7 +80,7 @@ interface NormalizedCache : ReadOnlyNormalizedCache {
    * @param trimFactor the factor of the cache size to trim.
    * @return the cache size in bytes after trimming or -1 if the operation is not supported.
    */
-  fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long {
+  suspend fun trim(maxSizeBytes: Long, trimFactor: Float = 0.1f): Long {
     return -1
   }
 

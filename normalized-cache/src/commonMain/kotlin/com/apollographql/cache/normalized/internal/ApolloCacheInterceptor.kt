@@ -198,7 +198,7 @@ internal class ApolloCacheInterceptor(
     }
   }
 
-  private fun <D : Query.Data> readFromCache(
+  private suspend fun <D : Query.Data> readFromCache(
       request: ApolloRequest<D>,
       customScalarAdapters: CustomScalarAdapters,
   ): ApolloResponse<D> {

@@ -85,19 +85,19 @@ internal class DefaultCacheManager(
     changedKeysEvents.emit(keys)
   }
 
-  override fun clearAll(): Boolean {
+  override suspend fun clearAll(): Boolean {
     cache.clearAll()
     return true
   }
 
-  override fun remove(
+  override suspend fun remove(
       cacheKey: CacheKey,
       cascade: Boolean,
   ): Boolean {
     return cache.remove(cacheKey, cascade)
   }
 
-  override fun remove(
+  override suspend fun remove(
       cacheKeys: List<CacheKey>,
       cascade: Boolean,
   ): Int {
@@ -122,7 +122,7 @@ internal class DefaultCacheManager(
     )
   }
 
-  override fun <D : Operation.Data> readOperation(
+  override suspend fun <D : Operation.Data> readOperation(
       operation: Operation<D>,
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
@@ -177,7 +177,7 @@ internal class DefaultCacheManager(
         .build()
   }
 
-  override fun <D : Fragment.Data> readFragment(
+  override suspend fun <D : Fragment.Data> readFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       customScalarAdapters: CustomScalarAdapters,
@@ -202,11 +202,11 @@ internal class DefaultCacheManager(
     return ReadResult(data = data, cacheHeaders = batchReaderData.cacheHeaders)
   }
 
-  override fun <R> accessCache(block: (NormalizedCache) -> R): R {
+  override suspend fun <R> accessCache(block: suspend (NormalizedCache) -> R): R {
     return block(cache)
   }
 
-  override fun <D : Operation.Data> writeOperation(
+  override suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       data: D,
       errors: List<Error>?,
@@ -217,7 +217,7 @@ internal class DefaultCacheManager(
     return writeOperation(operation, dataWithErrors, customScalarAdapters, cacheHeaders)
   }
 
-  override fun <D : Operation.Data> writeOperation(
+  override suspend fun <D : Operation.Data> writeOperation(
       operation: Operation<D>,
       dataWithErrors: DataWithErrors,
       customScalarAdapters: CustomScalarAdapters,
@@ -232,7 +232,7 @@ internal class DefaultCacheManager(
     return cache.merge(records, cacheHeaders, recordMerger)
   }
 
-  override fun <D : Fragment.Data> writeFragment(
+  override suspend fun <D : Fragment.Data> writeFragment(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -249,7 +249,7 @@ internal class DefaultCacheManager(
     return cache.merge(records, cacheHeaders, recordMerger)
   }
 
-  override fun <D : Operation.Data> writeOptimisticUpdates(
+  override suspend fun <D : Operation.Data> writeOptimisticUpdates(
       operation: Operation<D>,
       data: D,
       mutationId: Uuid,
@@ -275,7 +275,7 @@ internal class DefaultCacheManager(
     return cache.addOptimisticUpdates(records)
   }
 
-  override fun <D : Fragment.Data> writeOptimisticUpdates(
+  override suspend fun <D : Fragment.Data> writeOptimisticUpdates(
       fragment: Fragment<D>,
       cacheKey: CacheKey,
       data: D,
@@ -298,21 +298,17 @@ internal class DefaultCacheManager(
     return cache.addOptimisticUpdates(records)
   }
 
-  override fun rollbackOptimisticUpdates(
+  override suspend fun rollbackOptimisticUpdates(
       mutationId: Uuid,
   ): Set<String> {
     return cache.removeOptimisticUpdates(mutationId)
   }
 
-  fun merge(record: Record, cacheHeaders: CacheHeaders): Set<String> {
-    return cache.merge(record, cacheHeaders, recordMerger)
-  }
-
-  override fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
+  override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
     return cache.trim(maxSizeBytes, trimFactor)
   }
 
-  override fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+  override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
     return cache.dump()
   }
 

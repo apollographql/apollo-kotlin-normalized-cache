@@ -10,7 +10,7 @@ Librarian.module(project)
 
 kotlin {
   configureKmp(
-      withJs = emptySet(),
+      withJs = setOf(JsAndWasmEnvironment.Browser),
       withWasm = emptySet(),
       withAndroid = true,
       withApple = AppleTargets.All,
@@ -35,6 +35,7 @@ sqldelight {
     packageName.set("com.apollographql.cache.normalized.sql.internal.record")
     schemaOutputDirectory.set(file("sqldelight/record/schema"))
     srcDirs.setFrom("src/commonMain/sqldelight/record/")
+    generateAsync.set(true)
   }
 }
 
@@ -91,6 +92,20 @@ kotlin {
       dependencies {
         implementation(libs.kotlin.test)
         implementation(project(":test-utils"))
+      }
+    }
+
+    getByName("jsCommonMain") {
+      dependencies {
+        implementation(libs.sqldelight.webworker)
+        implementation(devNpm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
+      }
+    }
+
+    getByName("jsCommonTest") {
+      dependencies {
+        implementation(npm("@cashapp/sqldelight-sqljs-worker", libs.versions.sqldelight.get()))
+        implementation(npm("sql.js", libs.versions.sqlJs.get()))
       }
     }
   }

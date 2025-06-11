@@ -35,7 +35,7 @@ fun Map<CacheKey, Record>.getReachableCacheKeys(): Set<CacheKey> {
 }
 
 @ApolloInternal
-fun NormalizedCache.allRecords(): Map<CacheKey, Record> {
+suspend fun NormalizedCache.allRecords(): Map<CacheKey, Record> {
   return dump().values.fold(emptyMap()) { acc, map -> acc + map }
 }
 
@@ -45,12 +45,12 @@ fun NormalizedCache.allRecords(): Map<CacheKey, Record> {
  *
  * @return the cache keys that were removed.
  */
-fun NormalizedCache.removeUnreachableRecords(): Set<CacheKey> {
+suspend fun NormalizedCache.removeUnreachableRecords(): Set<CacheKey> {
   val allRecords = allRecords()
   return removeUnreachableRecords(allRecords)
 }
 
-private fun NormalizedCache.removeUnreachableRecords(allRecords: Map<CacheKey, Record>): Set<CacheKey> {
+private suspend fun NormalizedCache.removeUnreachableRecords(allRecords: Map<CacheKey, Record>): Set<CacheKey> {
   val unreachableCacheKeys = allRecords.keys - allRecords.getReachableCacheKeys()
   remove(unreachableCacheKeys, cascade = false)
   return unreachableCacheKeys.toSet()
@@ -60,7 +60,7 @@ private fun NormalizedCache.removeUnreachableRecords(allRecords: Map<CacheKey, R
  * Remove all unreachable records in the store.
  * @see removeUnreachableRecords
  */
-fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
+suspend fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
   return accessCache { cache ->
     cache.removeUnreachableRecords()
   }
@@ -81,7 +81,7 @@ fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
  *
  * @return the fields and records that were removed.
  */
-fun NormalizedCache.removeStaleFields(
+suspend fun NormalizedCache.removeStaleFields(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
 ): RemovedFieldsAndRecords {
@@ -89,7 +89,7 @@ fun NormalizedCache.removeStaleFields(
   return removeStaleFields(allRecords, maxAgeProvider, maxStale)
 }
 
-private fun NormalizedCache.removeStaleFields(
+private suspend fun NormalizedCache.removeStaleFields(
     allRecords: MutableMap<CacheKey, Record>,
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration,
@@ -177,7 +177,7 @@ private fun NormalizedCache.removeStaleFields(
  * Remove all stale fields in the store.
  * @see removeStaleFields
  */
-fun ApolloStore.removeStaleFields(
+suspend fun ApolloStore.removeStaleFields(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
 ): RemovedFieldsAndRecords {
@@ -196,12 +196,12 @@ fun ApolloStore.removeStaleFields(
  *
  * @return the fields and records that were removed.
  */
-fun NormalizedCache.removeDanglingReferences(): RemovedFieldsAndRecords {
+suspend fun NormalizedCache.removeDanglingReferences(): RemovedFieldsAndRecords {
   val allRecords: MutableMap<CacheKey, Record> = allRecords().toMutableMap()
   return removeDanglingReferences(allRecords)
 }
 
-private fun NormalizedCache.removeDanglingReferences(allRecords: MutableMap<CacheKey, Record>): RemovedFieldsAndRecords {
+private suspend fun NormalizedCache.removeDanglingReferences(allRecords: MutableMap<CacheKey, Record>): RemovedFieldsAndRecords {
   val recordsToUpdate = mutableMapOf<CacheKey, Record>()
   val allRemovedFields = mutableSetOf<String>()
   do {
@@ -242,7 +242,7 @@ private fun NormalizedCache.removeDanglingReferences(allRecords: MutableMap<Cach
  * Remove all dangling references in the store.
  * @see removeDanglingReferences
  */
-fun ApolloStore.removeDanglingReferences(): RemovedFieldsAndRecords {
+suspend fun ApolloStore.removeDanglingReferences(): RemovedFieldsAndRecords {
   return accessCache { cache ->
     cache.removeDanglingReferences()
   }
@@ -292,7 +292,7 @@ private operator fun Record.minus(key: String): Record {
  * @param maxAgeProvider the max age provider to use for [removeStaleFields]
  * @param maxStale the maximum staleness to use for [removeStaleFields]
  */
-fun NormalizedCache.garbageCollect(
+suspend fun NormalizedCache.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
 ): GarbageCollectResult {
@@ -308,7 +308,7 @@ fun NormalizedCache.garbageCollect(
  * Perform garbage collection on the store.
  * @see garbageCollect
  */
-fun ApolloStore.garbageCollect(
+suspend fun ApolloStore.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
 ): GarbageCollectResult {

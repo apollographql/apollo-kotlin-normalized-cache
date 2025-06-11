@@ -9,8 +9,9 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.api.RecordMergerContext
 import com.apollographql.cache.normalized.api.withDates
-import com.apollographql.cache.normalized.internal.Lock
+import com.apollographql.cache.normalized.internal.withReentrantLock
 import com.apollographql.cache.normalized.memory.internal.LruCache
+import kotlinx.coroutines.sync.Mutex
 import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
 
@@ -29,31 +30,26 @@ class MemoryCache(
     private val expireAfterMillis: Long = -1,
 ) : NormalizedCache {
   // A lock is only needed if there is a nextCache
-  private val lock = nextCache?.let { Lock() }
+  private val mutex = nextCache?.let { Mutex() }
 
-  private fun <T> lockWrite(block: () -> T): T {
-    return lock?.write { block() } ?: block()
-  }
-
-  private fun <T> lockRead(block: () -> T): T {
-    return lock?.read { block() } ?: block()
+  private suspend fun <T> withLock(block: suspend () -> T): T {
+    return mutex?.withReentrantLock { block() } ?: block()
   }
 
   private val lruCache = LruCache<CacheKey, Record>(maxSize = maxSizeBytes, expireAfterMillis = expireAfterMillis) { key, record ->
     key.key.length + record.sizeInBytes
   }
 
-  val size: Int
-    get() = lockRead { lruCache.weight() }
+  internal suspend fun getSize(): Int = withLock { lruCache.weight() }
 
-  override fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? = lockRead {
+  override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? = withLock {
     val record = lruCache[key]
     record ?: nextCache?.loadRecord(key, cacheHeaders)?.also { nextCachedRecord ->
       lruCache[key] = nextCachedRecord
     }
   }
 
-  override fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> = lockRead {
+  override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> = withLock {
     val recordsByKey: Map<CacheKey, Record?> = keys.associateWith { key -> lruCache[key] }
     val missingKeys = recordsByKey.filterValues { it == null }.keys
     val nextCachedRecords = nextCache?.loadRecords(missingKeys, cacheHeaders).orEmpty()
@@ -63,19 +59,19 @@ class MemoryCache(
     recordsByKey.values.filterNotNull() + nextCachedRecords
   }
 
-  override fun clearAll() {
-    lockWrite {
+  override suspend fun clearAll() {
+    withLock {
       lruCache.clear()
       nextCache?.clearAll()
     }
   }
 
-  override fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
+  override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
     return remove(setOf(cacheKey), cascade) > 0
   }
 
-  override fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
-    return lockWrite {
+  override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+    return withLock {
       val total = internalRemove(cacheKeys, cascade)
       nextCache?.remove(cacheKeys, cascade)
       total
@@ -100,27 +96,27 @@ class MemoryCache(
     return total
   }
 
-  override fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
       return emptySet()
     }
-    return lockWrite {
+    return withLock {
       val changedKeys = internalMerge(record, cacheHeaders, recordMerger)
       changedKeys + nextCache?.merge(record, cacheHeaders, recordMerger).orEmpty()
     }
   }
 
-  override fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
       return emptySet()
     }
-    return lockWrite {
+    return withLock {
       val changedKeys = records.flatMap { record -> internalMerge(record, cacheHeaders, recordMerger) }.toSet()
       changedKeys + nextCache?.merge(records, cacheHeaders, recordMerger).orEmpty()
     }
   }
 
-  private fun internalMerge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+  private suspend fun internalMerge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
     val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
     val existingRecord = loadRecord(record.key, cacheHeaders)
@@ -135,8 +131,8 @@ class MemoryCache(
     return changedKeys
   }
 
-  override fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
-    return lockRead {
+  override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+    return withLock {
       mapOf(this::class to lruCache.asMap().mapValues { (_, record) -> record }) +
           nextCache?.dump().orEmpty()
     }
@@ -146,11 +142,11 @@ class MemoryCache(
     lruCache.clear()
   }
 
-  override fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
+  override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
     return if (nextCache == null) {
       -1
     } else {
-      lockWrite { nextCache.trim(maxSizeBytes, trimFactor) }
+      withLock { nextCache.trim(maxSizeBytes, trimFactor) }
     }
   }
 }

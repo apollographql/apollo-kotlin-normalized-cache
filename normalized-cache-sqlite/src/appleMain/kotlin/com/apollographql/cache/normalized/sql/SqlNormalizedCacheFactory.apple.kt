@@ -1,17 +1,11 @@
 package com.apollographql.cache.normalized.sql
 
 import app.cash.sqldelight.db.SqlDriver
-import com.apollographql.cache.normalized.api.NormalizedCache
+import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import app.cash.sqldelight.driver.native.wrapConnection
+import co.touchlab.sqliter.DatabaseConfiguration
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.cache.normalized.sql.internal.createDriver
-import com.apollographql.cache.normalized.sql.internal.createRecordDatabase
-import com.apollographql.cache.normalized.sql.internal.getSchema
-
-actual fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory = object : NormalizedCacheFactory() {
-  override fun create(): NormalizedCache {
-    return SqlNormalizedCache(createRecordDatabase(driver))
-  }
-}
+import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 
 /**
  * @param name the name of the database or null for an in-memory database
@@ -22,6 +16,25 @@ actual fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory 
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir, getSchema()))
+): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir))
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
+
+private fun createDriver(name: String?, baseDir: String?): SqlDriver {
+  val schema = SqlRecordDatabase.Schema
+  val databaseConfiguration = DatabaseConfiguration(
+      name = name ?: "memoryDb",
+      inMemory = name == null,
+      version = schema.version.toInt(),
+      create = { connection ->
+        wrapConnection(connection) { schema.create(it) }
+      },
+      upgrade = { connection, oldVersion, newVersion ->
+        wrapConnection(connection) { schema.migrate(it, oldVersion.toLong(), newVersion.toLong()) }
+      },
+      extendedConfig = DatabaseConfiguration.Extended(
+          basePath = baseDir
+      )
+  )
+  return NativeSqliteDriver(databaseConfiguration, 1)
+}

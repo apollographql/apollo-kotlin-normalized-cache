@@ -1,19 +1,9 @@
 package com.apollographql.cache.normalized.sql
 
-import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.cache.normalized.sql.internal.createDriver
-import com.apollographql.cache.normalized.sql.internal.createRecordDatabase
-import com.apollographql.cache.normalized.sql.internal.getSchema
+import java.io.File
 import java.util.Properties
-
-actual fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory = object : NormalizedCacheFactory() {
-  override fun create(): NormalizedCache {
-    return SqlNormalizedCache(createRecordDatabase(driver))
-  }
-}
 
 /**
  * @param url Database connection URL in the form of `jdbc:sqlite:path` where `path` is either blank
@@ -34,6 +24,18 @@ fun SqlNormalizedCacheFactory(
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir, getSchema()))
+): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(name.toUrl(baseDir), Properties()))
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
+
+
+private fun String?.toUrl(baseDir: String?): String {
+  return if (this == null) {
+    JdbcSqliteDriver.IN_MEMORY
+  } else {
+    val dir = baseDir?.let { File(it) } ?: File(System.getProperty("user.home")).resolve(".apollo")
+    dir.mkdirs()
+    "${JdbcSqliteDriver.IN_MEMORY}${dir.resolve(this).absolutePath}"
+  }
+}
+
