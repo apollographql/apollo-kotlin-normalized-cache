@@ -1,0 +1,9 @@
+extend schema
+@link(
+  url: "https://specs.apollo.dev/kotlin_labs/v0.3",
+  import: ["@typePolicy", "@fieldPolicy"]
+)
+
+extend interface Node @typePolicy(keyFields: "id")
+
+extend type Query @fieldPolicy(forField: "product", keyArgs: "id")

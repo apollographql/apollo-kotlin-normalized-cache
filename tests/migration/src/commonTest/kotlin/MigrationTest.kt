@@ -154,7 +154,7 @@ class MigrationTest {
   }
 }
 
-private fun CacheManager.migrateFrom(legacyStore: LegacyApolloStore) {
+private suspend fun CacheManager.migrateFrom(legacyStore: LegacyApolloStore) {
   accessCache { cache ->
     cache.merge(
         records = legacyStore.accessCache { it.allRecords() }.map { it.toRecord() },

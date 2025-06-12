@@ -1,0 +1,27 @@
+query GetProducts {
+  products {
+    ...Product
+  }
+}
+
+query GetProduct($id: ID!) {
+  product(id: $id) {
+    ...Product
+  }
+}
+
+fragment Product on Product {
+  id
+  name
+  price
+  colors {
+    ... on StandardColor {
+      color
+    }
+    ... on CustomColor {
+      red
+      green
+      blue
+    }
+  }
+}

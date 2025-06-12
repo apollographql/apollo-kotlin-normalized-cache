@@ -179,7 +179,7 @@ class ClientSideCacheControlTest {
     assertTrue(userEmailResponse.data?.user?.email == "john@doe.com")
   }
 
-  private fun mergeCompanyQueryResults(client: ApolloClient, secondsAgo: Int) {
+  private suspend fun mergeCompanyQueryResults(client: ApolloClient, secondsAgo: Int) {
     val data = declarative.GetCompanyQuery.Data(declarative.GetCompanyQuery.Company(__typename = "Company", id = "42"))
     val records = data.normalized(declarative.GetCompanyQuery()).values
     client.apolloStore.accessCache {
@@ -257,7 +257,7 @@ class ClientSideCacheControlTest {
     assertTrue(e.stale)
   }
 
-  private fun mergeUserQueryResults(client: ApolloClient, secondsAgo: Int) {
+  private suspend fun mergeUserQueryResults(client: ApolloClient, secondsAgo: Int) {
     val data =
       declarative.GetUserQuery.Data(declarative.GetUserQuery.User(__typename = "User", name = "John", email = "john@doe.com", admin = true))
     val records = data.normalized(declarative.GetUserQuery()).values
@@ -266,7 +266,7 @@ class ClientSideCacheControlTest {
     }
   }
 
-  private fun mergeProjectQueryResults(client: ApolloClient, secondsAgo: Int) {
+  private suspend fun mergeProjectQueryResults(client: ApolloClient, secondsAgo: Int) {
     val data = declarative.GetProjectQuery.Data(declarative.GetProjectQuery.Project(__typename = "Project", id = "42", name = "Stardust"))
     val records = data.normalized(declarative.GetProjectQuery()).values
     client.apolloStore.accessCache {

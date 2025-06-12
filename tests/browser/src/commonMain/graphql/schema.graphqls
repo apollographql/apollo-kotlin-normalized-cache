@@ -1,0 +1,37 @@
+type Query {
+  products: [Product]
+  product(id: ID!): Product
+  node(id: ID!): Node
+}
+
+interface Node {
+  id: ID!
+}
+
+type Product implements Node {
+  id: ID!
+  name: String!
+  price: Float!
+  colors: [ProductColor]
+}
+
+union ProductColor = StandardColor | CustomColor
+
+type StandardColor {
+  color: Color
+}
+
+enum Color {
+  BLACK
+  WHITE
+  RED
+  GREEN
+  BLUE
+  ORANGE
+}
+
+type CustomColor {
+  red: Int!
+  green: Int!
+  blue: Int!
+}

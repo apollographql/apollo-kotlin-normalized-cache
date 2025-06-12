@@ -223,7 +223,7 @@ class OffsetBasedWithPagePaginationTest {
   }
 }
 
-internal fun assertChainedCachesAreEqual(cacheManager: CacheManager) {
+internal suspend fun assertChainedCachesAreEqual(cacheManager: CacheManager) {
   val dump = cacheManager.dump().filterKeys {
     // Ignore optimistic cache for comparison
     it.simpleName != "OptimisticNormalizedCache"

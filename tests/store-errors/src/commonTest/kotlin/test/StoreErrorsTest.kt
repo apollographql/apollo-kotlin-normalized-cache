@@ -33,8 +33,10 @@ import kotlin.test.assertNull
 class StoreErrorsTest {
   private lateinit var mockServer: MockServer
 
-  private fun setUp() {
+  private suspend fun setUp() {
     mockServer = MockServer()
+    sqlCacheManager.clearAll()
+    memoryThenSqlCacheManager.clearAll()
   }
 
   private fun tearDown() {
@@ -43,9 +45,9 @@ class StoreErrorsTest {
 
   private val memoryCacheManager = CacheManager(MemoryCacheFactory())
 
-  private val sqlCacheManager = CacheManager(SqlNormalizedCacheFactory()).also { it.clearAll() }
+  private val sqlCacheManager = CacheManager(SqlNormalizedCacheFactory())
 
-  private val memoryThenSqlCacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())).also { it.clearAll() }
+  private val memoryThenSqlCacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
 
   @Test
   fun simpleMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
@@ -736,7 +738,7 @@ class StoreErrorsTest {
     writeOperation(memoryThenSqlCacheManager)
   }
 
-  private fun writeOperation(cacheManager: CacheManager) {
+  private suspend fun writeOperation(cacheManager: CacheManager) {
     cacheManager.writeOperation(
         operation = MeWithNickNameQuery(),
         data = MeWithNickNameQuery.Data(

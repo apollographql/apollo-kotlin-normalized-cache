@@ -24,56 +24,56 @@ import kotlin.test.Test
 class ThreadTests {
   class MyNormalizedCache(private val mainThreadId: String) : NormalizedCache {
     val delegate = MemoryCache()
-    override fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+    override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.merge(record, cacheHeaders, recordMerger)
     }
 
-    override fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+    override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.merge(records, cacheHeaders, recordMerger)
     }
 
-    override fun clearAll() {
+    override suspend fun clearAll() {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.clearAll()
     }
 
-    override fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
+    override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.remove(cacheKey, cascade)
     }
 
-    override fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+    override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.remove(cacheKeys, cascade)
     }
 
-    override fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
+    override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.loadRecord(key, cacheHeaders)
     }
 
-    override fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
+    override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
       return delegate.loadRecords(keys, cacheHeaders)
     }
 
-    override fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
+    override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }

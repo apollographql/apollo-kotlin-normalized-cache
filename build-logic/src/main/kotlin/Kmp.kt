@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 enum class AppleTargets {
   All,
   Host,
+  None,
 }
 
 enum class JsAndWasmEnvironment {
@@ -40,6 +41,10 @@ fun KotlinMultiplatformExtension.configureKmp(
       } else {
         macosX64()
       }
+    }
+
+    AppleTargets.None -> {
+      // No Apple targets
     }
   }
   if (withJs.isNotEmpty()) {
@@ -94,8 +99,10 @@ fun KotlinMultiplatformExtension.configureKmp(
   applyDefaultHierarchyTemplate {
     group("common") {
       group("concurrent") {
-        group("native") {
-          group("apple")
+        if (withApple != AppleTargets.None) {
+          group("native") {
+            group("apple")
+          }
         }
         group("jvmCommon") {
           withJvm()
