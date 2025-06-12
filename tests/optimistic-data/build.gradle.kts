@@ -1,6 +1,6 @@
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.apollo)
+  id("com.apollographql.apollo")
 }
 
 kotlin {
