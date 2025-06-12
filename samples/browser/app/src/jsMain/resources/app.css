@@ -1,0 +1,36 @@
+body {
+    font-family: sans-serif;
+}
+
+ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 0;
+}
+
+li {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    padding: .33em;
+}
+
+li:nth-child(odd) {
+    background-color: #F4F4F4;
+}
+
+.repository-item-name-and-description {
+    flex-grow: 1;
+    flex-direction: column;
+    display: flex;
+    gap: .33em;
+}
+
+.repository-item-name {
+    font-weight: bold;
+}
+
+.repository-item-stars {
+    white-space: pre;
+}
