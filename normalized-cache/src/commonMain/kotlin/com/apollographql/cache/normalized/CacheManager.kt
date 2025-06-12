@@ -34,9 +34,6 @@ import kotlin.reflect.KClass
 /**
  * CacheManager exposes a high-level API to access a [com.apollographql.cache.normalized.api.NormalizedCache].
  *
- * Note that most operations are synchronous and might block if the underlying cache is doing IO - calling them from the main thread
- * should be avoided.
- *
  * Note that changes are not automatically published - call [publish] to notify any watchers.
  */
 interface CacheManager {
@@ -69,8 +66,6 @@ interface CacheManager {
    * otherwise. Missing fields have a corresponding [Error]
    * in [ApolloResponse.errors].
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * @param operation the operation to read
    */
   suspend fun <D : Operation.Data> readOperation(
@@ -81,8 +76,6 @@ interface CacheManager {
 
   /**
    * Reads a fragment from the store.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * @param fragment the fragment to read
    * @param cacheKey the root where to read the fragment data from
@@ -101,8 +94,6 @@ interface CacheManager {
 
   /**
    * Writes an operation to the store.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -124,8 +115,6 @@ interface CacheManager {
   /**
    * Writes an operation to the store.
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * Call [publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
@@ -143,8 +132,6 @@ interface CacheManager {
 
   /**
    * Writes a fragment to the store.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -166,8 +153,6 @@ interface CacheManager {
   /**
    * Writes an operation to the optimistic store.
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * Call [publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
@@ -186,8 +171,6 @@ interface CacheManager {
 
   /**
    * Writes a fragment to the optimistic store.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -210,8 +193,6 @@ interface CacheManager {
   /**
    * Rollbacks optimistic updates.
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * Call [publish] with the returned keys to notify any watchers.
    *
    * @param mutationId the unique identifier of the optimistic update to rollback
@@ -226,8 +207,6 @@ interface CacheManager {
   /**
    * Clears all records.
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * Call [publish] with [ALL_KEYS] to notify any watchers.
    *
    * @return `true` if all records were successfully removed, `false` otherwise
@@ -236,8 +215,6 @@ interface CacheManager {
 
   /**
    * Removes a record by its key.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * Call [publish] with [ALL_KEYS] to notify any watchers.
    *
@@ -250,8 +227,6 @@ interface CacheManager {
   /**
    * Removes a list of records by their keys.
    * This is an optimized version of [remove] for caches that can batch operations.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    *
    * Call [publish] with [ALL_KEYS] to notify any watchers.
    *
@@ -298,16 +273,12 @@ interface CacheManager {
   /**
    * Direct access to the cache.
    *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
-   *
    * @param block a function that can access the cache.
    */
   suspend fun <R> accessCache(block: suspend (NormalizedCache) -> R): R
 
   /**
    * Dumps the content of the store for debugging purposes.
-   *
-   * This is a synchronous operation that might block if the underlying cache is doing IO.
    */
   suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>>
 
