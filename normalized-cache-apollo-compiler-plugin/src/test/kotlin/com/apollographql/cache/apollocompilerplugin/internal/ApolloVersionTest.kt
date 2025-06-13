@@ -92,7 +92,6 @@ private fun File.assertSuccess(taskName: String) {
 private fun File.newRunner(): GradleRunner {
   return GradleRunner.create()
     .withProjectDir(this)
-    .withDebug(true)
 }
 
 private fun GradleRunner.assertFailure(taskName: String, onFailure: (UnexpectedBuildFailure) -> Unit) {

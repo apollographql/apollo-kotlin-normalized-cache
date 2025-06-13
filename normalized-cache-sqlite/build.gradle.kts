@@ -6,7 +6,7 @@ plugins {
   id("app.cash.sqldelight")
 }
 
-Librarian.module(project)
+lib()
 
 kotlin {
   configureKmp(

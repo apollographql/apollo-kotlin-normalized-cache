@@ -6,7 +6,9 @@ plugins {
 apollo {
   service("service") {
     packageName.set("com.example")
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+    // We use + as a version here to avoid having to share the version with the main build
+    // There is also an exclusiveContent filter installed to make sure we resolve the local artifacts
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:+") {
       argument("packageName", packageName.get())
     }
   }
@@ -14,6 +16,6 @@ apollo {
 
 dependencies {
   implementation("com.apollographql.apollo:apollo-api")
-  implementation("com.apollographql.cache:normalized-cache")
+  implementation("com.apollographql.cache:normalized-cache:+")
   testImplementation(libs.kotlin.test)
 }
