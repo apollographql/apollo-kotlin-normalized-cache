@@ -63,6 +63,11 @@ internal class CacheSchemaCodeGenerator(
   private fun ApolloCompilerPluginEnvironment.logger(): ApolloCompiler.Logger {
     val method = this::class.java.methods.first { it.name == "getLogger" }
     if (method.returnType.name == "com.apollographql.apollo.compiler.ApolloCompiler\$Logger") {
+      /**
+       * The code is running on v5 where logger was converted to return directly ApolloCompiler.Logger.
+       *
+       * See https://github.com/apollographql/apollo-kotlin-normalized-cache/pull/178
+       */
       return method.invoke(this) as ApolloCompiler.Logger
     }
 
