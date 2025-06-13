@@ -144,7 +144,7 @@ class GetMaxAgesTest {
           .getMaxAges(
             object : ApolloCompiler.Logger {
               override fun warning(message: String) {
-                fail()
+                errors += message
               }
             }
           )
