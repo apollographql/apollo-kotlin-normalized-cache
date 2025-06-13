@@ -1,9 +1,14 @@
+extend schema @link(url: "https://specs.apollo.dev/cache/v0.1/", import: ["@cacheControl"])
+
 type Query {
     product: Product
     foo: Int
 }
 
-type Product @typePolicy(keyFields: "id"){
+type Product
+    @typePolicy(keyFields: "id")
+    # DIRECTIVE_PLACEHOLDER
+{
     id: ID!
     price: Float
 }

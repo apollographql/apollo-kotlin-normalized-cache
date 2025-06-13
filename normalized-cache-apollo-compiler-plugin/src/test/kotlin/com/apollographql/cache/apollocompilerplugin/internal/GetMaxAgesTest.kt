@@ -8,6 +8,8 @@ import com.apollographql.apollo.ast.builtinForeignSchemas
 import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
 import com.apollographql.apollo.ast.validateAsSchema
+import com.apollographql.apollo.compiler.ApolloCompiler
+import com.apollographql.apollo.compiler.ApolloCompilerPlugin
 import com.apollographql.apollo.compiler.ApolloCompilerPluginLogger
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -70,20 +72,8 @@ class GetMaxAgesTest {
         )
         .getOrThrow()
         .getMaxAges(
-            object : ApolloCompilerPluginLogger {
-              override fun error(message: String) {
-                fail()
-              }
-
-              override fun info(message: String) {
-                fail()
-              }
-
-              override fun logging(message: String) {
-                fail()
-              }
-
-              override fun warn(message: String) {
+            object : ApolloCompiler.Logger {
+              override fun warning(message: String) {
                 fail()
               }
             }
@@ -152,23 +142,11 @@ class GetMaxAgesTest {
           )
           .getOrThrow()
           .getMaxAges(
-              object : ApolloCompilerPluginLogger {
-                override fun error(message: String) {
-                  errors += message
-                }
-
-                override fun info(message: String) {
-                  fail()
-                }
-
-                override fun logging(message: String) {
-                  fail()
-                }
-
-                override fun warn(message: String) {
-                  fail()
-                }
+            object : ApolloCompiler.Logger {
+              override fun warning(message: String) {
+                fail()
               }
+            }
           )
     }
     val expectedErrors = listOf(

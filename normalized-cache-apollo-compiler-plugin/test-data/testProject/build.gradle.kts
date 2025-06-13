@@ -11,3 +11,9 @@ apollo {
     }
   }
 }
+
+dependencies {
+  implementation("com.apollographql.apollo:apollo-api")
+  implementation("com.apollographql.cache:normalized-cache")
+  testImplementation(libs.kotlin.test)
+}

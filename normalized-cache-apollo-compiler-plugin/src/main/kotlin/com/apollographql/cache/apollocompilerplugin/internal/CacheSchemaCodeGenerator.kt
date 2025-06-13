@@ -6,7 +6,9 @@ import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.ast.GQLDocument
 import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.toSchema
+import com.apollographql.apollo.compiler.ApolloCompiler
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
+import com.apollographql.apollo.compiler.ApolloCompilerPluginLogger
 import com.apollographql.apollo.compiler.SchemaCodeGenerator
 import com.apollographql.cache.apollocompilerplugin.VERSION
 import com.squareup.kotlinpoet.ClassName
@@ -58,8 +60,25 @@ internal class CacheSchemaCodeGenerator(
     file.writeTo(outputDirectory)
   }
 
+  private fun ApolloCompilerPluginEnvironment.logger(): ApolloCompiler.Logger {
+    val method = this::class.java.methods.first { it.name == "getLogger" }
+    if (method.returnType.name == "com.apollographql.apollo.compiler.ApolloCompiler\$Logger") {
+      return method.invoke(this) as ApolloCompiler.Logger
+    }
+
+    return logger.toApolloCompilerLogger()
+  }
+
+  private fun ApolloCompilerPluginLogger.toApolloCompilerLogger(): ApolloCompiler.Logger {
+    return object : ApolloCompiler.Logger {
+      override fun warning(message: String) {
+        return this@toApolloCompilerLogger.error(message)
+      }
+    }
+  }
+
   private fun maxAgeProperty(schema: Schema): PropertySpec {
-    val maxAges = schema.getMaxAges(environment.logger)
+    val maxAges = schema.getMaxAges(environment.logger())
     val initializer = CodeBlock.builder().apply {
       add("mapOf(\n")
       withIndent {
