@@ -34,6 +34,11 @@ import kotlin.reflect.KClass
 /**
  * CacheManager exposes a high-level API to access a [com.apollographql.cache.normalized.api.NormalizedCache].
  *
+ * Although all operations are `suspend` functions, they may **suspend** or **block** the thread depending on the underlying cache
+ * implementation. For example, the SQL cache implementation on Android will **block** the thread while accessing the disk. As such,
+ * these operations **must not** run on the main thread. You can enclose them in a [kotlinx.coroutines.withContext] block with a
+ * `Dispatchers.IO` context to ensure that they run on a background thread.
+ *
  * Note that changes are not automatically published - call [publish] to notify any watchers.
  */
 interface CacheManager {
