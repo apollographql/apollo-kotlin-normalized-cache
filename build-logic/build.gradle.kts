@@ -17,6 +17,7 @@ group = "com.apollographql.cache.build"
 
 dependencies {
   compileOnly(gradleApi())
+  compileOnly(libs.dgp)
   implementation(libs.kotlin.plugin)
   implementation(libs.librarian)
   implementation(libs.atomicfu.plugin)

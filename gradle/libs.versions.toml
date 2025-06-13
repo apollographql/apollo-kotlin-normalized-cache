@@ -22,6 +22,7 @@ apollo-cache-sqlite = { group = "com.apollographql.apollo", name = "apollo-norma
 apollo-plugin = { group = "com.apollographql.apollo", name = "apollo-gradle-plugin", version.ref = "apollo" }
 atomicfu-library = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 atomicfu-plugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "atomicfu" }
+dgp = "com.gradle:develocity-gradle-plugin:4.0.2" # // sync with settings.gradle.kts
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test" } # the Kotlin plugin resolves the version
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit" } # the Kotlin plugin resolves the version
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }

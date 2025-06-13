@@ -1,0 +1,30 @@
+def isCI = System.getenv("CI") != null
+
+develocity {
+  server = "https://ge.apollographql.com"
+  allowUntrustedServer = false
+
+  buildScan {
+    publishing.onlyIf { it.authenticated }
+
+    uploadInBackground = !isCI
+
+    capture {
+      fileFingerprints = true
+    }
+  }
+}
+
+
+buildCache {
+  local {
+    enabled = true
+    push = true
+  }
+  remote(develocity.buildCache) {
+    enabled = true
+    // Check access key presence to avoid build cache errors on PR builds when access key is not present
+    def accessKey = System.getenv("DEVELOCITY_ACCESS_KEY")
+    push = isCI && accessKey
+  }
+}
