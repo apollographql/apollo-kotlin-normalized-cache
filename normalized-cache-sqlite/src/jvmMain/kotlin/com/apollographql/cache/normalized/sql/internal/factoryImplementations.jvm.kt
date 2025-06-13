@@ -1,5 +1,6 @@
 package com.apollographql.cache.normalized.sql.internal
 
+import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
@@ -21,7 +22,7 @@ internal actual suspend fun maybeCreateOrMigrateSchema(driver: SqlDriver) {
       0
   ).value.toLong()
 
-  val schema = SqlRecordDatabase.Schema
+  val schema = SqlRecordDatabase.Schema.synchronous()
   val newVersion = schema.version
 
   if (oldVersion == 0L) {

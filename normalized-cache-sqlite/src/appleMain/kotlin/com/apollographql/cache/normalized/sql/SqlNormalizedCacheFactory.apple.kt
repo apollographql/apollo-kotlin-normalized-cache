@@ -1,5 +1,6 @@
 package com.apollographql.cache.normalized.sql
 
+import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import app.cash.sqldelight.driver.native.wrapConnection
@@ -21,7 +22,7 @@ fun SqlNormalizedCacheFactory(
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
 
 private fun createDriver(name: String?, baseDir: String?): SqlDriver {
-  val schema = SqlRecordDatabase.Schema
+  val schema = SqlRecordDatabase.Schema.synchronous()
   val databaseConfiguration = DatabaseConfiguration(
       name = name ?: "memoryDb",
       inMemory = name == null,
