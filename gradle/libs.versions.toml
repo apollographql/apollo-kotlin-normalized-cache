@@ -35,7 +35,7 @@ sqldelight-jvm = { group = "app.cash.sqldelight", name = "sqlite-driver", versio
 sqldelight-native = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
 sqldelight-webworker = { group = "app.cash.sqldelight", name = "web-worker-driver", version.ref = "sqldelight" }
 sqldelight-runtime = { group = "app.cash.sqldelight", name = "runtime", version.ref = "sqldelight" }
-truth = "com.google.truth:truth:1.1.3"
+truth = "com.google.truth:truth:1.4.4"
 turbine = "app.cash.turbine:turbine:1.2.0"
 slf4j-nop = "org.slf4j:slf4j-nop:2.0.13"
 androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "androidx-sqlite" }
