@@ -11,10 +11,12 @@ import com.apollographql.apollo.ast.GQLTypeDefinition
 import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.SourceLocation
 import com.apollographql.apollo.ast.pretty
+import com.apollographql.apollo.compiler.ApolloCompiler
 import com.apollographql.apollo.compiler.ApolloCompilerPluginLogger
+import java.lang.reflect.Method
 
 @OptIn(ApolloExperimental::class)
-internal fun Schema.getMaxAges(logger: ApolloCompilerPluginLogger): Map<String, Int> {
+internal fun Schema.getMaxAges(logger: ApolloCompiler.Logger): Map<String, Int> {
   var hasIssues = false
   val typeDefinitions = this.typeDefinitions
   fun GQLDirective.maxAgeAndInherit(): Pair<Int?, Boolean> {
@@ -83,9 +85,20 @@ internal fun Schema.getMaxAges(logger: ApolloCompilerPluginLogger): Map<String, 
 private const val CACHE_CONTROL = "cacheControl"
 private const val CACHE_CONTROL_FIELD = "cacheControlField"
 
+private val errorMethod: Method? by lazy {
+  ApolloCompiler.Logger::class.java.methods.singleOrNull { it.name == "error" }
+}
+
 @OptIn(ApolloExperimental::class)
-private fun ApolloCompilerPluginLogger.logIssue(message: String, sourceLocation: SourceLocation?) {
-  error("${sourceLocation.pretty()}: ${message}")
+private fun ApolloCompiler.Logger.logIssue(message: String, sourceLocation: SourceLocation?) {
+  val str = "${sourceLocation.pretty()}: ${message}"
+  if (errorMethod != null) {
+    // v5+ we have an `error()` method, but it doesn't add the "e: " prefix
+    errorMethod!!.invoke(this, "e: [apollo] $str")
+  } else {
+    // v4- ApolloCompiler.Logger.warning() redirects to ApolloCompilerPluginLogger.error()
+    warning(str)
+  }
 }
 
 private val GQLTypeDefinition.fields

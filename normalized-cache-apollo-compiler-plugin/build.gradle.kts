@@ -4,7 +4,7 @@ plugins {
   id("org.jetbrains.kotlin.jvm")
 }
 
-Librarian.module(project)
+lib()
 
 dependencies {
   compileOnly(libs.apollo.compiler)
@@ -13,4 +13,9 @@ dependencies {
   implementation(libs.apollo.ast)
   implementation(libs.kotlin.poet)
   testImplementation(libs.kotlin.test)
+}
+
+tasks.withType(Test::class.java).configureEach {
+  dependsOn("publishAllPublicationsToLocalRepository")
+  dependsOn(":normalized-cache:publishAllPublicationsToLocalRepository")
 }
