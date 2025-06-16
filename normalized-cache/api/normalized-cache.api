@@ -205,6 +205,7 @@ public final class com/apollographql/cache/normalized/NormalizedCache {
 	public static final fun isFromCache (Lcom/apollographql/apollo/api/ApolloResponse;)Z
 	public static final fun maxStale-HG0u8IE (Lcom/apollographql/apollo/api/MutableExecutionOptions;J)Ljava/lang/Object;
 	public static final fun memoryCacheOnly (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
+	public static final fun normalizedCache-GajXJrc (Lcom/apollographql/apollo/ApolloClient$Builder;Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;Ljava/util/Map;Ljava/util/Set;Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;JZ)Lcom/apollographql/apollo/ApolloClient$Builder;
 	public static final fun optimisticUpdates (Lcom/apollographql/apollo/ApolloCall;Lcom/apollographql/apollo/api/Mutation$Data;)Lcom/apollographql/apollo/ApolloCall;
 	public static final fun optimisticUpdates (Lcom/apollographql/apollo/api/ApolloRequest$Builder;Lcom/apollographql/apollo/api/Mutation$Data;)Lcom/apollographql/apollo/api/ApolloRequest$Builder;
 	public static final fun refetchPolicy (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/cache/normalized/FetchPolicy;)Ljava/lang/Object;

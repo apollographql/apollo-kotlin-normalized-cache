@@ -49,41 +49,76 @@ apollo {
     srcDir("src/commonMain/graphql/pagination/offsetBasedWithArray")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.offsetBasedWithPage") {
     packageName.set("pagination.offsetBasedWithPage")
     srcDir("src/commonMain/graphql/pagination/offsetBasedWithPage")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.offsetBasedWithPageAndInput") {
     packageName.set("pagination.offsetBasedWithPageAndInput")
     srcDir("src/commonMain/graphql/pagination/offsetBasedWithPageAndInput")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.cursorBased") {
     packageName.set("pagination.cursorBased")
     srcDir("src/commonMain/graphql/pagination/cursorBased")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.connection") {
     packageName.set("pagination.connection")
     srcDir("src/commonMain/graphql/pagination/connection")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.connectionWithNodes") {
     packageName.set("pagination.connectionWithNodes")
     srcDir("src/commonMain/graphql/pagination/connectionWithNodes")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
   service("pagination.connectionProgrammatic") {
     packageName.set("pagination.connectionProgrammatic")
     srcDir("src/commonMain/graphql/pagination/connectionProgrammatic")
     @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
+
+    @OptIn(ApolloExperimental::class)
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("packageName", packageName.get())
+    }
   }
 }

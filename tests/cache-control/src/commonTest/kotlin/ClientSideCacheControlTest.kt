@@ -20,6 +20,7 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
+import declarative.cache.Cache.cache
 import programmatic.GetCompanyQuery
 import programmatic.GetUserAdminQuery
 import programmatic.GetUserEmailQuery
@@ -188,15 +189,10 @@ class ClientSideCacheControlTest {
   }
 
   private fun declarativeMaxAge(normalizedCacheFactory: NormalizedCacheFactory) = runTest {
-    val maxAgeProvider = SchemaCoordinatesMaxAgeProvider(
-        declarative.cache.Cache.maxAges,
-        defaultMaxAge = 20.seconds,
-    )
-
     val client = ApolloClient.Builder()
-        .normalizedCache(
+        .cache(
             normalizedCacheFactory = normalizedCacheFactory,
-            cacheResolver = CacheControlCacheResolver(maxAgeProvider),
+            defaultMaxAge = 20.seconds,
         )
         .serverUrl("unused")
         .build()

@@ -15,6 +15,7 @@ import com.example.apollokotlinpaginationsample.Application
 import com.example.apollokotlinpaginationsample.BuildConfig
 import com.example.apollokotlinpaginationsample.graphql.RepositoryListQuery
 import com.example.apollokotlinpaginationsample.graphql.cache.Cache
+import com.example.apollokotlinpaginationsample.graphql.cache.Cache.cache
 import com.example.apollokotlinpaginationsample.graphql.pagination.Pagination
 
 private const val SERVER_URL = "https://api.github.com/graphql"
@@ -37,14 +38,9 @@ val apolloClient: ApolloClient by lazy {
         )
 
         // Normalized cache
-        .normalizedCache(
+        .cache(
             normalizedCacheFactory = memoryThenSqlCache,
-            cacheKeyGenerator = TypePolicyCacheKeyGenerator(
-                typePolicies = Cache.typePolicies,
-                keyScope = CacheKey.Scope.SERVICE,
-            ),
-            metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-            recordMerger = ConnectionRecordMerger
+            keyScope = CacheKey.Scope.SERVICE,
         )
 
         .build()

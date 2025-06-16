@@ -24,6 +24,7 @@ import com.example.apollokotlinpaginationsample.Application
 import com.example.apollokotlinpaginationsample.BuildConfig
 import com.example.apollokotlinpaginationsample.graphql.RepositoryListQuery
 import com.example.apollokotlinpaginationsample.graphql.cache.Cache
+import com.example.apollokotlinpaginationsample.graphql.cache.Cache.cache
 import com.example.apollokotlinpaginationsample.graphql.pagination.Pagination
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.take
@@ -49,14 +50,9 @@ val apolloClient: ApolloClient by lazy {
         )
 
         // Normalized cache
-        .normalizedCache(
+        .cache(
             normalizedCacheFactory = memoryThenSqlCache,
-            cacheKeyGenerator = TypePolicyCacheKeyGenerator(
-                typePolicies = Cache.typePolicies,
-                keyScope = CacheKey.Scope.SERVICE,
-            ),
-            metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-            recordMerger = ConnectionRecordMerger
+            keyScope = CacheKey.Scope.SERVICE,
         )
 
         .build()

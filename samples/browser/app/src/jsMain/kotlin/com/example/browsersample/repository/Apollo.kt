@@ -5,17 +5,12 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
-import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
-import com.apollographql.cache.normalized.api.ConnectionRecordMerger
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
-import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.example.browsersample.BuildConfig
 import com.example.browsersample.graphql.RepositoryListQuery
-import com.example.browsersample.graphql.cache.Cache
-import com.example.browsersample.graphql.pagination.Pagination
+import com.example.browsersample.graphql.cache.Cache.cache
 import org.w3c.dom.Worker
 
 private const val SERVER_URL = "https://api.github.com/graphql"
@@ -35,26 +30,21 @@ val apolloClient: ApolloClient by lazy {
   val memoryThenSqlCache = memoryCache.chain(sqlCache)
 
   ApolloClient.Builder()
-      .serverUrl(SERVER_URL)
+    .serverUrl(SERVER_URL)
 
-      // Add headers for authentication
-      .addHttpHeader(
-          HEADER_AUTHORIZATION,
-          "$HEADER_AUTHORIZATION_BEARER ${BuildConfig.GITHUB_OAUTH_KEY}"
-      )
+    // Add headers for authentication
+    .addHttpHeader(
+      HEADER_AUTHORIZATION,
+      "$HEADER_AUTHORIZATION_BEARER ${BuildConfig.GITHUB_OAUTH_KEY}"
+    )
 
-      // Normalized cache
-      .normalizedCache(
-          normalizedCacheFactory = memoryThenSqlCache,
-          cacheKeyGenerator = TypePolicyCacheKeyGenerator(
-              typePolicies = Cache.typePolicies,
-              keyScope = CacheKey.Scope.SERVICE,
-          ),
-          metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-          recordMerger = ConnectionRecordMerger
-      )
+    // Normalized cache
+    .cache(
+      normalizedCacheFactory = memoryThenSqlCache,
+      keyScope = CacheKey.Scope.SERVICE,
+    )
 
-      .build()
+    .build()
 }
 
 suspend fun fetchAndMergeNextPage() {
@@ -65,5 +55,5 @@ suspend fun fetchAndMergeNextPage() {
   // 2. Fetch the next page from the network and store it in the cache
   val after = cacheResponse.data!!.organization!!.repositories.pageInfo.endCursor
   apolloClient.query(RepositoryListQuery(after = Optional.presentIfNotNull(after)))
-      .fetchPolicy(FetchPolicy.NetworkOnly).execute()
+    .fetchPolicy(FetchPolicy.NetworkOnly).execute()
 }

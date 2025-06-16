@@ -65,7 +65,7 @@ apollo {
     service("main") {
         packageName.set("com.example.apollokotlinpaginationsample.graphql")
 
-        plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:1.0.0-alpha.3") {
+        plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:1.0.0-alpha.4-SNAPSHOT") {
             argument("packageName", packageName.get())
         }
 
@@ -88,7 +88,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     implementation("com.apollographql.apollo:apollo-runtime")
-    implementation("com.apollographql.cache:normalized-cache-sqlite:1.0.0-alpha.3")
+    implementation("com.apollographql.cache:normalized-cache-sqlite:1.0.0-alpha.4-SNAPSHOT")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
