@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
       - run: |
-          ./gradlew librarianPublishToMavenCentral
+          ./gradlew --no-configuration-cache librarianPublishToMavenCentral
           gh release create $GITHUB_REF_NAME --title $GITHUB_REF_NAME --verify-tag --notes-from-tag
         env:
           LIBRARIAN_SONATYPE_USERNAME: ${{ secrets.LIBRARIAN_SONATYPE_USERNAME }}
