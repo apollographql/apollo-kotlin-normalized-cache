@@ -7,7 +7,7 @@ fun prop(key: String) = project.findProperty(key).toString()
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.apollographql.apollo").version("4.3.0")
+    id("com.apollographql.apollo").version("4.3.1")
     id("org.jetbrains.kotlin.plugin.compose").version("2.1.10")
 }
 
