@@ -70,4 +70,4 @@ val client = ApolloClient.Builder()
 
 Query `UsersConnection()` to fetch new pages and update the cache, and watch it to observe the full list.
 
-An example of doing this is available [here](https://github.com/apollographql/apollo-kotlin-normalized-cache/tree/main/samples/pagination/pagination-support).
+An example of doing this is available [here](https://github.com/apollographql/apollo-kotlin-samples/tree/main/normalized-cache/pagination/pagination-support).

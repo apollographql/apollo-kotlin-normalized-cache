@@ -32,4 +32,4 @@ Note that in this simple example, we need to remember the last fetched page, so 
 This can be stored in shared preferences for instance. However in most cases the API can return a "page info" object containing the information needed to fetch the next page, and this can be stored
 in the cache with the rest of the data.
 
-An example of doing this is available [here](https://github.com/apollographql/apollo-kotlin-normalized-cache/tree/main/samples/pagination/manual).
+An example of doing this is available [here](https://github.com/apollographql/apollo-kotlin-samples/tree/main/normalized-cache/pagination/manual).
