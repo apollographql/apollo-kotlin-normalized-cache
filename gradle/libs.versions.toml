@@ -1,7 +1,7 @@
 [versions]
 kotlin-plugin = "2.1.21"
 android-plugin = "8.7.0"
-apollo = "4.3.0"
+apollo = "4.3.1"
 okio = "3.9.0"
 atomicfu = "0.23.1" # Must be the same version as the one used by apollo-testing-support or native compilation will fail
 sqldelight = "2.1.0"

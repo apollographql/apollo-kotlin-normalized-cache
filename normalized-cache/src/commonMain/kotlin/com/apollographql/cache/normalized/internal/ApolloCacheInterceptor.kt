@@ -20,6 +20,7 @@ import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
+import com.apollographql.cache.normalized.clock
 import com.apollographql.cache.normalized.doNotStore
 import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
@@ -71,7 +72,7 @@ internal class ApolloCacheInterceptor(
       val cacheKeys = if (response.data != null) {
         var cacheHeaders = request.cacheHeaders + response.cacheHeaders
         if (request.storeReceivedDate) {
-          cacheHeaders += nowReceivedDateCacheHeaders()
+          cacheHeaders += nowReceivedDateCacheHeaders(request.clock)
         }
         if (request.memoryCacheOnly) {
           cacheHeaders += CacheHeaders.Builder().addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true").build()
@@ -203,6 +204,9 @@ internal class ApolloCacheInterceptor(
       customScalarAdapters: CustomScalarAdapters,
   ): ApolloResponse<D> {
     var cacheHeaders = request.cacheHeaders
+        .newBuilder()
+        .addHeader(ApolloCacheHeaders.CURRENT_DATE, (request.clock() / 1000).toString())
+        .build()
     if (request.memoryCacheOnly) {
       cacheHeaders += CacheHeaders.Builder().addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true").build()
     }
@@ -246,8 +250,8 @@ internal class ApolloCacheInterceptor(
   }
 
   companion object {
-    private fun nowReceivedDateCacheHeaders(): CacheHeaders {
-      return CacheHeaders.Builder().addHeader(ApolloCacheHeaders.RECEIVED_DATE, (currentTimeMillis() / 1000).toString()).build()
+    private fun nowReceivedDateCacheHeaders(clock: () -> Long): CacheHeaders {
+      return CacheHeaders.Builder().addHeader(ApolloCacheHeaders.RECEIVED_DATE, (clock() / 1000).toString()).build()
     }
   }
 }

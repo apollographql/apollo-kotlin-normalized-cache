@@ -28,6 +28,11 @@ object ApolloCacheHeaders {
   const val EXPIRATION_DATE = "apollo-expiration-date"
 
   /**
+   * The current date, as the number of seconds since the epoch.
+   */
+  const val CURRENT_DATE = "apollo-current-date"
+
+  /**
    * How long to accept stale fields
    */
   const val MAX_STALE = "apollo-max-stale"

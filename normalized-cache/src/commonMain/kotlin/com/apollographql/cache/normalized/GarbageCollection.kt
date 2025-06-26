@@ -84,15 +84,22 @@ suspend fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
 suspend fun NormalizedCache.removeStaleFields(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    clock: () -> Long = { currentTimeMillis() },
 ): RemovedFieldsAndRecords {
   val allRecords = allRecords().toMutableMap()
-  return removeStaleFields(allRecords, maxAgeProvider, maxStale)
+  return removeStaleFields(
+      allRecords = allRecords,
+      maxAgeProvider = maxAgeProvider,
+      maxStale = maxStale,
+      clock = clock,
+  )
 }
 
 private suspend fun NormalizedCache.removeStaleFields(
     allRecords: MutableMap<CacheKey, Record>,
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration,
+    clock: () -> Long,
 ): RemovedFieldsAndRecords {
   val recordsToUpdate = mutableMapOf<CacheKey, Record>()
   val removedFields = mutableSetOf<String>()
@@ -102,7 +109,7 @@ private suspend fun NormalizedCache.removeStaleFields(
       // Consider the client controlled max age
       val receivedDate = record.receivedDate(field.key)
       if (receivedDate != null) {
-        val currentDate = currentTimeMillis() / 1000
+        val currentDate = clock() / 1000
         val age = currentDate - receivedDate
         val maxAge = maxAgeProvider.getMaxAge(
             MaxAgeContext(
@@ -143,7 +150,7 @@ private suspend fun NormalizedCache.removeStaleFields(
       // Consider the server controlled max age
       val expirationDate = record.expirationDate(field.key)
       if (expirationDate != null) {
-        val currentDate = currentTimeMillis() / 1000
+        val currentDate = clock() / 1000
         val staleDuration = currentDate - expirationDate
         if (staleDuration >= maxStale.inWholeSeconds) {
           recordCopy -= field.key
@@ -295,10 +302,16 @@ private operator fun Record.minus(key: String): Record {
 suspend fun NormalizedCache.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    clock: () -> Long = { currentTimeMillis() },
 ): GarbageCollectResult {
   val allRecords = allRecords().toMutableMap()
   return GarbageCollectResult(
-      removedStaleFields = removeStaleFields(allRecords, maxAgeProvider, maxStale),
+      removedStaleFields = removeStaleFields(
+          allRecords = allRecords,
+          maxAgeProvider = maxAgeProvider,
+          maxStale = maxStale,
+          clock = clock,
+      ),
       removedDanglingReferences = removeDanglingReferences(allRecords),
       removedUnreachableRecords = removeUnreachableRecords(allRecords)
   )
