@@ -42,7 +42,7 @@ class OptimisticCacheTest {
   private lateinit var cacheManager: CacheManager
 
   private suspend fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator())
+    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), enableOptimisticUpdates = true)
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
   }

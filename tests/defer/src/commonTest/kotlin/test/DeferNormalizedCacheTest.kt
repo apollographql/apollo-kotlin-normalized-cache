@@ -58,7 +58,7 @@ class DeferNormalizedCacheTest {
   private lateinit var cacheManager: CacheManager
 
   private suspend fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory())
+    cacheManager = CacheManager(MemoryCacheFactory(), enableOptimisticUpdates = true)
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
   }

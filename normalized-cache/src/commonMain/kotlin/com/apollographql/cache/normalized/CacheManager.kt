@@ -158,6 +158,9 @@ interface CacheManager {
   /**
    * Writes an operation to the optimistic store.
    *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
+   *
    * Call [publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
@@ -176,6 +179,9 @@ interface CacheManager {
 
   /**
    * Writes a fragment to the optimistic store.
+   *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -197,6 +203,9 @@ interface CacheManager {
 
   /**
    * Rollbacks optimistic updates.
+   *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -307,6 +316,7 @@ fun CacheManager(
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
+    enableOptimisticUpdates: Boolean = false,
 ): CacheManager = DefaultCacheManager(
     normalizedCacheFactory = normalizedCacheFactory,
     cacheKeyGenerator = cacheKeyGenerator,
@@ -316,6 +326,7 @@ fun CacheManager(
     fieldKeyGenerator = fieldKeyGenerator,
     embeddedFieldsProvider = embeddedFieldsProvider,
     maxAgeProvider = maxAgeProvider,
+    enableOptimisticUpdates = enableOptimisticUpdates,
 )
 
 internal expect fun CacheManager.cacheDumpProvider(): () -> Map<String, Map<String, Pair<Int, Map<String, Any?>>>>

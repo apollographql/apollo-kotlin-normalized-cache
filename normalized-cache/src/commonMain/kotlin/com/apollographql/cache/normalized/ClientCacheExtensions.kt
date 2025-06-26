@@ -81,6 +81,7 @@ fun ApolloClient.Builder.normalizedCache(
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
+    enableOptimisticUpdates: Boolean = false,
     writeToCacheAsynchronously: Boolean = false,
 ): ApolloClient.Builder {
   return cacheManager(
@@ -93,6 +94,7 @@ fun ApolloClient.Builder.normalizedCache(
           fieldKeyGenerator = fieldKeyGenerator,
           embeddedFieldsProvider = embeddedFieldsProvider,
           maxAgeProvider = maxAgeProvider,
+          enableOptimisticUpdates = enableOptimisticUpdates,
       ), writeToCacheAsynchronously
   )
 }
@@ -104,6 +106,7 @@ fun ApolloClient.Builder.normalizedCache(
     maxAges: Map<String, MaxAge>,
     defaultMaxAge: Duration,
     keyScope: CacheKey.Scope,
+    enableOptimisticUpdates: Boolean,
     writeToCacheAsynchronously: Boolean,
 ): ApolloClient.Builder {
   val cacheKeyGenerator = if (typePolicies.isEmpty()) {
@@ -145,6 +148,7 @@ fun ApolloClient.Builder.normalizedCache(
       cacheResolver = cacheResolver,
       recordMerger = recordMerger,
       maxAgeProvider = maxAgeProvider,
+      enableOptimisticUpdates = enableOptimisticUpdates,
       writeToCacheAsynchronously = writeToCacheAsynchronously,
   )
 }

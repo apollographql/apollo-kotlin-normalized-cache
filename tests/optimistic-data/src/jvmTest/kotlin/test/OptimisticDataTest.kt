@@ -49,7 +49,7 @@ class OptimisticDataTest {
     val server = MockServer()
     val apolloClient = ApolloClient.Builder()
         .serverUrl(server.url())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), enableOptimisticUpdates = true)
         .build()
 
     server.enqueueString("""

@@ -39,6 +39,5 @@ class CacheConcurrencyTest {
     }.joinAll()
 
     executor.shutdown()
-    println(cacheManager.dump().values.toList()[1].map { (k, v) -> "$k -> ${v.fields}" }.joinToString("\n"))
   }
 }

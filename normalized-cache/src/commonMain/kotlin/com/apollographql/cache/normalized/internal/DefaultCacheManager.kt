@@ -47,6 +47,7 @@ internal class DefaultCacheManager(
     private val recordMerger: RecordMerger,
     private val embeddedFieldsProvider: EmbeddedFieldsProvider,
     private val maxAgeProvider: MaxAgeProvider,
+    private val enableOptimisticUpdates: Boolean,
 ) : CacheManager {
   private val changedKeysEvents = MutableSharedFlow<Set<String>>(
       /**
@@ -73,8 +74,12 @@ internal class DefaultCacheManager(
   override val changedKeys = changedKeysEvents.asSharedFlow()
 
   // Keeping this as lazy to avoid accessing the disk at initialization which usually happens on the main thread
-  private val cache: OptimisticNormalizedCache by lazy {
-    OptimisticNormalizedCache(normalizedCacheFactory.create())
+  private val cache: NormalizedCache by lazy {
+    if (enableOptimisticUpdates) {
+      OptimisticNormalizedCache(normalizedCacheFactory.create())
+    } else {
+      normalizedCacheFactory.create()
+    }
   }
 
   override suspend fun publish(keys: Set<String>) {
@@ -255,6 +260,8 @@ internal class DefaultCacheManager(
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters,
   ): Set<String> {
+    val cache = cache as? OptimisticNormalizedCache
+        ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
     val dataWithErrors = data.withErrors(operation, null, customScalarAdapters)
     val records = normalize(
         executable = operation,
@@ -282,6 +289,8 @@ internal class DefaultCacheManager(
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters,
   ): Set<String> {
+    val cache = cache as? OptimisticNormalizedCache
+        ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
     val dataWithErrors = data.withErrors(fragment, null, customScalarAdapters)
     val records = normalize(
         executable = fragment,
@@ -301,6 +310,8 @@ internal class DefaultCacheManager(
   override suspend fun rollbackOptimisticUpdates(
       mutationId: Uuid,
   ): Set<String> {
+    val cache = cache as? OptimisticNormalizedCache
+        ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
     return cache.removeOptimisticUpdates(mutationId)
   }
 
