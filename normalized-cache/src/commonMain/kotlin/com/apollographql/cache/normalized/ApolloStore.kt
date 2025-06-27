@@ -173,6 +173,9 @@ class ApolloStore(
   /**
    * Writes an operation to the optimistic store.
    *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
+   *
    * Call [publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
@@ -197,6 +200,9 @@ class ApolloStore(
 
   /**
    * Writes a fragment to the optimistic store.
+   *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *
@@ -225,6 +231,9 @@ class ApolloStore(
 
   /**
    * Rollbacks optimistic updates.
+   *
+   * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
+   * or [normalizedCache] extension.
    *
    * Call [publish] with the returned keys to notify any watchers.
    *

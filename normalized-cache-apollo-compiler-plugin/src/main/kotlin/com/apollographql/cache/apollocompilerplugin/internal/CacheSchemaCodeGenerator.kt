@@ -181,6 +181,10 @@ internal class CacheSchemaCodeGenerator(
             .defaultValue("%T.INFINITE", Symbols.KotlinDuration)
             .build()
         )
+        .addParameter(ParameterSpec.builder("enableOptimisticUpdates", BOOLEAN)
+            .defaultValue("false")
+            .build()
+        )
         .addParameter(ParameterSpec.builder("writeToCacheAsynchronously", BOOLEAN)
             .defaultValue("false")
             .build()
@@ -196,6 +200,7 @@ internal class CacheSchemaCodeGenerator(
                         "maxAges = maxAges,\n" +
                         "defaultMaxAge = defaultMaxAge,\n" +
                         "keyScope = keyScope,\n" +
+                        "enableOptimisticUpdates = enableOptimisticUpdates,\n" +
                         "writeToCacheAsynchronously = writeToCacheAsynchronously,\n⇤" +
                         ")",
                     Symbols.NormalisedCacheExtension,
