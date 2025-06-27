@@ -1,4 +1,4 @@
-name: Build pull request
+name: check-pull-request
 
 on: pull_request
 
@@ -6,11 +6,11 @@ env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
 jobs:
-  build-pull-request:
+  check-pull-request:
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
       - run: |
-          ./gradlew build
+          ./gradlew build 
           ./gradlew -p tests build

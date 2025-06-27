@@ -9,3 +9,12 @@ listOf(pluginManagement.repositories, dependencyResolutionManagement.repositorie
     maven("https://storage.googleapis.com/gradleup/m2")
   }
 }
+
+pluginManagement.repositories {
+  exclusiveContent {
+    forRepository { maven("https://storage.googleapis.com/gradleup/m2") }
+    filter {
+      includeGroup("com.gradleup.librarian")
+    }
+  }
+}

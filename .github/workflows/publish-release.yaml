@@ -1,4 +1,4 @@
-name: Publish release
+name: publish-release
 
 on:
   workflow_dispatch:
@@ -13,11 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
       - run: |
-          ./gradlew librarianPublishToMavenCentral
-          gh release create $GITHUB_REF_NAME --title $GITHUB_REF_NAME --verify-tag --notes-from-tag
+          LIBRARIAN_RELEASE=true ./gradlew librarianPublishToMavenCentral
         env:
-          LIBRARIAN_SONATYPE_USERNAME: ${{ secrets.LIBRARIAN_SONATYPE_USERNAME }}
-          LIBRARIAN_SONATYPE_PASSWORD: ${{ secrets.LIBRARIAN_SONATYPE_PASSWORD }}
-          LIBRARIAN_SIGNING_PRIVATE_KEY: ${{ secrets.LIBRARIAN_SIGNING_PRIVATE_KEY }}
-          LIBRARIAN_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.LIBRARIAN_SIGNING_PRIVATE_KEY_PASSWORD }}
-          GH_TOKEN: ${{ github.token }}
+          LIBRARIAN_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          LIBRARIAN_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          LIBRARIAN_SIGNING_PRIVATE_KEY: ${{ secrets.SONATYPE_GPG_KEY }}
+          LIBRARIAN_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.SONATYPE_GPG_KEY_PASSWORD }}
