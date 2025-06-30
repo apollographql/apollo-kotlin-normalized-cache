@@ -6,15 +6,10 @@ listOf(pluginManagement.repositories, dependencyResolutionManagement.repositorie
     mavenCentral()
     google()
     gradlePluginPortal()
-    maven("https://storage.googleapis.com/gradleup/m2")
-  }
-}
-
-pluginManagement.repositories {
-  exclusiveContent {
-    forRepository { maven("https://storage.googleapis.com/gradleup/m2") }
-    filter {
-      includeGroup("com.gradleup.librarian")
+    maven("https://storage.googleapis.com/gradleup/m2") {
+      content {
+        includeGroup("com.gradleup.librarian")
+      }
     }
   }
 }
