@@ -98,7 +98,7 @@ final class com.apollographql.cache.normalized.sql/SqlNormalizedCache : com.apol
     final suspend fun trim(kotlin/Long, kotlin/Float): kotlin/Long // com.apollographql.cache.normalized.sql/SqlNormalizedCache.trim|trim(kotlin.Long;kotlin.Float){}[0]
 }
 
-final const val com.apollographql.cache.normalized.sql/VERSION // com.apollographql.cache.normalized.sql/VERSION|{}VERSION[0]
+final val com.apollographql.cache.normalized.sql/VERSION // com.apollographql.cache.normalized.sql/VERSION|{}VERSION[0]
     final fun <get-VERSION>(): kotlin/String // com.apollographql.cache.normalized.sql/VERSION.<get-VERSION>|<get-VERSION>(){}[0]
 
 final fun com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory(app.cash.sqldelight.db/SqlDriver): com.apollographql.cache.normalized.api/NormalizedCacheFactory // com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory|SqlNormalizedCacheFactory(app.cash.sqldelight.db.SqlDriver){}[0]
