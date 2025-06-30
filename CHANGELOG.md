@@ -2,6 +2,24 @@
 
 PUT_CHANGELOG_HERE
 
+# Version 1.0.0-alpha.4
+_2025-06-30_
+
+- Add browser JS support to `normalized-cache-sqlite` (#177)
+  
+  With this change, `NormalizedCache`/`CacheManager`/`ApolloStore` APIs are now `suspend`.
+- Add `ApolloClient.Builder.cache()` extension generation (#181)
+  
+  This generates a convenience `cache()` extension which configures the `CacheKeyGenerator`, `MetadataGenerator`, `CacheResolver`, and `RecordMerger` based
+  on the type policies, connection types, and max ages configured in the schema:
+  ```kotlin
+  val apolloClient = ApolloClient.Builder()
+      // ...
+      .cache(cacheFactory = /*...*/)
+      .build()
+  ```
+- Add ability to control clock used for received and expiration dates, for tests (#189)
+
 # Version 1.0.0-alpha.3
 _2025-06-06_
 
