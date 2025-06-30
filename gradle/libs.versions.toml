@@ -29,7 +29,7 @@ kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test" } # the Kot
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit" } # the Kotlin plugin resolves the version
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 okio-nodefilesystem = { group = "com.squareup.okio", name = "okio-nodefilesystem", version.ref = "okio" }
-uuid = "com.benasher44:uuid:0.8.2"
+uuid = "com.benasher44:uuid:0.8.4"
 sqldelight-android = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
 sqldelight-jvm = { group = "app.cash.sqldelight", name = "sqlite-driver", version.ref = "sqldelight" }
 sqldelight-native = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
