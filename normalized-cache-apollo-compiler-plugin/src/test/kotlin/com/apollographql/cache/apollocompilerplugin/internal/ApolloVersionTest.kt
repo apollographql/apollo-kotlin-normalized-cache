@@ -5,7 +5,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
 import java.io.File
 import kotlin.test.Test
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -34,10 +33,9 @@ class ApolloVersionTest {
 
   @Test
   @Synchronized
-  @Ignore("There is no 5.0.0 release yet")
   fun apollo_5_0_succeeds() {
     withProject {
-      it.version("5.0.0-SNAPSHOT")
+      it.version("5.0.0-alpha.1")
     }.assertSuccess("build")
   }
 
@@ -54,10 +52,9 @@ class ApolloVersionTest {
 
   @Test
   @Synchronized
-  @Ignore("There is no 5.0.0 release yet")
   fun apollo_5_0_shows_error_message() {
     withProject {
-      it.version("5.0.0-SNAPSHOT")
+      it.version("5.0.0-alpha.1")
       it.addBadCacheControl()
     }.assertFailure("generateServiceApolloSources") {
       assertTrue(it.message!!.contains("`maxAge` must not be negative"))
@@ -81,6 +78,7 @@ private fun File.addBadCacheControl() {
 private fun File.version(version: String) {
   resolve("build.gradle.kts").replace("4.2.0", version)
 }
+
 private fun File.assertFailure(taskName: String, onFailure: (UnexpectedBuildFailure) -> Unit) {
   newRunner().assertFailure(taskName, onFailure)
 }
@@ -91,13 +89,13 @@ private fun File.assertSuccess(taskName: String) {
 
 private fun File.newRunner(): GradleRunner {
   return GradleRunner.create()
-    .withProjectDir(this)
+      .withProjectDir(this)
 }
 
 private fun GradleRunner.assertFailure(taskName: String, onFailure: (UnexpectedBuildFailure) -> Unit) {
   try {
     withArguments(taskName)
-      .build()
+        .build()
   } catch (e: UnexpectedBuildFailure) {
     onFailure(e)
   }
@@ -105,9 +103,9 @@ private fun GradleRunner.assertFailure(taskName: String, onFailure: (UnexpectedB
 
 private fun GradleRunner.assertSuccess(taskName: String) {
   withArguments(taskName)
-    .build().apply {
-      assertEquals(TaskOutcome.SUCCESS, task(":$taskName")!!.outcome)
-    }
+      .build().apply {
+        assertEquals(TaskOutcome.SUCCESS, task(":$taskName")!!.outcome)
+      }
 }
 
 private fun File.replace(str: String, replacement: String) {
