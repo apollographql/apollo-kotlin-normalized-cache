@@ -27,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertNull
 
 class CacheOptionsTest {
   private lateinit var mockServer: MockServer
@@ -125,6 +126,108 @@ class CacheOptionsTest {
           )
         }
   }
+
+  @Test
+  fun simpleWithIdMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(memoryCacheManager)
+  }
+
+  @Test
+  fun simpleWithIdSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(sqlCacheManager)
+  }
+
+  @Test
+  fun simpleWithIdMemoryThenSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(memoryThenSqlCacheManager)
+  }
+
+  private suspend fun simpleWithId(cacheManager: CacheManager) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "user": {
+                "__typename": "User",
+                "id": "1",
+                "firstName": "John",
+                "lastName": "Smith",
+                "email": "jdoe@example.com"
+              }
+            }
+          }
+          """
+    )
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "user": null
+            },
+            "errors": [
+              {
+                "message": "'User' can't be reached",
+                "path": ["user"]
+              }
+            ]
+          }
+          """
+    )
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cacheManager(cacheManager)
+        .cachePolicyResponseMapper(cachePolicyResponseMapper)
+        .build()
+        .use { apolloClient ->
+          val networkResult1 = apolloClient.query(UserByCategoryQuery(Category(0, "test")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UserByCategoryQuery.Data(
+                  user = UserByCategoryQuery.User(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                      email = "jdoe@example.com",
+                  )
+              ),
+              networkResult1.data
+          )
+          assertNull(networkResult1.errors)
+
+          val networkResult2 = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UserByCategoryQuery.Data(
+                  user = null
+              ),
+              networkResult2.data
+          )
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("'User' can't be reached").path(listOf("user")).build()
+              ),
+              networkResult2.errors
+          )
+
+          val cacheResult = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertEquals(
+              networkResult2.data,
+              cacheResult.data
+          )
+          assertErrorsEquals(
+              networkResult2.errors,
+              cacheResult.errors
+          )
+        }
+  }
+
 
   @Test
   fun listsMemory() = runTest(before = { setUp() }, after = { tearDown() }) {

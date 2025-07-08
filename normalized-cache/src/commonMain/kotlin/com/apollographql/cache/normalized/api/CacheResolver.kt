@@ -278,26 +278,35 @@ fun FieldPolicyCacheResolver(
           if (keyArgsValue != null && keyArgsValue.firstOrNull() !is List<*>) {
             val listItemsInParent: Map<Any?, Any?> = listItemsInParent(context, keyArgs.keys.first())
             return keyArgsValue.mapIndexed { index, value ->
-              listItemsInParent[value]?.let {
-                if (it is Error) {
-                  it.withIndex(index)
-                } else {
-                  it
+              if (listItemsInParent.containsKey(value)) {
+                listItemsInParent[value]?.let {
+                  if (it is Error) {
+                    it.withIndex(index)
+                  } else {
+                    it
+                  }
                 }
-              } ?: if (keyScope == CacheKey.Scope.TYPE) {
-                CacheKey(type.rawType().name, value.toString())
               } else {
-                CacheKey(value.toString())
+                if (keyScope == CacheKey.Scope.TYPE) {
+                  CacheKey(type.rawType().name, value.toString())
+                } else {
+                  CacheKey(value.toString())
+                }
               }
             }
           }
         }
       }
     }
-    return if (keyScope == CacheKey.Scope.TYPE) {
-      CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
+    val fieldKey = context.getFieldKey()
+    return if (context.parent.containsKey(fieldKey)) {
+      context.parent[fieldKey]
     } else {
-      CacheKey(keyArgsValues.map { it.toString() })
+      if (keyScope == CacheKey.Scope.TYPE) {
+        CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
+      } else {
+        CacheKey(keyArgsValues.map { it.toString() })
+      }
     }
   }
 
@@ -328,7 +337,9 @@ fun FieldPolicyCacheResolver(
       keyValues.mapIndexed { index, id ->
         id to (v as List<*>)[index]
       }.toMap()
-    }.reduce { a, b -> a + b }
+    }.fold(emptyMap()) { acc, map ->
+      acc + map
+    }
     return items
   }
 }
