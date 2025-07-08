@@ -7,3 +7,4 @@ extend schema
 extend type User @typePolicy(keyFields: "id")
 
 extend type Query @fieldPolicy(forField: "users", keyArgs: "ids")
+extend type Query @fieldPolicy(forField: "user", keyArgs: "category")
