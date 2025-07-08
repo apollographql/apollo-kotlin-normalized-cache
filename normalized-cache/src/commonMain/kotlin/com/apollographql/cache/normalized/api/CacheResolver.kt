@@ -3,13 +3,18 @@ package com.apollographql.cache.normalized.api
 import com.apollographql.apollo.api.CompiledField
 import com.apollographql.apollo.api.CompiledListType
 import com.apollographql.apollo.api.CompiledNotNullType
+import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
 import com.apollographql.apollo.api.MutableExecutionOptions
+import com.apollographql.apollo.api.json.MapJsonReader.Companion.buffer
+import com.apollographql.apollo.api.json.jsonReader
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.api.CacheResolver.ResolvedValue
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.storeExpirationDate
+import com.apollographql.cache.normalized.storeReceivedDate
+import okio.Buffer
 import kotlin.jvm.JvmSuppressWildcards
 
 /**
@@ -255,7 +260,8 @@ fun FieldPolicyCacheResolver(
     keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
 ) = object : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
-    val keyArgsValues = context.field.argumentValues(context.variables) { it.definition.isKey }.values
+    val keyArgs = context.field.argumentValues(context.variables) { it.definition.isKey }
+    val keyArgsValues = keyArgs.values
     if (keyArgsValues.isEmpty()) {
       return DefaultCacheResolver.resolveField(context)
     }
@@ -270,11 +276,18 @@ fun FieldPolicyCacheResolver(
         if (keyArgsValues.size == 1) {
           val keyArgsValue = keyArgsValues.first() as? List<*>
           if (keyArgsValue != null && keyArgsValue.firstOrNull() !is List<*>) {
-            return keyArgsValue.map {
-              if (keyScope == CacheKey.Scope.TYPE) {
-                CacheKey(type.rawType().name, it.toString())
+            val listItemsInParent: Map<Any?, Any?> = listItemsInParent(context, keyArgs.keys.first())
+            return keyArgsValue.mapIndexed { index, value ->
+              listItemsInParent[value]?.let {
+                if (it is Error) {
+                  it.withIndex(index)
+                } else {
+                  it
+                }
+              } ?: if (keyScope == CacheKey.Scope.TYPE) {
+                CacheKey(type.rawType().name, value.toString())
               } else {
-                CacheKey(it.toString())
+                CacheKey(value.toString())
               }
             }
           }
@@ -286,5 +299,36 @@ fun FieldPolicyCacheResolver(
     } else {
       CacheKey(keyArgsValues.map { it.toString() })
     }
+  }
+
+  private fun Error.withIndex(index: Int): Error {
+    val builder = Error.Builder(message)
+    if (locations != null) builder.locations(locations!!)
+    if (extensions != null) {
+      for ((k, v) in extensions!!) {
+        builder.putExtension(k, v)
+      }
+    }
+    if (path != null) {
+      builder.path(path!!.toMutableList().apply { this[this.lastIndex] = index })
+    }
+    return builder.build()
+  }
+
+  private fun listItemsInParent(
+      context: ResolverContext,
+      keyArg: String,
+  ): Map<Any?, Any?> {
+    val keyPrefix = "${context.field.name}("
+    val filteredParent = context.parent.filterKeys { it.startsWith(keyPrefix) && it.contains("\"$keyArg\":") }
+    val items: Map<Any?, Any?> = filteredParent.map { (k, v) ->
+      val argumentsText = k.removePrefix(keyPrefix).removeSuffix(")")
+      val argumentsMap = Buffer().writeUtf8(argumentsText).jsonReader().buffer().root as Map<*, *>
+      val keyValues = argumentsMap[keyArg] as List<*>
+      keyValues.mapIndexed { index, id ->
+        id to (v as List<*>)[index]
+      }.toMap()
+    }.reduce { a, b -> a + b }
+    return items
   }
 }
