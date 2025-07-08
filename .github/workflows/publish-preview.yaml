@@ -1,0 +1,20 @@
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to build'
+        required: true
+        default: 'main'
+        type: string
+jobs:
+  publish-preview:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 #v4.1.7
+      - run: |
+          git clone --depth 1 --single-branch --branch ${{ inputs.branch }} https://github.com/$GITHUB_REPOSITORY
+          cd apollo-kotlin-normalized-cache
+          LIBRARIAN_NIGHTLY=true ./gradlew librarianPublishToGcs
+        env:
+          LIBRARIAN_GOOGLE_SERVICES_JSON: ${{ secrets.APOLLO_KOTLIN_GOOGLE_SERVICES_JSON }}
