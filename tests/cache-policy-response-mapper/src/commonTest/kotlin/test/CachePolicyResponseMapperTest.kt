@@ -18,6 +18,7 @@ import com.apollographql.mockserver.enqueueString
 import okio.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class StoreErrorsTest {
   private lateinit var mockServer: MockServer
@@ -118,6 +119,108 @@ class StoreErrorsTest {
   }
 
   @Test
+  fun simpleWithIdMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(memoryCacheManager)
+  }
+
+  @Test
+  fun simpleWithIdSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(sqlCacheManager)
+  }
+
+  @Test
+  fun simpleWithIdMemoryThenSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    simpleWithId(memoryThenSqlCacheManager)
+  }
+
+  private suspend fun simpleWithId(cacheManager: CacheManager) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "user": {
+                "__typename": "User",
+                "id": "1",
+                "firstName": "John",
+                "lastName": "Smith",
+                "email": "jdoe@example.com"
+              }
+            }
+          }
+          """
+    )
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "user": null
+            },
+            "errors": [
+              {
+                "message": "'User' can't be reached",
+                "path": ["user"]
+              }
+            ]
+          }
+          """
+    )
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cacheManager(cacheManager)
+        .cachePolicyResponseMapper(cachePolicyResponseMapper)
+        .build()
+        .use { apolloClient ->
+          val networkResult1 = apolloClient.query(UserByCategoryQuery(Category(0, "test")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UserByCategoryQuery.Data(
+                  user = UserByCategoryQuery.User(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                      email = "jdoe@example.com",
+                  )
+              ),
+              networkResult1.data
+          )
+          assertNull(networkResult1.errors)
+
+          val networkResult2 = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UserByCategoryQuery.Data(
+                  user = null
+              ),
+              networkResult2.data
+          )
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("'User' can't be reached").path(listOf("user")).build()
+              ),
+              networkResult2.errors
+          )
+
+          val cacheResult = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertEquals(
+              networkResult2.data,
+              cacheResult.data
+          )
+          assertErrorsEquals(
+              networkResult2.errors,
+              cacheResult.errors
+          )
+        }
+  }
+
+
+  @Test
   fun listsMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
     lists(memoryCacheManager)
   }
@@ -165,13 +268,46 @@ class StoreErrorsTest {
           }
           """
     )
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "users": [
+                {
+                  "__typename": "User",
+                  "id": "4",
+                  "firstName": "Kevin",
+                  "lastName": "Jones",
+                  "email": "kjones@example.com"
+                },
+                {
+                  "__typename": "User",
+                  "id": "5",
+                  "firstName": "Alice",
+                  "lastName": "Johnson",
+                  "email": "ajohnson@example.com"
+                },
+                null
+              ]
+            },
+            "errors": [
+              {
+                "message": "User `6` not found",
+                "path": ["users", 2]
+              }
+            ]
+          }
+          """
+    )
+
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
         .cachePolicyResponseMapper(cachePolicyResponseMapper)
         .build()
         .use { apolloClient ->
-          val networkResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
+          val networkResult1 = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
               .fetchPolicy(FetchPolicy.NetworkOnly)
               .execute()
           assertEquals(
@@ -194,24 +330,95 @@ class StoreErrorsTest {
                       null,
                   )
               ),
-              networkResult.data
+              networkResult1.data
           )
           assertErrorsEquals(
               listOf(
                   Error.Builder("User `3` not found").path(listOf("users", 2)).build()
               ),
-              networkResult.errors
+              networkResult1.errors
           )
 
-          val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
+          val networkResult2 = apolloClient.query(UsersQuery(listOf("4", "5", "6")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "4",
+                          firstName = "Kevin",
+                          lastName = "Jones",
+                          email = "kjones@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "5",
+                          firstName = "Alice",
+                          lastName = "Johnson",
+                          email = "ajohnson@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              networkResult2.data
+          )
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("User `6` not found").path(listOf("users", 2)).build()
+              ),
+              networkResult2.errors
+          )
+
+
+          val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3", "4", "5", "6", "7")))
               .fetchPolicy(FetchPolicy.CacheOnly)
               .execute()
           assertEquals(
-              networkResult.data,
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "4",
+                          firstName = "Kevin",
+                          lastName = "Jones",
+                          email = "kjones@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "5",
+                          firstName = "Alice",
+                          lastName = "Johnson",
+                          email = "ajohnson@example.com",
+                      ),
+                      null,
+                      null,
+                  )
+              ),
               cacheResult.data,
           )
           assertErrorsEquals(
-              networkResult.errors,
+              listOf(
+                  Error.Builder("User `3` not found").path(listOf("users", 2)).build(),
+                  Error.Builder("User `6` not found").path(listOf("users", 5)).build(),
+                  Error.Builder("Object 'User:7' not found in the cache").path(listOf("users", 6)).build(),
+              ),
               cacheResult.errors,
           )
         }
