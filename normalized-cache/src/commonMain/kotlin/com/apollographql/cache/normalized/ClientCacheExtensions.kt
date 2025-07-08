@@ -753,3 +753,27 @@ fun <T> MutableExecutionOptions<T>.clock(clock: () -> Long): T {
   @Suppress("UNCHECKED_CAST")
   return this as T
 }
+
+internal class CachePolicyResponseMapperContext(val value: (ApolloResponse<*>, FetchPolicy) -> ApolloResponse<*>) :
+  ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<CachePolicyResponseMapperContext>
+}
+
+private val defaultCachePolicyResponseMapper: (ApolloResponse<*>, FetchPolicy) -> ApolloResponse<*> = { response, _ ->
+  response.errorsAsException()
+}
+
+internal val ExecutionOptions.cachePolicyResponseMapper: ((ApolloResponse<*>, FetchPolicy) -> ApolloResponse<*>)
+  get() = executionContext[CachePolicyResponseMapperContext]?.value ?: defaultCachePolicyResponseMapper
+
+/**
+ * Sets a response mapper that will be used inside the built-in fetch policies interceptors to transform the responses from the cache.
+ */
+fun <T> MutableExecutionOptions<T>.cachePolicyResponseMapper(mapper: (ApolloResponse<*>, FetchPolicy) -> ApolloResponse<*>): T {
+  addExecutionContext(CachePolicyResponseMapperContext(mapper))
+  @Suppress("UNCHECKED_CAST")
+  return this as T
+}

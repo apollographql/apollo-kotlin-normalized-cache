@@ -183,6 +183,7 @@ public final class com/apollographql/cache/normalized/NormalizedCache {
 	public static final fun cacheHeaders (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/cache/normalized/api/CacheHeaders;)Ljava/lang/Object;
 	public static final fun cacheManager (Lcom/apollographql/apollo/ApolloClient$Builder;Lcom/apollographql/cache/normalized/CacheManager;Z)Lcom/apollographql/apollo/ApolloClient$Builder;
 	public static synthetic fun cacheManager$default (Lcom/apollographql/apollo/ApolloClient$Builder;Lcom/apollographql/cache/normalized/CacheManager;ZILjava/lang/Object;)Lcom/apollographql/apollo/ApolloClient$Builder;
+	public static final fun cachePolicyResponseMapper (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
 	public static final fun clock (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public static final fun configureApolloClientBuilder2 (Lcom/apollographql/apollo/ApolloClient$Builder;Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;)Lcom/apollographql/apollo/ApolloClient$Builder;
 	public static final fun configureApolloClientBuilder2 (Lcom/apollographql/apollo/ApolloClient$Builder;Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;Lcom/apollographql/cache/normalized/api/CacheKeyGenerator;)Lcom/apollographql/apollo/ApolloClient$Builder;
