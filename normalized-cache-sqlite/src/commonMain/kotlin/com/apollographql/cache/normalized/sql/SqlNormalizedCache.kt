@@ -129,9 +129,9 @@ class SqlNormalizedCache internal constructor(
           recordDatabase.insertOrUpdateRecord(record.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
           record.fieldKeys()
         } else {
-          val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate), cacheHeaders = cacheHeaders))
+          val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
           if (mergedRecord.isNotEmpty()) {
-            recordDatabase.insertOrUpdateRecord(mergedRecord)
+            recordDatabase.insertOrUpdateRecord(mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
           }
           changedKeys
         }
