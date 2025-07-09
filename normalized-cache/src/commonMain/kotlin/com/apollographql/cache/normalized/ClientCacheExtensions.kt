@@ -150,7 +150,13 @@ fun ApolloClient.Builder.normalizedCache(
       maxAgeProvider = maxAgeProvider,
       enableOptimisticUpdates = enableOptimisticUpdates,
       writeToCacheAsynchronously = writeToCacheAsynchronously,
-  )
+  ).let {
+    if (!maxAges.isEmpty()) {
+      it.storeReceivedDate(true)
+    } else {
+      it
+    }
+  }
 }
 
 @JvmName("-logCacheMisses")
