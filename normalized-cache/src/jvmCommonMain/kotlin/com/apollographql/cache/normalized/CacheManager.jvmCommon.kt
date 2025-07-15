@@ -12,9 +12,11 @@ internal actual fun CacheManager.cacheDumpProvider(): () -> Map<String, Map<Stri
       cacheClass.normalizedCacheName() to cacheRecords
           .mapKeys { (key, _) -> key.keyToString() }
           .mapValues { (_, record) ->
-            record.size to record.fields.mapValues { (_, value) ->
-              value.toExternal()
-            }
+            record.size to (
+                record.fields.mapValues { (_, value) ->
+                  value.toExternal()
+                } + mapOf("__metadata" to record.metadata.toExternal())
+                )
           }
     }.toMap()
   }
