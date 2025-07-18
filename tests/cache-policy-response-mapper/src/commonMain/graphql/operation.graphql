@@ -1,0 +1,109 @@
+query MeWithNickNameQuery {
+  me {
+    id
+    firstName
+    lastName
+    nickName
+  }
+}
+
+query MeWithNickNameAndProjectQuery {
+  me {
+    id
+    firstName
+    lastName
+    nickName
+    bestFriend {
+      id
+      firstName
+      lastName
+    }
+  }
+}
+
+query UsersQuery($ids: [ID!]!) {
+  users(ids: $ids) {
+    id
+    firstName
+    lastName
+    email
+  }
+}
+
+query MeWithBestFriendQuery {
+  me {
+    id
+    firstName
+    lastName
+    bestFriend {
+      id
+      firstName
+      lastName
+    }
+    projects {
+      lead {
+        id
+        firstName
+        lastName
+      }
+      users {
+        id
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+query DefaultProjectQuery($id: ID! = "42") {
+  project(id: $id) {
+    id
+    name
+    description
+  }
+  project2: project(id: "44") {
+    id
+    name
+    description
+  }
+}
+
+query WithFragmentsQuery {
+  me {
+    id
+    firstName0: firstName
+    ... on User {
+      lastName
+      ... on User {
+        nickName0: nickName
+      }
+    }
+    ... UserFields
+  }
+
+  me {
+    firstName0: firstName
+    mainProject {
+      id
+      lead0: lead {
+        id
+      }
+    }
+    mainProject {
+      lead0: lead {
+        id
+        firstName
+      }
+    }
+  }
+}
+
+fragment UserFields on User {
+  email0: email
+  category
+  bestFriend0:bestFriend {
+    id
+    firstName
+    lastName
+  }
+}

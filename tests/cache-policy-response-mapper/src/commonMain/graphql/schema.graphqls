@@ -1,0 +1,39 @@
+type Query {
+  me: User!
+  users(ids: [ID!]!): [User]!
+  project(id: ID! = "1"): Project
+  user(category: Category!): User!
+  someInt: Int
+  someInt2: Int
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  nickName: String
+  email: String!
+  bestFriend: User
+  projects: [Project!]!
+  mainProject: Project!
+  category: Category!
+  moreInfo: Json!
+  employeeInfo: EmployeeInfo
+}
+
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  lead: User
+  users: [User!]!
+}
+
+type EmployeeInfo {
+  id: ID!
+  salary: Int
+  department: String
+}
+
+scalar Category
+scalar Json

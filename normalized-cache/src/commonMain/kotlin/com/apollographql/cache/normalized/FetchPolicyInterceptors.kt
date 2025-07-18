@@ -33,7 +33,10 @@ val CacheOnlyInterceptor = object : ApolloInterceptor {
             .newBuilder()
             .fetchFromCache(true)
             .build()
-    ).map { it.errorsAsException() }
+    ).map {
+      @Suppress("UNCHECKED_CAST")
+      request.cachePolicyResponseMapper(it, FetchPolicy.CacheOnly) as ApolloResponse<D>
+    }
   }
 }
 
@@ -57,7 +60,10 @@ val CacheFirstInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException()
+      ).single().let {
+        @Suppress("UNCHECKED_CAST")
+        request.cachePolicyResponseMapper(it, FetchPolicy.CacheFirst) as ApolloResponse<D>
+      }
       emit(cacheResponse.newBuilder().isLast(cacheResponse.exception == null).build())
       if (cacheResponse.exception == null) {
         return@flow
@@ -103,7 +109,10 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException()
+      ).single().let {
+        @Suppress("UNCHECKED_CAST")
+        request.cachePolicyResponseMapper(it, FetchPolicy.NetworkFirst) as ApolloResponse<D>
+      }
       emit(cacheResponse)
     }
   }
@@ -120,7 +129,10 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException()
+      ).single().let {
+        @Suppress("UNCHECKED_CAST")
+        request.cachePolicyResponseMapper(it, FetchPolicy.CacheAndNetwork) as ApolloResponse<D>
+      }
 
       emit(cacheResponse.newBuilder().isLast(false).build())
 
