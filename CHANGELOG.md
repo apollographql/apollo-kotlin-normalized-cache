@@ -19,6 +19,9 @@ _2025-06-30_
       .build()
   ```
 - Add ability to control clock used for received and expiration dates, for tests (#189)
+- [Breaking] Disable optimistic updates by default (#190)
+  
+  To use optimistic updates, apps must now opt in, by passing `enableOptimisticUpdates = true` to the `normalizedCache` method. This was done as an optimization on native targets.
 
 # Version 1.0.0-alpha.3
 _2025-06-06_
