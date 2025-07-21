@@ -23,6 +23,35 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.single
 import kotlin.jvm.JvmName
 
+// TODO: find a better name :_)
+val DonkeyInterceptor = object : ApolloInterceptor {
+  override fun <D : Operation.Data> intercept(
+      request: ApolloRequest<D>,
+      chain: ApolloInterceptorChain,
+  ): Flow<ApolloResponse<D>> {
+    return flow {
+      if (!request.noCache) {
+        val cacheResponse = chain.proceed(
+            request = request
+                .newBuilder()
+                .fetchFromCache(true)
+                .build()
+        ).single()
+            .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+        emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null).build())
+        if (cacheResponse.exception == null) {
+          return@flow
+        }
+      }
+
+      if (!request.onlyIfCached) {
+        val networkResponses = chain.proceed(request = request)
+        emitAll(networkResponses)
+      }
+    }
+  }
+}
+
 /**
  * An interceptor that emits the response from the cache only.
  */
@@ -34,7 +63,7 @@ val CacheOnlyInterceptor = object : ApolloInterceptor {
             .fetchFromCache(true)
             .build()
     ).map {
-      it.errorsAsException(allowPartialResults = request.allowPartialResults, allowCachedErrors = request.allowCachedErrors)
+      it.errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
     }
   }
 }
@@ -59,7 +88,8 @@ val CacheFirstInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException(allowPartialResults = request.allowPartialResults, allowCachedErrors = request.allowCachedErrors)
+      ).single()
+          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
       emit(cacheResponse.newBuilder().isLast(cacheResponse.exception == null).build())
       if (cacheResponse.exception == null) {
         return@flow
@@ -105,7 +135,8 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException(allowPartialResults = request.allowPartialResults, allowCachedErrors = request.allowCachedErrors)
+      ).single()
+          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
       emit(cacheResponse)
     }
   }
@@ -122,7 +153,8 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
               .newBuilder()
               .fetchFromCache(true)
               .build()
-      ).single().errorsAsException(allowPartialResults = request.allowPartialResults, allowCachedErrors = request.allowCachedErrors)
+      ).single()
+          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
 
       emit(cacheResponse.newBuilder().isLast(false).build())
 
@@ -153,13 +185,13 @@ fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(): ApolloResponse<D
 }
 
 private fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(
-    allowPartialResults: Boolean,
+    allowCachedPartialResults: Boolean,
     allowCachedErrors: Boolean,
 ): ApolloResponse<D> {
-  return if (allowPartialResults && allowCachedErrors) {
+  return if (allowCachedPartialResults && allowCachedErrors) {
     this
   } else {
-    val cacheMissException = if (allowPartialResults) {
+    val cacheMissException = if (allowCachedPartialResults) {
       null
     } else {
       errors.orEmpty().mapNotNull { it.cacheMissException }.reduceOrNull { acc, e ->

@@ -3,12 +3,14 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Error
 import com.apollographql.cache.normalized.CacheManager
-import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.DonkeyInterceptor
 import com.apollographql.cache.normalized.allowCachedErrors
-import com.apollographql.cache.normalized.allowPartialResults
+import com.apollographql.cache.normalized.allowCachedPartialResults
 import com.apollographql.cache.normalized.cacheManager
-import com.apollographql.cache.normalized.fetchPolicy
+import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
+import com.apollographql.cache.normalized.noCache
+import com.apollographql.cache.normalized.onlyIfCached
 import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import com.apollographql.cache.normalized.testing.runTest
@@ -18,7 +20,7 @@ import okio.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class StoreErrorsTest {
+class CachePolicyResponseMapperTest {
   private lateinit var mockServer: MockServer
 
   private suspend fun setUp() {
@@ -78,10 +80,11 @@ class StoreErrorsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
+        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
-              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .noCache(true)
               .execute()
           assertEquals(
               MeWithNickNameQuery.Data(
@@ -167,10 +170,11 @@ class StoreErrorsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
+        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
-              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .noCache(true)
               .execute()
           assertEquals(
               UsersQuery.Data(
@@ -202,7 +206,7 @@ class StoreErrorsTest {
           )
 
           val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
-              .fetchPolicy(FetchPolicy.CacheOnly)
+              .onlyIfCached(true)
               .allowCachedErrors(true)
               .execute()
           assertEquals(
@@ -257,10 +261,11 @@ class StoreErrorsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
+        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
-              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .noCache(true)
               .execute()
           assertEquals(
               MeWithNickNameQuery.Data(
@@ -282,8 +287,8 @@ class StoreErrorsTest {
           )
 
           val cacheResult = apolloClient.query(MeWithNickNameAndProjectQuery())
-              .fetchPolicy(FetchPolicy.CacheOnly)
-              .allowPartialResults(true)
+              .onlyIfCached(true)
+              .allowCachedPartialResults(true)
               .allowCachedErrors(true)
               .execute()
           assertEquals(
@@ -307,5 +312,4 @@ class StoreErrorsTest {
           )
         }
   }
-
 }

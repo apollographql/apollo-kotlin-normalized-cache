@@ -754,28 +754,57 @@ fun <T> MutableExecutionOptions<T>.clock(clock: () -> Long): T {
   return this as T
 }
 
-internal class AllowPartialResults(val value: Boolean) : ExecutionContext.Element {
+internal class AllowCachedPartialResultsContext(val value: Boolean) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
 
-  companion object Key : ExecutionContext.Key<AllowPartialResults>
+  companion object Key : ExecutionContext.Key<AllowCachedPartialResultsContext>
 }
 
-internal val ExecutionOptions.allowPartialResults: Boolean
-  get() = executionContext[AllowPartialResults]?.value ?: false
+internal val ExecutionOptions.allowCachedPartialResults: Boolean
+  get() = executionContext[AllowCachedPartialResultsContext]?.value ?: false
 
-fun <T> MutableExecutionOptions<T>.allowPartialResults(allowPartialResults: Boolean): T =
-  addExecutionContext(AllowPartialResults(allowPartialResults))
+fun <T> MutableExecutionOptions<T>.allowCachedPartialResults(allowCachedPartialResults: Boolean): T =
+  addExecutionContext(AllowCachedPartialResultsContext(allowCachedPartialResults))
 
-internal class AllowCachedErrors(val value: Boolean) : ExecutionContext.Element {
+
+internal class AllowCachedErrorsContext(val value: Boolean) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
 
-  companion object Key : ExecutionContext.Key<AllowCachedErrors>
+  companion object Key : ExecutionContext.Key<AllowCachedErrorsContext>
 }
 
 internal val ExecutionOptions.allowCachedErrors: Boolean
-  get() = executionContext[AllowCachedErrors]?.value ?: false
+  get() = executionContext[AllowCachedErrorsContext]?.value ?: false
 
 fun <T> MutableExecutionOptions<T>.allowCachedErrors(allowCachedErrors: Boolean): T =
-  addExecutionContext(AllowCachedErrors(allowCachedErrors))
+  addExecutionContext(AllowCachedErrorsContext(allowCachedErrors))
+
+
+internal class NoCacheContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<NoCacheContext>
+}
+
+internal val ExecutionOptions.noCache: Boolean
+  get() = executionContext[NoCacheContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.noCache(noCache: Boolean): T =
+  addExecutionContext(NoCacheContext(noCache))
+
+
+internal class OnlyIfCachedContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<OnlyIfCachedContext>
+}
+
+internal val ExecutionOptions.onlyIfCached: Boolean
+  get() = executionContext[OnlyIfCachedContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.onlyIfCached(onlyIfCached: Boolean): T =
+  addExecutionContext(OnlyIfCachedContext(onlyIfCached))
