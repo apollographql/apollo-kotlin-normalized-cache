@@ -3,11 +3,9 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Error
 import com.apollographql.cache.normalized.CacheManager
-import com.apollographql.cache.normalized.DonkeyInterceptor
 import com.apollographql.cache.normalized.allowCachedErrors
 import com.apollographql.cache.normalized.allowCachedPartialResults
 import com.apollographql.cache.normalized.cacheManager
-import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.noCache
 import com.apollographql.cache.normalized.onlyIfCached
@@ -20,7 +18,7 @@ import okio.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CachePolicyResponseMapperTest {
+class CacheOptionsTest {
   private lateinit var mockServer: MockServer
 
   private suspend fun setUp() {
@@ -80,7 +78,6 @@ class CachePolicyResponseMapperTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
-        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
@@ -170,7 +167,6 @@ class CachePolicyResponseMapperTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
-        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
@@ -261,7 +257,6 @@ class CachePolicyResponseMapperTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
-        .fetchPolicyInterceptor(DonkeyInterceptor)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())

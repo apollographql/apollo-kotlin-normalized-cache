@@ -3,6 +3,7 @@ package com.apollographql.cache.normalized
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.exception.ApolloException
 
+@Deprecated("Use noCache(), onlyIfCached() or reload() instead")
 enum class FetchPolicy {
   /**
    * Try the cache, if that failed, try the network.
@@ -21,6 +22,7 @@ enum class FetchPolicy {
    * This [FetchPolicy] emits one [ApolloResponse].
    * Cache misses have [ApolloResponse.errors] set to a non-empty list.
    */
+  @Deprecated("Use onlyIfCached(true) instead")
   CacheOnly,
 
   /**
@@ -30,6 +32,7 @@ enum class FetchPolicy {
    * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
    * Cache misses have [ApolloResponse.errors] set to a non-empty list.
    */
+  @Deprecated("Use fetchPolicyInterceptor(NetworkFirstInterceptor) instead")
   NetworkFirst,
 
   /**
@@ -39,6 +42,7 @@ enum class FetchPolicy {
    * may be emitted if your [NetworkTransport] supports it, for example with `@defer`.
    * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
    */
+  @Deprecated("Use noCache() instead")
   NetworkOnly,
 
   /**
@@ -48,5 +52,6 @@ enum class FetchPolicy {
    * Cache misses have [ApolloResponse.errors] set to a non-empty list.
    * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
    */
+  @Deprecated("Use reload() instead")
   CacheAndNetwork,
 }

@@ -1,5 +1,4 @@
 @file:JvmName("FetchPolicyInterceptors")
-@file:Suppress("DEPRECATION") // for ApolloCompositeException, see https://youtrack.jetbrains.com/issue/KT-30155
 
 package com.apollographql.cache.normalized
 
@@ -8,7 +7,6 @@ import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Query
 import com.apollographql.apollo.conflateFetchPolicyInterceptorResponses
-import com.apollographql.apollo.exception.ApolloCompositeException
 import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.exception.CacheMissException
@@ -23,28 +21,41 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.single
 import kotlin.jvm.JvmName
 
-// TODO: find a better name :_)
-val DonkeyInterceptor = object : ApolloInterceptor {
+/**
+ * An interceptor that emits the response from the cache first, and if there was a cache miss, emits the response(s) from the network.
+ *
+ * This is the default cache policy interceptor.
+ *
+ * If [noCache] is set to `true`, the cache is skipped and the network response is emitted directly.
+ *
+ * If [onlyIfCached] is set to `true`, no network request is made.
+ *
+ * If [reload] is set to `true`, the network response is emitted after the cached response, even if there is a cache hit.
+ */
+val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(
       request: ApolloRequest<D>,
       chain: ApolloInterceptorChain,
   ): Flow<ApolloResponse<D>> {
+    val cacheOptions = request.fetchCacheOptions
     return flow {
-      if (!request.noCache) {
+      if (!cacheOptions.noCache) {
         val cacheResponse = chain.proceed(
             request = request
                 .newBuilder()
                 .fetchFromCache(true)
                 .build()
         ).single()
-            .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
-        emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null).build())
-        if (cacheResponse.exception == null) {
+            .errorsAsException(allowCachedPartialResults = cacheOptions.allowCachedPartialResults, allowCachedErrors = cacheOptions.allowCachedErrors)
+        emit(cacheResponse.newBuilder().isLast(!cacheOptions.reload && (cacheOptions.onlyIfCached || cacheResponse.exception == null))
+            .build()
+        )
+        if (cacheResponse.exception == null && !cacheOptions.reload) {
           return@flow
         }
       }
 
-      if (!request.onlyIfCached) {
+      if (!cacheOptions.onlyIfCached) {
         val networkResponses = chain.proceed(request = request)
         emitAll(networkResponses)
       }
@@ -55,6 +66,7 @@ val DonkeyInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response from the cache only.
  */
+@Deprecated("Use DefaultFetchPolicyInterceptor with onlyIfCached(true) instead")
 val CacheOnlyInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return chain.proceed(
@@ -63,7 +75,7 @@ val CacheOnlyInterceptor = object : ApolloInterceptor {
             .fetchFromCache(true)
             .build()
     ).map {
-      it.errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+      it.errorsAsException(allowCachedPartialResults = request.fetchCacheOptions.allowCachedPartialResults, allowCachedErrors = request.fetchCacheOptions.allowCachedErrors)
     }
   }
 }
@@ -71,6 +83,7 @@ val CacheOnlyInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response(s) from the network only.
  */
+@Deprecated("Use DefaultFetchPolicyInterceptor with noCache(true) instead")
 val NetworkOnlyInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return chain.proceed(request)
@@ -80,6 +93,7 @@ val NetworkOnlyInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response from the cache first, and if there was a cache miss, emits the response(s) from the network.
  */
+@Deprecated("Use DefaultFetchPolicyInterceptor instead")
 val CacheFirstInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return flow {
@@ -89,7 +103,7 @@ val CacheFirstInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build()
       ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+          .errorsAsException(allowCachedPartialResults = request.fetchCacheOptions.allowCachedPartialResults, allowCachedErrors = request.fetchCacheOptions.allowCachedErrors)
       emit(cacheResponse.newBuilder().isLast(cacheResponse.exception == null).build())
       if (cacheResponse.exception == null) {
         return@flow
@@ -136,7 +150,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build()
       ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+          .errorsAsException(allowCachedPartialResults = request.fetchCacheOptions.allowCachedPartialResults, allowCachedErrors = request.fetchCacheOptions.allowCachedErrors)
       emit(cacheResponse)
     }
   }
@@ -145,6 +159,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response from the cache first, and then emits the response(s) from the network.
  */
+@Deprecated("Use DefaultFetchPolicyInterceptor with reload(true) instead")
 val CacheAndNetworkInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return flow {
@@ -154,7 +169,7 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build()
       ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+          .errorsAsException(allowCachedPartialResults = request.fetchCacheOptions.allowCachedPartialResults, allowCachedErrors = request.fetchCacheOptions.allowCachedErrors)
 
       emit(cacheResponse.newBuilder().isLast(false).build())
 
@@ -276,8 +291,8 @@ internal object FetchPolicyRouterInterceptor : ApolloInterceptor {
         val exception = when (exceptions.size) {
           0 -> DefaultApolloException("No response emitted")
           1 -> exceptions.first()
-          2 -> ApolloCompositeException(exceptions.first(), exceptions.get(1))
-          else -> ApolloCompositeException(exceptions.first(), exceptions.get(1)).apply {
+          2 -> com.apollographql.apollo.exception.ApolloCompositeException(exceptions.first(), exceptions.get(1))
+          else -> com.apollographql.apollo.exception.ApolloCompositeException(exceptions.first(), exceptions.get(1)).apply {
             exceptions.drop(2).forEach {
               addSuppressed(it)
             }
