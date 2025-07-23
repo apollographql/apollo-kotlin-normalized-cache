@@ -257,7 +257,11 @@ fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
 
 
     copy().fetchPolicyInterceptor(refetchPolicyInterceptor)
-        .fetchCacheOptions(refetchCacheOptions)
+        .noCache(refetchNoCache)
+        .onlyIfCached(refetchOnlyIfCached)
+        .reload(refetchReload)
+        .allowCachedPartialResults(refetchAllowCachedPartialResults)
+        .allowCachedErrors(refetchAllowCachedErrors)
         .watchInternal(response?.data)
         .collect {
           if (it.exception === WatcherSentinel) {
@@ -300,28 +304,48 @@ val ApolloClient.apolloStore: ApolloStore
  * Sets the initial [FetchPolicy]
  * This only has effects for queries. Mutations and subscriptions always use the network only.
  */
-@Deprecated("Use noCache(), onlyIfCached() or reload() instead")
-@Suppress("DEPRECATION")
+@Deprecated("Use noCache(), onlyIfCached() or reload() instead. For NetworkFirst, use fetchPolicyInterceptor(NetworkFirstInterceptor) instead")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.fetchPolicy(fetchPolicy: FetchPolicy): T {
-  return if (fetchPolicy == FetchPolicy.NetworkFirst) {
-    // NetworkFirst is deprecated but should still work
-    fetchPolicyInterceptor(NetworkFirstInterceptor)
-  } else {
-    addExecutionContext(FetchCacheOptionsContext(cacheOptionsFor(fetchPolicy)))
+  // Reset first
+  onlyIfCached(false)
+  noCache(false)
+  reload(false)
+  return when (fetchPolicy) {
+    FetchPolicy.NetworkFirst -> {
+      // NetworkFirst is deprecated but should still work
+      fetchPolicyInterceptor(NetworkFirstInterceptor)
+    }
+
+    FetchPolicy.CacheOnly -> onlyIfCached(true)
+    FetchPolicy.NetworkOnly -> noCache(true)
+    FetchPolicy.CacheFirst -> this as T
+    FetchPolicy.CacheAndNetwork -> reload(true)
   }
 }
 
 /**
  * Sets the [FetchPolicy] used when watching queries and a cache change has been published
  */
-@Deprecated("Use refetchCacheOptions() instead")
-@Suppress("DEPRECATION")
+@Deprecated("Use refetchCacheOptions() instead. For NetworkFirst, use refetchPolicyInterceptor(NetworkFirstInterceptor) instead")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.refetchPolicy(@Suppress("DEPRECATION") fetchPolicy: FetchPolicy): T {
-  return if (fetchPolicy == FetchPolicy.NetworkFirst) {
-    // NetworkFirst is deprecated but should still work
-    refetchPolicyInterceptor(NetworkFirstInterceptor)
-  } else {
-    addExecutionContext(RefetchCacheOptionsContext(cacheOptionsFor(fetchPolicy)))
+  // Reset first
+  refetchCacheOptions {
+    onlyIfCached(true)
+    noCache(false)
+    reload(false)
+  }
+  return when (fetchPolicy) {
+    FetchPolicy.NetworkFirst -> {
+      // NetworkFirst is deprecated but should still work
+      refetchPolicyInterceptor(NetworkFirstInterceptor)
+    }
+
+    FetchPolicy.CacheOnly -> refetchCacheOptions { onlyIfCached(true) }
+    FetchPolicy.NetworkOnly -> refetchCacheOptions { noCache(true) }
+    FetchPolicy.CacheFirst -> this as T
+    FetchPolicy.CacheAndNetwork -> refetchCacheOptions { reload(true) }
   }
 }
 
@@ -339,15 +363,6 @@ fun <T> MutableExecutionOptions<T>.fetchPolicyInterceptor(interceptor: ApolloInt
 fun <T> MutableExecutionOptions<T>.refetchPolicyInterceptor(interceptor: ApolloInterceptor) = addExecutionContext(
     RefetchPolicyContext(interceptor)
 )
-
-@Suppress("DEPRECATION")
-private fun cacheOptionsFor(fetchPolicy: FetchPolicy) = when (fetchPolicy) {
-  FetchPolicy.CacheOnly -> CacheOptionsImpl(onlyIfCached = true)
-  FetchPolicy.NetworkOnly -> CacheOptionsImpl(noCache = true)
-  FetchPolicy.CacheFirst -> CacheOptionsImpl()
-  FetchPolicy.NetworkFirst -> CacheOptionsImpl()
-  FetchPolicy.CacheAndNetwork -> CacheOptionsImpl(reload = true)
-}
 
 /**
  * @param doNotStore Whether to store the response in cache.
@@ -727,9 +742,9 @@ internal class ErrorsReplaceCachedValuesContext(val value: Boolean) : ExecutionC
   companion object Key : ExecutionContext.Key<ErrorsReplaceCachedValuesContext>
 }
 
-fun <D : Operation.Data> ApolloRequest.Builder<D>.fetchFromCache(fetchFromCache: Boolean) = apply {
+fun <D : Operation.Data> ApolloRequest.Builder<D>.fetchFromCache(fetchFromCache: Boolean) =
   addExecutionContext(FetchFromCacheContext(fetchFromCache))
-}
+
 
 val <D : Operation.Data> ApolloRequest<D>.fetchFromCache
   get() = executionContext[FetchFromCacheContext]?.value ?: false
@@ -761,54 +776,155 @@ internal val ExecutionOptions.clock: (() -> Long)
  *
  * @param clock returns the current time in milliseconds since the epoch.
  */
-fun <T> MutableExecutionOptions<T>.clock(clock: () -> Long): T {
-  addExecutionContext(ClockContext(clock))
-  @Suppress("UNCHECKED_CAST")
-  return this as T
-}
+fun <T> MutableExecutionOptions<T>.clock(clock: () -> Long): T = addExecutionContext(ClockContext(clock))
 
-internal class FetchCacheOptionsContext(val value: CacheOptionsImpl) : ExecutionContext.Element {
+
+internal class FetchAllowCachedPartialResultsContext(val value: Boolean) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
 
-  companion object Key : ExecutionContext.Key<FetchCacheOptionsContext>
+  companion object Key : ExecutionContext.Key<FetchAllowCachedPartialResultsContext>
 }
 
-internal val ExecutionOptions.fetchCacheOptions: CacheOptionsImpl
-  get() = executionContext[FetchCacheOptionsContext]?.value ?: CacheOptionsImpl()
-
-internal fun <T> MutableExecutionOptions<T>.fetchCacheOptions(fetchCacheOptions: CacheOptionsImpl): T {
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions))
-  @Suppress("UNCHECKED_CAST")
-  return this as T
-}
-
+internal val ExecutionOptions.allowCachedPartialResults: Boolean
+  get() = executionContext[FetchAllowCachedPartialResultsContext]?.value ?: false
 
 fun <T> MutableExecutionOptions<T>.allowCachedPartialResults(allowCachedPartialResults: Boolean): T =
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions.also { it.allowCachedPartialResults(allowCachedPartialResults) }))
-
-fun <T> MutableExecutionOptions<T>.allowCachedErrors(allowCachedErrors: Boolean): T =
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions.also { it.allowCachedErrors(allowCachedErrors) }))
-
-fun <T> MutableExecutionOptions<T>.noCache(noCache: Boolean): T =
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions.also { it.noCache(noCache) }))
-
-fun <T> MutableExecutionOptions<T>.onlyIfCached(onlyIfCached: Boolean): T =
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions.also { it.onlyIfCached(onlyIfCached) }))
-
-fun <T> MutableExecutionOptions<T>.reload(reload: Boolean): T =
-  addExecutionContext(FetchCacheOptionsContext(fetchCacheOptions.also { it.reload(reload) }))
+  addExecutionContext(FetchAllowCachedPartialResultsContext(allowCachedPartialResults))
 
 
-internal class RefetchCacheOptionsContext(val value: CacheOptionsImpl) : ExecutionContext.Element {
+internal class FetchAllowCachedErrorsContext(val value: Boolean) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
 
-  companion object Key : ExecutionContext.Key<RefetchCacheOptionsContext>
+  companion object Key : ExecutionContext.Key<FetchAllowCachedErrorsContext>
 }
 
-internal val ExecutionOptions.refetchCacheOptions: CacheOptionsImpl
-  get() = executionContext[RefetchCacheOptionsContext]?.value ?: CacheOptionsImpl(onlyIfCached = true)
+internal val ExecutionOptions.allowCachedErrors: Boolean
+  get() = executionContext[FetchAllowCachedErrorsContext]?.value ?: false
 
-fun <T> MutableExecutionOptions<T>.refetchCacheOptions(refetchCacheOptions: CacheOptions.() -> Unit): T =
-  addExecutionContext(RefetchCacheOptionsContext(this.refetchCacheOptions.also { refetchCacheOptions(it) }))
+fun <T> MutableExecutionOptions<T>.allowCachedErrors(allowCachedErrors: Boolean): T =
+  addExecutionContext(FetchAllowCachedErrorsContext(allowCachedErrors))
+
+
+internal class FetchNoCacheContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<FetchNoCacheContext>
+}
+
+internal val ExecutionOptions.noCache: Boolean
+  get() = executionContext[FetchNoCacheContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.noCache(noCache: Boolean): T {
+  if (noCache) {
+    // noCache and onlyIfCached are mutually exclusive
+    addExecutionContext(FetchOnlyIfCachedContext(false))
+  }
+  return addExecutionContext(FetchNoCacheContext(noCache))
+}
+
+
+internal class FetchOnlyIfCachedContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<FetchOnlyIfCachedContext>
+}
+
+internal val ExecutionOptions.onlyIfCached: Boolean
+  get() = executionContext[FetchOnlyIfCachedContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.onlyIfCached(onlyIfCached: Boolean): T {
+  if (onlyIfCached) {
+    // noCache and onlyIfCached are mutually exclusive
+    addExecutionContext(FetchNoCacheContext(false))
+    // reload and onlyIfCached are mutually exclusive
+    addExecutionContext(FetchReloadContext(false))
+  }
+  return addExecutionContext(FetchOnlyIfCachedContext(onlyIfCached))
+}
+
+
+internal class FetchReloadContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<FetchReloadContext>
+}
+
+internal val ExecutionOptions.reload: Boolean
+  get() = executionContext[FetchReloadContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.reload(reload: Boolean): T {
+  if (reload) {
+    // onlyIfCached and reload are mutually exclusive
+    addExecutionContext(FetchOnlyIfCachedContext(false))
+  }
+  return addExecutionContext(FetchReloadContext(reload))
+}
+
+
+internal class RefetchAllowCachedPartialResultsContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<RefetchAllowCachedPartialResultsContext>
+}
+
+internal val ExecutionOptions.refetchAllowCachedPartialResults: Boolean
+  get() = executionContext[RefetchAllowCachedPartialResultsContext]?.value ?: false
+
+
+internal class RefetchAllowCachedErrorsContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<RefetchAllowCachedErrorsContext>
+}
+
+internal val ExecutionOptions.refetchAllowCachedErrors: Boolean
+  get() = executionContext[RefetchAllowCachedErrorsContext]?.value ?: false
+
+
+internal class RefetchNoCacheContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<RefetchNoCacheContext>
+}
+
+internal val ExecutionOptions.refetchNoCache: Boolean
+  get() = executionContext[RefetchNoCacheContext]?.value ?: false
+
+
+internal class RefetchOnlyIfCachedContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<RefetchOnlyIfCachedContext>
+}
+
+internal val ExecutionOptions.refetchOnlyIfCached: Boolean
+  get() = executionContext[RefetchOnlyIfCachedContext]?.value ?: true
+
+
+internal class RefetchReloadContext(val value: Boolean) : ExecutionContext.Element {
+  override val key: ExecutionContext.Key<*>
+    get() = Key
+
+  companion object Key : ExecutionContext.Key<RefetchReloadContext>
+}
+
+internal val ExecutionOptions.refetchReload: Boolean
+  get() = executionContext[RefetchReloadContext]?.value ?: false
+
+fun <T> MutableExecutionOptions<T>.refetchCacheOptions(refetchCacheOptions: CacheOptions.() -> Unit): T {
+  val refetchCacheOptions = CacheOptionsImpl().also { refetchCacheOptions(it) }
+  addExecutionContext(RefetchNoCacheContext(refetchCacheOptions.noCache))
+  addExecutionContext(RefetchOnlyIfCachedContext(refetchCacheOptions.onlyIfCached))
+  addExecutionContext(RefetchReloadContext(refetchCacheOptions.reload))
+  addExecutionContext(RefetchAllowCachedPartialResultsContext(refetchCacheOptions.allowCachedPartialResults))
+  return addExecutionContext(RefetchAllowCachedErrorsContext(refetchCacheOptions.allowCachedErrors))
+}

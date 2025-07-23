@@ -257,6 +257,8 @@ class CacheOptionsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
+        .allowCachedPartialResults(true)
+        .allowCachedErrors(true)
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
@@ -283,8 +285,6 @@ class CacheOptionsTest {
 
           val cacheResult = apolloClient.query(MeWithNickNameAndProjectQuery())
               .onlyIfCached(true)
-              .allowCachedPartialResults(true)
-              .allowCachedErrors(true)
               .execute()
           assertEquals(
               MeWithNickNameAndProjectQuery.Data(

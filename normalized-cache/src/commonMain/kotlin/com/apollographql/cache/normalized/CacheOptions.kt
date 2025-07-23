@@ -16,18 +16,28 @@ internal data class CacheOptionsImpl(
     var allowCachedErrors: Boolean = false,
 ) : CacheOptions {
   override fun noCache(noCache: Boolean) {
-    if (noCache && onlyIfCached) error("Apollo: noCache and onlyIfCached are mutually exclusive")
+    if (noCache) {
+      // noCache and onlyIfCached are mutually exclusive
+      onlyIfCached = false
+    }
     this.noCache = noCache
   }
 
   override fun onlyIfCached(onlyIfCached: Boolean) {
-    if (onlyIfCached && noCache) error("Apollo: noCache and onlyIfCached are mutually exclusive")
-    if (onlyIfCached && reload) error("Apollo: onlyIfCached and reload are mutually exclusive")
+    if (onlyIfCached) {
+      // noCache and onlyIfCached are mutually exclusive
+      noCache = false
+      // reload and onlyIfCached are mutually exclusive
+      reload = false
+    }
     this.onlyIfCached = onlyIfCached
   }
 
   override fun reload(reload: Boolean) {
-    if (reload && onlyIfCached) error("Apollo: onlyIfCached and reload are mutually exclusive")
+    if (reload) {
+      // onlyIfCached and reload are mutually exclusive
+      onlyIfCached = false
+    }
     this.reload = reload
   }
 
