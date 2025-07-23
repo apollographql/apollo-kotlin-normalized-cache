@@ -1,57 +1,37 @@
 package com.apollographql.cache.normalized
 
-import com.apollographql.apollo.api.ApolloResponse
-import com.apollographql.apollo.exception.ApolloException
-
-@Deprecated("Use noCache(), onlyIfCached() or reload() instead")
 enum class FetchPolicy {
   /**
-   * Try the cache, if that failed, try the network.
-   *
-   * This [FetchPolicy] emits one or more [ApolloResponse]s.
-   * Cache misses have [ApolloResponse.errors] set to a non-empty list.
-   * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
+   * Emit the response from the cache first, and if there was a cache miss, emit the response(s) from the network.
    *
    * This is the default behaviour.
    */
   CacheFirst,
 
   /**
-   * Only try the cache.
+   * Emit the response from the cache only.
    *
-   * This [FetchPolicy] emits one [ApolloResponse].
-   * Cache misses have [ApolloResponse.errors] set to a non-empty list.
+   * Equivalent of executing with `onlyIfCached(true)`.
    */
-  @Deprecated("Use onlyIfCached(true) instead")
   CacheOnly,
 
   /**
-   * Try the network, if that failed, try the cache.
-   *
-   * This [FetchPolicy] emits one or more [ApolloResponse]s.
-   * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
-   * Cache misses have [ApolloResponse.errors] set to a non-empty list.
+   * Emit the response(s) from the network first, and if there was a network error, emit the response from the cache.
    */
-  @Deprecated("Use fetchPolicyInterceptor(NetworkFirstInterceptor) instead")
   NetworkFirst,
 
   /**
-   * Only try the network.
+   * Emit the response(s) from the network only.
    *
-   * This [FetchPolicy] emits one or more [ApolloResponse]s. Several [ApolloResponse]s
-   * may be emitted if your [NetworkTransport] supports it, for example with `@defer`.
-   * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
+   * Equivalent of executing with `noCache(true)`.
    */
-  @Deprecated("Use noCache() instead")
   NetworkOnly,
 
   /**
-   * Try the cache, then also try the network.
+   * Emit the response from the cache first, and then emit the response(s) from the network.
    *
-   * This [FetchPolicy] emits two or more [ApolloResponse]s.
-   * Cache misses have [ApolloResponse.errors] set to a non-empty list.
-   * Network errors have [ApolloResponse.exception] set to a non-null [ApolloException].
+   * Equivalent of executing with `onlyIfCached(true)` and then with `noCache(true)`.
    */
-  @Deprecated("Use reload() instead")
+  @Deprecated("This is equivalent of executing with onlyIfCached(true) and then with noCache(true)")
   CacheAndNetwork,
 }

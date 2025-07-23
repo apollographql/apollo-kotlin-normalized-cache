@@ -29,8 +29,6 @@ import kotlin.jvm.JvmName
  * If [noCache] is set to `true`, the cache is skipped and the network response is emitted directly.
  *
  * If [onlyIfCached] is set to `true`, no network request is made.
- *
- * If [reload] is set to `true`, the network response is emitted after the cached response, even if there is a cache hit.
  */
 val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(
@@ -46,10 +44,10 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
                 .build()
         ).single()
             .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
-        emit(cacheResponse.newBuilder().isLast(!request.reload && (request.onlyIfCached || cacheResponse.exception == null))
+        emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
             .build()
         )
-        if (cacheResponse.exception == null && !request.reload) {
+        if (cacheResponse.exception == null) {
           return@flow
         }
       }
@@ -58,58 +56,6 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
         val networkResponses = chain.proceed(request = request)
         emitAll(networkResponses)
       }
-    }
-  }
-}
-
-/**
- * An interceptor that emits the response from the cache only.
- */
-@Deprecated("Use DefaultFetchPolicyInterceptor with onlyIfCached(true) instead")
-val CacheOnlyInterceptor = object : ApolloInterceptor {
-  override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
-    return chain.proceed(
-        request = request
-            .newBuilder()
-            .fetchFromCache(true)
-            .build()
-    ).map {
-      it.errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
-    }
-  }
-}
-
-/**
- * An interceptor that emits the response(s) from the network only.
- */
-@Deprecated("Use DefaultFetchPolicyInterceptor with noCache(true) instead")
-val NetworkOnlyInterceptor = object : ApolloInterceptor {
-  override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
-    return chain.proceed(request)
-  }
-}
-
-/**
- * An interceptor that emits the response from the cache first, and if there was a cache miss, emits the response(s) from the network.
- */
-@Deprecated("Use DefaultFetchPolicyInterceptor instead")
-val CacheFirstInterceptor = object : ApolloInterceptor {
-  override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
-    return flow {
-      val cacheResponse = chain.proceed(
-          request = request
-              .newBuilder()
-              .fetchFromCache(true)
-              .build()
-      ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
-      emit(cacheResponse.newBuilder().isLast(cacheResponse.exception == null).build())
-      if (cacheResponse.exception == null) {
-        return@flow
-      }
-
-      val networkResponses = chain.proceed(request = request)
-      emitAll(networkResponses)
     }
   }
 }
@@ -158,7 +104,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response from the cache first, and then emits the response(s) from the network.
  */
-@Deprecated("Use DefaultFetchPolicyInterceptor with reload(true) instead")
+@Deprecated("This is equivalent of executing with onlyIfCached(true) followed by noCache(true)")
 val CacheAndNetworkInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return flow {

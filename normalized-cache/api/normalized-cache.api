@@ -132,7 +132,6 @@ public abstract interface class com/apollographql/cache/normalized/CacheOptions 
 	public abstract fun allowCachedPartialResults (Z)V
 	public abstract fun noCache (Z)V
 	public abstract fun onlyIfCached (Z)V
-	public abstract fun reload (Z)V
 }
 
 public final class com/apollographql/cache/normalized/ErrorExtensionsKt {
@@ -153,11 +152,8 @@ public final class com/apollographql/cache/normalized/FetchPolicy : java/lang/En
 public final class com/apollographql/cache/normalized/FetchPolicyInterceptors {
 	public static final fun errorsAsException (Lcom/apollographql/apollo/api/ApolloResponse;)Lcom/apollographql/apollo/api/ApolloResponse;
 	public static final fun getCacheAndNetworkInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
-	public static final fun getCacheFirstInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
-	public static final fun getCacheOnlyInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
 	public static final fun getDefaultFetchPolicyInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
 	public static final fun getNetworkFirstInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
-	public static final fun getNetworkOnlyInterceptor ()Lcom/apollographql/apollo/interceptor/ApolloInterceptor;
 }
 
 public final class com/apollographql/cache/normalized/GarbageCollectResult {
@@ -226,7 +222,6 @@ public final class com/apollographql/cache/normalized/NormalizedCache {
 	public static final fun refetchCacheOptions (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static final fun refetchPolicy (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/cache/normalized/FetchPolicy;)Ljava/lang/Object;
 	public static final fun refetchPolicyInterceptor (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/apollo/interceptor/ApolloInterceptor;)Ljava/lang/Object;
-	public static final fun reload (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
 	public static final fun storeExpirationDate (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
 	public static final fun storePartialResponses (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Void;
 	public static final fun storeReceivedDate (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;

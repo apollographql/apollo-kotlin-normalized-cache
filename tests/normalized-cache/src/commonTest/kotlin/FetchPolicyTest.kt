@@ -18,15 +18,15 @@ import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.exception.JsonEncodingException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
-import com.apollographql.cache.normalized.CacheFirstInterceptor
 import com.apollographql.cache.normalized.CacheManager
-import com.apollographql.cache.normalized.CacheOnlyInterceptor
+import com.apollographql.cache.normalized.DefaultFetchPolicyInterceptor
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
+import com.apollographql.cache.normalized.onlyIfCached
 import com.apollographql.cache.normalized.refetchPolicyInterceptor
 import com.apollographql.cache.normalized.testing.assertNoElement
 import com.apollographql.cache.normalized.testing.fieldKey
@@ -440,7 +440,7 @@ class FetchPolicyTest {
     var hasSeenValidResponse: Boolean = false
     override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
       return if (!hasSeenValidResponse) {
-        CacheOnlyInterceptor.intercept(request, chain).onEach {
+        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().onlyIfCached(true).build(), chain).onEach {
           if (it.data != null) {
             // We have valid data, we can now use the network
             hasSeenValidResponse = true
@@ -448,7 +448,7 @@ class FetchPolicyTest {
         }
       } else {
         // If for some reason we have a cache miss, get fresh data from the network
-        CacheFirstInterceptor.intercept(request, chain)
+        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().onlyIfCached(false).build(), chain)
       }
     }
   }

@@ -15,6 +15,7 @@ import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Query
 import com.apollographql.apollo.api.http.get
 import com.apollographql.apollo.exception.ApolloException
+import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
@@ -259,7 +260,6 @@ fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
     copy().fetchPolicyInterceptor(refetchPolicyInterceptor)
         .noCache(refetchNoCache)
         .onlyIfCached(refetchOnlyIfCached)
-        .reload(refetchReload)
         .allowCachedPartialResults(refetchAllowCachedPartialResults)
         .allowCachedErrors(refetchAllowCachedErrors)
         .watchInternal(response?.data)
@@ -304,48 +304,54 @@ val ApolloClient.apolloStore: ApolloStore
  * Sets the initial [FetchPolicy]
  * This only has effects for queries. Mutations and subscriptions always use the network only.
  */
-@Deprecated("Use noCache(), onlyIfCached() or reload() instead. For NetworkFirst, use fetchPolicyInterceptor(NetworkFirstInterceptor) instead")
-@Suppress("DEPRECATION", "UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.fetchPolicy(fetchPolicy: FetchPolicy): T {
   // Reset first
   onlyIfCached(false)
   noCache(false)
-  reload(false)
   return when (fetchPolicy) {
     FetchPolicy.NetworkFirst -> {
-      // NetworkFirst is deprecated but should still work
       fetchPolicyInterceptor(NetworkFirstInterceptor)
     }
 
     FetchPolicy.CacheOnly -> onlyIfCached(true)
     FetchPolicy.NetworkOnly -> noCache(true)
     FetchPolicy.CacheFirst -> this as T
-    FetchPolicy.CacheAndNetwork -> reload(true)
+    @Suppress("DEPRECATION")
+    FetchPolicy.CacheAndNetwork,
+      -> {
+      // CacheAndNetwork is deprecated but should still work
+      @Suppress("DEPRECATION")
+      fetchPolicyInterceptor(CacheAndNetworkInterceptor)
+    }
   }
 }
 
 /**
  * Sets the [FetchPolicy] used when watching queries and a cache change has been published
  */
-@Deprecated("Use refetchCacheOptions() instead. For NetworkFirst, use refetchPolicyInterceptor(NetworkFirstInterceptor) instead")
-@Suppress("DEPRECATION", "UNCHECKED_CAST")
-fun <T> MutableExecutionOptions<T>.refetchPolicy(@Suppress("DEPRECATION") fetchPolicy: FetchPolicy): T {
+@Suppress("UNCHECKED_CAST")
+fun <T> MutableExecutionOptions<T>.refetchPolicy(fetchPolicy: FetchPolicy): T {
   // Reset first
   refetchCacheOptions {
     onlyIfCached(true)
     noCache(false)
-    reload(false)
   }
   return when (fetchPolicy) {
     FetchPolicy.NetworkFirst -> {
-      // NetworkFirst is deprecated but should still work
       refetchPolicyInterceptor(NetworkFirstInterceptor)
     }
 
     FetchPolicy.CacheOnly -> refetchCacheOptions { onlyIfCached(true) }
     FetchPolicy.NetworkOnly -> refetchCacheOptions { noCache(true) }
     FetchPolicy.CacheFirst -> this as T
-    FetchPolicy.CacheAndNetwork -> refetchCacheOptions { reload(true) }
+    @Suppress("DEPRECATION")
+    FetchPolicy.CacheAndNetwork,
+      -> {
+      // CacheAndNetwork is deprecated but should still work
+      @Suppress("DEPRECATION")
+      refetchPolicyInterceptor(CacheAndNetworkInterceptor)
+    }
   }
 }
 
@@ -789,6 +795,12 @@ internal class FetchAllowCachedPartialResultsContext(val value: Boolean) : Execu
 internal val ExecutionOptions.allowCachedPartialResults: Boolean
   get() = executionContext[FetchAllowCachedPartialResultsContext]?.value ?: false
 
+/**
+ * Sets whether to allow partial results to be returned from the cache.
+ * If set to false, if any field is missing in the cache, the returned response will have a null data and a non-null exception of type [CacheMissException].
+ *
+ * Default: false
+ */
 fun <T> MutableExecutionOptions<T>.allowCachedPartialResults(allowCachedPartialResults: Boolean): T =
   addExecutionContext(FetchAllowCachedPartialResultsContext(allowCachedPartialResults))
 
@@ -800,6 +812,12 @@ internal class FetchAllowCachedErrorsContext(val value: Boolean) : ExecutionCont
   companion object Key : ExecutionContext.Key<FetchAllowCachedErrorsContext>
 }
 
+/**
+ * Sets whether to allow GraphQL errors to be returned from the cache.
+ * If set to false, if any field is an Error in the cache, the returned response will have a null data and a non-null exception of type [ApolloGraphQLException].
+ *
+ * Default: false
+ */
 internal val ExecutionOptions.allowCachedErrors: Boolean
   get() = executionContext[FetchAllowCachedErrorsContext]?.value ?: false
 
@@ -814,12 +832,18 @@ internal class FetchNoCacheContext(val value: Boolean) : ExecutionContext.Elemen
   companion object Key : ExecutionContext.Key<FetchNoCacheContext>
 }
 
+/**
+ * Sets whether to skip the cache.
+ * If set to true, the cache will not be queried at all.
+ *
+ * Default: false
+ */
 internal val ExecutionOptions.noCache: Boolean
   get() = executionContext[FetchNoCacheContext]?.value ?: false
 
 fun <T> MutableExecutionOptions<T>.noCache(noCache: Boolean): T {
+  // noCache and onlyIfCached are mutually exclusive
   if (noCache) {
-    // noCache and onlyIfCached are mutually exclusive
     addExecutionContext(FetchOnlyIfCachedContext(false))
   }
   return addExecutionContext(FetchNoCacheContext(noCache))
@@ -836,33 +860,18 @@ internal class FetchOnlyIfCachedContext(val value: Boolean) : ExecutionContext.E
 internal val ExecutionOptions.onlyIfCached: Boolean
   get() = executionContext[FetchOnlyIfCachedContext]?.value ?: false
 
+/**
+ * Sets whether to only return results from the cache.
+ * If set to true, the network will not be queried at all.
+ *
+ * Default: false
+ */
 fun <T> MutableExecutionOptions<T>.onlyIfCached(onlyIfCached: Boolean): T {
+  // noCache and onlyIfCached are mutually exclusive
   if (onlyIfCached) {
-    // noCache and onlyIfCached are mutually exclusive
     addExecutionContext(FetchNoCacheContext(false))
-    // reload and onlyIfCached are mutually exclusive
-    addExecutionContext(FetchReloadContext(false))
   }
   return addExecutionContext(FetchOnlyIfCachedContext(onlyIfCached))
-}
-
-
-internal class FetchReloadContext(val value: Boolean) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
-
-  companion object Key : ExecutionContext.Key<FetchReloadContext>
-}
-
-internal val ExecutionOptions.reload: Boolean
-  get() = executionContext[FetchReloadContext]?.value ?: false
-
-fun <T> MutableExecutionOptions<T>.reload(reload: Boolean): T {
-  if (reload) {
-    // onlyIfCached and reload are mutually exclusive
-    addExecutionContext(FetchOnlyIfCachedContext(false))
-  }
-  return addExecutionContext(FetchReloadContext(reload))
 }
 
 
@@ -909,22 +918,13 @@ internal class RefetchOnlyIfCachedContext(val value: Boolean) : ExecutionContext
 internal val ExecutionOptions.refetchOnlyIfCached: Boolean
   get() = executionContext[RefetchOnlyIfCachedContext]?.value ?: true
 
-
-internal class RefetchReloadContext(val value: Boolean) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
-
-  companion object Key : ExecutionContext.Key<RefetchReloadContext>
-}
-
-internal val ExecutionOptions.refetchReload: Boolean
-  get() = executionContext[RefetchReloadContext]?.value ?: false
-
+/**
+ * Sets the cache options used when watching queries and a cache change has been published.
+ */
 fun <T> MutableExecutionOptions<T>.refetchCacheOptions(refetchCacheOptions: CacheOptions.() -> Unit): T {
   val refetchCacheOptions = CacheOptionsImpl().also { refetchCacheOptions(it) }
   addExecutionContext(RefetchNoCacheContext(refetchCacheOptions.noCache))
   addExecutionContext(RefetchOnlyIfCachedContext(refetchCacheOptions.onlyIfCached))
-  addExecutionContext(RefetchReloadContext(refetchCacheOptions.reload))
   addExecutionContext(RefetchAllowCachedPartialResultsContext(refetchCacheOptions.allowCachedPartialResults))
   return addExecutionContext(RefetchAllowCachedErrorsContext(refetchCacheOptions.allowCachedErrors))
 }
