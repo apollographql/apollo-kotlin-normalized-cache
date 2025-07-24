@@ -434,6 +434,165 @@ class CacheOptionsTest {
   }
 
   @Test
+  fun listsFromDifferentFieldsMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsFromDifferentFields(memoryCacheManager)
+  }
+
+  @Test
+  fun listsFromDifferentFieldsSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsFromDifferentFields(sqlCacheManager)
+  }
+
+  @Test
+  fun listsFromDifferentFieldsMemoryThenSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsFromDifferentFields(memoryThenSqlCacheManager)
+  }
+
+  private suspend fun listsFromDifferentFields(cacheManager: CacheManager) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "allUsers": [
+                {
+                  "__typename": "User",
+                  "id": "1",
+                  "firstName": "John",
+                  "lastName": "Smith",
+                  "email": "jsmith@example.com"
+                },
+                {
+                  "__typename": "User",
+                  "id": "2",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "email": "jdoe@example.com"
+                },
+                null
+              ]
+            },
+            "errors": [
+              {
+                "message": "User `3` not found",
+                "path": ["allUsers", 2]
+              }
+            ]
+          }
+          """
+    )
+
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cacheManager(cacheManager)
+        .cachePolicyResponseMapper(cachePolicyResponseMapper)
+        .build()
+        .use { apolloClient ->
+          val networkResult1 = apolloClient.query(AllUsersQuery())
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              AllUsersQuery.Data(
+                  allUsers = listOf(
+                      AllUsersQuery.AllUser(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      AllUsersQuery.AllUser(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              networkResult1.data
+          )
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("User `3` not found").path(listOf("allUsers", 2)).build()
+              ),
+              networkResult1.errors
+          )
+
+          val cacheResult1 = apolloClient.query(AllUsersQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertEquals(
+              AllUsersQuery.Data(
+                  allUsers = listOf(
+                      AllUsersQuery.AllUser(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      AllUsersQuery.AllUser(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              cacheResult1.data,
+          )
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("User `3` not found").path(listOf("allUsers", 2)).build(),
+              ),
+              cacheResult1.errors,
+          )
+
+          val cacheResult2 = apolloClient.query(UsersQuery(listOf("1", "2", "3", "4")))
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertEquals(
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                      null,
+                  )
+              ),
+              cacheResult2.data,
+          )
+          assertErrorsEquals(
+              listOf(
+                  // From AllUsersQuery, we could expect to have the same error "User `3` not found" being returned here for User:3.
+                  // But this error is not stored at `User:3` but inside the list at `allUsers`. There is no way for the cache to know
+                  // how to store it at `User:3`, since the id is not available in the response.
+                  // So instead it results in a cache miss.
+                  Error.Builder("Object 'User:3' not found in the cache").path(listOf("users", 2)).build(),
+                  Error.Builder("Object 'User:4' not found in the cache").path(listOf("users", 3)).build(),
+              ),
+              cacheResult2.errors,
+          )
+        }
+  }
+
+  @Test
   fun cacheMissAndErrorsMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
     cacheMissAndErrors(memoryCacheManager)
   }

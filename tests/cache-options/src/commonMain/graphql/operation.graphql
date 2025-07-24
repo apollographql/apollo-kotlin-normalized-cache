@@ -30,6 +30,15 @@ query UsersQuery($ids: [ID!]!) {
   }
 }
 
+query AllUsersQuery {
+  allUsers {
+    id
+    firstName
+    lastName
+    email
+  }
+}
+
 query UserByCategoryQuery($category: Category!) {
   user(category: $category) {
     id
