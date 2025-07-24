@@ -27,7 +27,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.test.assertNull
 
 class CacheOptionsTest {
   private lateinit var mockServer: MockServer
@@ -178,7 +177,6 @@ class CacheOptionsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
-        .cachePolicyResponseMapper(cachePolicyResponseMapper)
         .build()
         .use { apolloClient ->
           val networkResult1 = apolloClient.query(UserByCategoryQuery(Category(0, "test")))
@@ -216,6 +214,8 @@ class CacheOptionsTest {
 
           val cacheResult = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
               .fetchPolicy(FetchPolicy.CacheOnly)
+              .allowCachedErrors(true)
+              .allowCachedPartialResults(true)
               .execute()
           assertEquals(
               networkResult2.data,
@@ -383,6 +383,7 @@ class CacheOptionsTest {
           val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3", "4", "5", "6", "7")))
               .fetchPolicy(FetchPolicy.CacheOnly)
               .allowCachedErrors(true)
+              .allowCachedPartialResults(true)
               .execute()
           assertEquals(
               UsersQuery.Data(
@@ -485,7 +486,6 @@ class CacheOptionsTest {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
-        .cachePolicyResponseMapper(cachePolicyResponseMapper)
         .build()
         .use { apolloClient ->
           val networkResult1 = apolloClient.query(AllUsersQuery())
@@ -522,6 +522,8 @@ class CacheOptionsTest {
 
           val cacheResult1 = apolloClient.query(AllUsersQuery())
               .fetchPolicy(FetchPolicy.CacheOnly)
+              .allowCachedErrors(true)
+              .allowCachedPartialResults(true)
               .execute()
           assertEquals(
               AllUsersQuery.Data(
@@ -554,6 +556,8 @@ class CacheOptionsTest {
 
           val cacheResult2 = apolloClient.query(UsersQuery(listOf("1", "2", "3", "4")))
               .fetchPolicy(FetchPolicy.CacheOnly)
+              .allowCachedErrors(true)
+              .allowCachedPartialResults(true)
               .execute()
           assertEquals(
               UsersQuery.Data(
