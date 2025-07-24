@@ -52,8 +52,16 @@ internal class CacheSchemaCodeGenerator(
 ) : SchemaCodeGenerator {
   override fun generate(schema: GQLDocument, outputDirectory: File) {
     val validSchema = schema.toSchema()
-    val packageName = (environment.arguments["packageName"] as? String
-        ?: throw IllegalArgumentException("packageName argument is required and must be a String")) + ".cache"
+    if (environment.arguments.contains("packageName")) {
+      environment.logger().warning(
+          "The Cache compiler plugin 'packageName' argument is deprecated. Please use 'com.apollographql.cache.packageName' instead."
+      )
+    }
+    val packageName = (
+        environment.arguments["com.apollographql.cache.packageName"] as? String
+            // Fallback to the old argument name for compatibility with pre-v1.0.0 versions
+            ?: environment.arguments["packageName"] as? String
+            ?: throw IllegalArgumentException("com.apollographql.cache.packageName argument is required and must be a String")) + ".cache"
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")

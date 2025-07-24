@@ -10,11 +10,25 @@ apollo {
 
     // Add this
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%") {
-      argument("packageName", packageName.get())
+      argument("com.apollographql.cache.packageName", packageName.get())
     }
   }
 }
 ```
+
+<code-block lang="kotlin" collapsible="true" collapsed-title="For Apollo Kotlin v5+">
+// For Apollo Kotlin v5 and later
+// build.gradle.kts
+apollo {
+  service("service") {
+    // ...
+
+    // Add this
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
+  }
+}
+</code-block>
 
 This plugin generates some code to support the Normalized Cache features, such as declarative cache IDs, pagination and cache control.
 

@@ -59,7 +59,7 @@ apollo {
 
     @OptIn(ApolloExperimental::class)
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("packageName", packageName.get())
+      argument("com.apollographql.cache.packageName", packageName.get())
     }
   }
   service("4") {
