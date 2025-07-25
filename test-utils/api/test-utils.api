@@ -38,3 +38,7 @@ public final class com/apollographql/cache/normalized/testing/RunTestKt {
 	public static synthetic fun runTest$default (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 }
 
+public final class com/apollographql/cache/normalized/testing/SqlNormalizedCacheFactoryKt {
+	public static final fun SqlNormalizedCacheFactory ()Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
+}
+
