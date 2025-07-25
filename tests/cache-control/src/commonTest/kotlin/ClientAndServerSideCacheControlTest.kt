@@ -19,8 +19,8 @@ import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
-import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.storeExpirationDate
+import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockResponse
 import com.apollographql.mockserver.MockServer

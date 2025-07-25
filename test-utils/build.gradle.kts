@@ -6,8 +6,8 @@ group = "com.apollographql.cache"
 
 kotlin {
   configureKmp(
-      withJs = setOf(JsAndWasmEnvironment.Node),
-      withWasm = setOf(JsAndWasmEnvironment.Node),
+      withJs = setOf(JsAndWasmEnvironment.Browser),
+      withWasm = setOf(JsAndWasmEnvironment.Browser),
       withAndroid = false,
       withApple = AppleTargets.All,
   )
@@ -17,6 +17,7 @@ kotlin {
       dependencies {
         api(libs.kotlinx.coroutines.test)
         api(project(":normalized-cache"))
+        api(project(":normalized-cache-sqlite"))
         implementation(libs.kotlin.test)
       }
     }

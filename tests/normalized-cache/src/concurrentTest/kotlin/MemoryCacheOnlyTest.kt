@@ -12,7 +12,7 @@ import com.apollographql.cache.normalized.memory.MemoryCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.sql.SqlNormalizedCache
-import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
+import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import main.GetUserQuery
 import kotlin.reflect.KClass
