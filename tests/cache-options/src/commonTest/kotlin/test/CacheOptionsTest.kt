@@ -7,12 +7,12 @@ import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.CacheManager
-import com.apollographql.cache.normalized.allowCachedErrors
-import com.apollographql.cache.normalized.allowCachedPartialResults
+import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.cacheManager
+import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
-import com.apollographql.cache.normalized.noCache
-import com.apollographql.cache.normalized.onlyIfCached
+import com.apollographql.cache.normalized.options.allowCachedErrors
+import com.apollographql.cache.normalized.options.allowCachedPartialResults
 import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import com.apollographql.cache.normalized.testing.runTest
@@ -91,7 +91,7 @@ class CacheOptionsTest {
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
-              .noCache(true)
+              .fetchPolicy(FetchPolicy.NetworkOnly)
               .execute()
           assertEquals(
               MeWithNickNameQuery.Data(
@@ -180,7 +180,7 @@ class CacheOptionsTest {
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
-              .noCache(true)
+              .fetchPolicy(FetchPolicy.NetworkOnly)
               .execute()
           assertEquals(
               UsersQuery.Data(
@@ -212,7 +212,7 @@ class CacheOptionsTest {
           )
 
           val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
-              .onlyIfCached(true)
+              .fetchPolicy(FetchPolicy.CacheOnly)
               .allowCachedErrors(true)
               .execute()
           assertEquals(
@@ -272,7 +272,7 @@ class CacheOptionsTest {
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithNickNameQuery())
-              .noCache(true)
+              .fetchPolicy(FetchPolicy.NetworkOnly)
               .execute()
           assertEquals(
               MeWithNickNameQuery.Data(
@@ -294,7 +294,7 @@ class CacheOptionsTest {
           )
 
           val cacheResult = apolloClient.query(MeWithNickNameAndProjectQuery())
-              .onlyIfCached(true)
+              .fetchPolicy(FetchPolicy.CacheOnly)
               .execute()
           assertEquals(
               MeWithNickNameAndProjectQuery.Data(
@@ -380,7 +380,7 @@ class CacheOptionsTest {
 }
 
 private fun <D : Operation.Data> ApolloCall<D>.executeCacheAndNetwork(): Flow<ApolloResponse<D>> {
-  return onlyIfCached(true).toFlow().onCompletion {
-    emitAll(noCache(true).toFlow())
+  return fetchPolicy(FetchPolicy.CacheOnly).toFlow().onCompletion {
+    emitAll(fetchPolicy(FetchPolicy.NetworkOnly).toFlow())
   }
 }

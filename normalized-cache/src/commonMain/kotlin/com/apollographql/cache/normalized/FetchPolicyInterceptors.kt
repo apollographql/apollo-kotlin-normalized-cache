@@ -13,6 +13,10 @@ import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.exception.DefaultApolloException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
+import com.apollographql.cache.normalized.options.allowCachedErrors
+import com.apollographql.cache.normalized.options.allowCachedPartialResults
+import com.apollographql.cache.normalized.options.noCache
+import com.apollographql.cache.normalized.options.onlyIfCached
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

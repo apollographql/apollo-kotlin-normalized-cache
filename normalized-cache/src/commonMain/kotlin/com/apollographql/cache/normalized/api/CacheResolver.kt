@@ -10,7 +10,6 @@ import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.api.CacheResolver.ResolvedValue
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.storeExpirationDate
-import com.apollographql.cache.normalized.storeReceivedDate
 import kotlin.jvm.JvmSuppressWildcards
 
 /**

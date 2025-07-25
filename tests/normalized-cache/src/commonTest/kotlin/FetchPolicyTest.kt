@@ -26,7 +26,6 @@ import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
-import com.apollographql.cache.normalized.onlyIfCached
 import com.apollographql.cache.normalized.refetchPolicyInterceptor
 import com.apollographql.cache.normalized.testing.assertNoElement
 import com.apollographql.cache.normalized.testing.fieldKey
@@ -440,7 +439,7 @@ class FetchPolicyTest {
     var hasSeenValidResponse: Boolean = false
     override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
       return if (!hasSeenValidResponse) {
-        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().onlyIfCached(true).build(), chain).onEach {
+        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().fetchPolicy(FetchPolicy.CacheOnly).build(), chain).onEach {
           if (it.data != null) {
             // We have valid data, we can now use the network
             hasSeenValidResponse = true
@@ -448,7 +447,7 @@ class FetchPolicyTest {
         }
       } else {
         // If for some reason we have a cache miss, get fresh data from the network
-        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().onlyIfCached(false).build(), chain)
+        DefaultFetchPolicyInterceptor.intercept(request.newBuilder().fetchPolicy(FetchPolicy.NetworkOnly).build(), chain)
       }
     }
   }
