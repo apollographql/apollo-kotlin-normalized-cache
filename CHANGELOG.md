@@ -2,6 +2,23 @@
 
 PUT_CHANGELOG_HERE
 
+# Version 1.0.0-alpha.5
+_2025-08-04_
+
+- Add `allowCachedPartialResults()` and `allowCachedErrors()`(#205)
+
+  These flags control whether partial results and errors should be returned from the cache. They are `false` by default.
+- Return existing cached values (e.g. Errors) in `FieldPolicyCacheResolver` (#198)
+- The compiler plugin's package name argument has been renamed `com.apollographql.cache.packageName`
+  (was `packageName`) to avoid any collision with other plugins (#207) 
+
+  Using `packageName` still works, but is deprecated.
+- The `cache()` extension now stores received dates if max ages are configured (#199)
+- Expose metadata in `cacheDumpProvider` (#200)
+- Deprecate `FetchPolicy.CacheAndNetwork` (#205)
+
+  This can be used instead: `fetchPolicy(FetchPolicy.CacheOnly).toFlow().onCompletion { emitAll(fetchPolicy(FetchPolicy.NetworkOnly).toFlow()) }`
+
 # Version 1.0.0-alpha.4
 _2025-06-30_
 
