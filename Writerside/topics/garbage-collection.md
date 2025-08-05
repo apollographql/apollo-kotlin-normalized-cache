@@ -7,7 +7,7 @@ The garbage collection feature allows to remove unused data from the cache to re
 A field is considered stale if its **received date** is older than its (client controlled) max age, or if its (server controlled)
 **expiration date** has passed.
 
-See [](cache-control.md) for more information about staleness.
+See [](expiration.md) for more information about staleness.
 
 Stale fields can be removed from the cache by calling the [`ApolloStore.removeStaleFields()`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/remove-stale-fields.html) function.
 

@@ -1,14 +1,17 @@
-# Cache control
+# Expiration
 
-The cache control feature takes the freshness of fields into consideration when accessing the cache. This is also sometimes referred to as TTL (Time To Live) or expiration.
+The cache can be configured to store expiration information using a max-age. This is also sometimes referred to as TTL (Time To Live) or freshness.
 
-Freshness can be configured by the server, by the client, or both.
+Max-age can be configured by the server, by the client, or both.
 
-## Server-controlled
+## Server-controlled max-age
 
-When receiving a response from the server, the [`Cache-Control` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) can be used to determine the **expiration date** of the fields in the response.
+When receiving a response from the server, the [`Cache-Control` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) can be used to determine the **max age** of the fields in the response.
 
 > Apollo Server can be configured to include the `Cache-Control` header in responses. See the [caching documentation](https://www.apollographql.com/docs/apollo-server/performance/caching/) for more information.
+
+> The [`Expires` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expires) is not supported. Only `Cache-Control` is.
+{style="note"}
 
 The cache can be configured to store the **expiration date** of the received fields in the corresponding records. To do so, call [`.storeExpirationDate(true)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/store-expiration-date.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.storeExpirationDate(storeExpirationDate:%20Boolean):%20T), and set your client's cache resolver to [
 `CacheControlCacheResolver`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-cache-control-cache-resolver/index.html):
@@ -24,11 +27,11 @@ val apolloClient = ApolloClient.builder()
   .build()
 ```
 
-**Expiration dates** will be stored and when a field is resolved, the cache resolver will check if the field is stale. If so, it will throw a `CacheMissException`.
+**Expiration dates** are stored and when a field is resolved, the cache resolver will check if the field is stale. If so, it will return an error..
 
-## Client-controlled
+## Client-controlled max-age
 
-When storing fields, the cache can also store their **received date**. This date can then be compared to the current date when resolving a field to determine if its age is above its **maximum age**.
+When storing fields, the cache can also store their **received date**. This date can then be compared to the current date when resolving a field to determine if its age is above its **max age**.
 
 To store the **received date** of fields, call [`.storeReceivedDate(true)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/store-receive-date.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.storeReceivedDate(storeReceivedDate:%20Boolean):%20T), and set your client's cache resolver to [
 `CacheControlCacheResolver`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-cache-control-cache-resolver/index.html):
@@ -46,7 +49,7 @@ val apolloClient = ApolloClient.builder()
 
 > Expiration dates and received dates can be both stored to combine server-controlled and client-controlled expiration strategies.
 
-The **maximum age** of fields can be configured either programmatically, or declaratively in the schema. This is done by passing a [`MaxAgeProvider`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-max-age-provider/index.html?query=interface%20MaxAgeProvider) to the `CacheControlCacheResolver`.
+The **max age** of fields can be configured either programmatically, or declaratively in the schema. This is done by passing a [`MaxAgeProvider`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-max-age-provider/index.html?query=interface%20MaxAgeProvider) to the `CacheControlCacheResolver`.
 
 ### Global max age
 
@@ -111,25 +114,4 @@ cacheResolver = CacheControlCacheResolver(
     defaultMaxAge = 1.hours,
   )
 ),
-```
-
-## Maximum staleness
-
-If stale fields are acceptable up to a certain value, you can set a maximum staleness duration. This duration is the maximum time that a stale field will be resolved without resulting in a cache miss. To set this duration, call [`.maxStale(Duration)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/max-stale.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.maxStale(maxStale:%20Duration):%20T) either globally on your client, or per operation:
-
-```kotlin
-val response = client.query(MyQuery())
-    .fetchPolicy(FetchPolicy.CacheOnly)
-    .maxStale(1.hours)
-    .execute()
-```
-
-### `isStale`
-
-With `maxStale`, it is possible to get data from the cache even if it is stale. To know if the response contains stale fields, you can check [`CacheInfo.isStale`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-cache-info/is-stale.html):
-
-```kotlin
-if (response.cacheInfo?.isStale == true) {
-  // The response contains at least one stale field
-}
 ```

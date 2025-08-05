@@ -11,7 +11,8 @@
   <toc-element toc-title="Kdoc" href="https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc" />
   <toc-element topic="welcome.md" />
   <toc-element topic="migration-guide.md" />
-  <toc-element topic="cache-control.md" />
+  <toc-element topic="expiration.md" />
+  <toc-element topic="options.md" />
   <toc-element topic="pagination-home.md">
     <toc-element topic="pagination-relay-style.md" />
     <toc-element topic="pagination-other.md" />
