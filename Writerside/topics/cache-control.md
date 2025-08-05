@@ -102,7 +102,7 @@ extend type Book @cacheControlField(name: "cachedTitle", maxAge: 30)
 extend type Reader @cacheControlField(name: "book", inheritMaxAge: true)
 ```
 
-This will generate a map in `yourpackage.cache.Cache.maxAges`, that you can pass to the `SchemaCoordinatesMaxAgeProvider`:
+This generates a map in `yourpackage.cache.Cache.maxAges`, that you can pass to the `SchemaCoordinatesMaxAgeProvider`:
 
 ```kotlin
 cacheResolver = CacheControlCacheResolver(
