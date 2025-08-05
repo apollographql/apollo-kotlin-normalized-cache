@@ -1,7 +1,7 @@
 # Partial cache reads
 
 The cache supports partial cache reads, in a similar way to how GraphQL supports partial responses.
-This means that if some fields are missing from the cache, the cache will return the available data along with any errors for the missing fields.
+This means that if some fields are missing from the cache, the cache returns the available data along with any errors for the missing fields.
 
 ## With `ApolloStore`
 
