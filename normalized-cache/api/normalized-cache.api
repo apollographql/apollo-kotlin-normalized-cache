@@ -712,11 +712,11 @@ public final class com/apollographql/cache/normalized/memory/MemoryCacheFactory 
 	public fun create ()Lcom/apollographql/cache/normalized/memory/MemoryCache;
 }
 
-public final class com/apollographql/cache/normalized/options/FetchAllowCachedErrorsKt {
-	public static final fun allowCachedErrors (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
+public final class com/apollographql/cache/normalized/options/ServerErrorsAsCacheMissesKt {
+	public static final fun serverErrorsAsCacheMisses (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
 }
 
-public final class com/apollographql/cache/normalized/options/FetchAllowCachedPartialResultsKt {
-	public static final fun allowCachedPartialResults (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
+public final class com/apollographql/cache/normalized/options/ThrowOnCacheMissKt {
+	public static final fun throwOnCacheMiss (Lcom/apollographql/apollo/api/MutableExecutionOptions;Z)Ljava/lang/Object;
 }
 

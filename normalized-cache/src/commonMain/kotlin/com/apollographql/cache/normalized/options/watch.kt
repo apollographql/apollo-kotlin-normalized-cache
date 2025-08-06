@@ -9,12 +9,8 @@ import com.apollographql.apollo.api.ExecutionContext
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Query
 import com.apollographql.cache.normalized.internal.WatcherSentinel
-import com.apollographql.cache.normalized.options.allowCachedErrors
-import com.apollographql.cache.normalized.options.allowCachedPartialResults
 import com.apollographql.cache.normalized.options.noCache
 import com.apollographql.cache.normalized.options.onlyIfCached
-import com.apollographql.cache.normalized.options.refetchAllowCachedErrors
-import com.apollographql.cache.normalized.options.refetchAllowCachedPartialResults
 import com.apollographql.cache.normalized.options.refetchNoCache
 import com.apollographql.cache.normalized.options.refetchOnlyIfCached
 import kotlinx.coroutines.flow.Flow
@@ -83,8 +79,6 @@ fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
     copy().fetchPolicyInterceptor(refetchPolicyInterceptor)
         .noCache(refetchNoCache)
         .onlyIfCached(refetchOnlyIfCached)
-        .allowCachedPartialResults(refetchAllowCachedPartialResults)
-        .allowCachedErrors(refetchAllowCachedErrors)
         .watchInternal(response?.data)
         .collect {
           if (it.exception === WatcherSentinel) {

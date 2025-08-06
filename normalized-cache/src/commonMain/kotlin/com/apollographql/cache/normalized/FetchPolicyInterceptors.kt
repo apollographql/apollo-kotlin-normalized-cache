@@ -13,10 +13,10 @@ import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.exception.DefaultApolloException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
-import com.apollographql.cache.normalized.options.allowCachedErrors
-import com.apollographql.cache.normalized.options.allowCachedPartialResults
 import com.apollographql.cache.normalized.options.noCache
 import com.apollographql.cache.normalized.options.onlyIfCached
+import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
+import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -47,7 +47,7 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
                 .fetchFromCache(true)
                 .build()
         ).single()
-            .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+            .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
         emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
             .build()
         )
@@ -99,7 +99,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build()
       ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+          .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
       emit(cacheResponse)
     }
   }
@@ -118,7 +118,7 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build()
       ).single()
-          .errorsAsException(allowCachedPartialResults = request.allowCachedPartialResults, allowCachedErrors = request.allowCachedErrors)
+          .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
 
       emit(cacheResponse.newBuilder().isLast(false).build())
 
@@ -149,13 +149,13 @@ fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(): ApolloResponse<D
 }
 
 private fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(
-    allowCachedPartialResults: Boolean,
-    allowCachedErrors: Boolean,
+    throwOnCacheMiss: Boolean,
+    serverErrorsAsCacheMisses: Boolean,
 ): ApolloResponse<D> {
-  return if (allowCachedPartialResults && allowCachedErrors) {
+  return if (!throwOnCacheMiss && !serverErrorsAsCacheMisses) {
     this
   } else {
-    val cacheMissException = if (allowCachedPartialResults) {
+    val cacheMissException = if (!throwOnCacheMiss) {
       null
     } else {
       errors.orEmpty().mapNotNull { it.cacheMissException }.reduceOrNull { acc, e ->
@@ -163,7 +163,7 @@ private fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(
         acc
       }
     }
-    val cachedErrorException = if (allowCachedErrors) {
+    val cachedErrorException = if (!serverErrorsAsCacheMisses) {
       null
     } else {
       errors.orEmpty().mapNotNull { if (it.cacheMissException != null) null else ApolloGraphQLException(it) }.reduceOrNull { acc, e ->
