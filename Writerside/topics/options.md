@@ -24,7 +24,7 @@ A response is fetched from the network first. If no valid response cannot be fou
 
 ## `allowCachedErrors`
 
-Sets whether to allow GraphQL errors to be returned from the cache. If set to false, if any field is an Error in the cache, the returned response has a null data and a non-null exception of type ApolloGraphQLException.
+Sets whether to allow GraphQL errors to be returned from the cache. If set to false, if any field is an Error in the cache, the returned response has a null data and a non-null exception of type `ApolloGraphQLException`.
 
 ## `allowCachedPartialResults`
 
