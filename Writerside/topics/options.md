@@ -28,7 +28,7 @@ Sets whether to allow GraphQL errors to be returned from the cache. If set to fa
 
 ## `allowCachedPartialResults`
 
-Sets whether to allow partial results to be returned from the cache. If set to false, if any field is missing in the cache, the returned response has a null data and a non-null exception of type CacheMissException.
+Sets whether to allow partial results to be returned from the cache. If set to false, if any field is missing in the cache, the returned response has a null data and a non-null exception of type `CacheMissException`.
 
 ## `maxStale`
 
