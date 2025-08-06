@@ -6,29 +6,31 @@ When you execute a query, options control how the query is executed. `ApolloClie
 
 Fetch policy controls how and if the cache is used. The default is `CacheFirst`.
 
-### CacheFirst
+### `CacheFirst`
 
 A response is fetched from the cache first. If no valid response cannot be found, the network is queried.
 
-### CacheOnly
+### `CacheOnly`
 
 The response is fetched from the cache. If no valid response cannot be found, `response.exception` is set.
 
-### NetworkOnly
+### `NetworkOnly`
 
 The response is fetched from the network. If no valid response cannot be found, `response.exception` is set.
 
-### NetworkFirst
+### `NetworkFirst`
 
 A response is fetched from the network first. If no valid response cannot be found, the cache is queried.
 
-## `allowCachedErrors`
+## `serverErrorsAsCacheMisses`
 
-Sets whether to allow GraphQL errors to be returned from the cache. If set to false, if any field is an Error in the cache, the returned response has a null data and a non-null exception of type `ApolloGraphQLException`.
+Sets whether GraphQL errors in the cache should be treated as cache misses. When true (the default), if any field is an Error in the cache, the returned response will have a null data and a non-null exception of type `ApolloGraphQLException`.
 
-## `allowCachedPartialResults`
+## `throwOnCacheMiss`
 
-Sets whether to allow partial results to be returned from the cache. If set to false, if any field is missing in the cache, the returned response has a null data and a non-null exception of type `CacheMissException`.
+Sets whether missing fields from the cache should result in an exception. When true (the default), if any field is missing in the cache, the returned response will have a null data and a non-null exception of type `CacheMissException`.
+
+Set this to false to allow partial responses from the cache, where _some_ or _all_ of the fields may be missing.
 
 ## `maxStale`
 
