@@ -9,7 +9,7 @@ The Normalized Cache is now hosted in this dedicated repository and published at
 Compared to the previous version, this library brings:
 
 - [Pagination support](pagination-home.md)
-- [](cache-control.md) (a.k.a. Time to live or expiration)
+- [](expiration.md) (a.k.a. Time to live)
 - [](garbage-collection.md), and [trimming](trimming.md)
 - Partial results from the cache
 - API simplifications

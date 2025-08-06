@@ -196,7 +196,7 @@ interface CacheResolver {
 
 `resolveField` can also now return a `ResolvedValue` when metadata should be returned with the resolved value (e.g. staleness).
 
-If you wish to use the [Cache Control](cache-control.md) feature, a [`CacheControlCacheResolver`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-cache-control-cache-resolver/index.html) should be used.
+If you wish to use the [Expiration](expiration.md) feature, a [`CacheControlCacheResolver`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-cache-control-cache-resolver/index.html) should be used.
 You can call the generated `cache()` extension on `ApolloClient.Builder` which will use it by default if max ages are configured in the schema.
 
 ### `TypePolicyCacheKeyGenerator`

@@ -1,6 +1,6 @@
 # Trimming the cache
 
-By default, if you don't use [cache control](cache-control.md) and [garbage collection](garbage-collection.md),
+By default, if you don't use [expiration](expiration.md) and [garbage collection](garbage-collection.md),
 the cache will grow indefinitely as more data is written to it.
 
 To prevent this, a few APIs are available:

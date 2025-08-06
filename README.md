@@ -19,7 +19,7 @@ This repository hosts [Apollo Kotlin](https://github.com/apollographql/apollo-ko
 Compared to the previous version, this new normalized cache brings:
 
 - [Pagination support](https://apollographql.github.io/apollo-kotlin-normalized-cache/pagination-home.html)
-- [Cache control](https://apollographql.github.io/apollo-kotlin-normalized-cache/cache-control.html) (a.k.a. Time to live or expiration)
+- [Expiration](https://apollographql.github.io/apollo-kotlin-normalized-cache/expiration.html) (a.k.a. Time to live)
 - [Garbage collection](https://apollographql.github.io/apollo-kotlin-normalized-cache/garbage-collection.html), and [trimming](https://apollographql.github.io/apollo-kotlin-normalized-cache/trimming.html)
 - Partial results from the cache
 - API simplifications

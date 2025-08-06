@@ -108,7 +108,7 @@ _2024-12-18_
 # Version 0.0.4
 _2024-11-07_
 
-- Cache control support (see [the documentation](https://apollographql.github.io/apollo-kotlin-normalized-cache-incubating/cache-control.html) for details)
+- Expiration support (see [the documentation](https://apollographql.github.io/apollo-kotlin-normalized-cache-incubating/expiration.html) for details)
 - Compatibility with the IntelliJ plugin cache viewer (#42)
 - For consistency, `MemoryCacheFactory` and `MemoryCache` are now in the `com.apollographql.cache.normalized.memory` package 
 - Remove deprecated symbols
