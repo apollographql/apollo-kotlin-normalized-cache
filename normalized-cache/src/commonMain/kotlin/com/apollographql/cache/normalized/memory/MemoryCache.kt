@@ -67,7 +67,7 @@ class MemoryCache(
   }
 
   override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
-    return remove(setOf(cacheKey), cascade) > 0
+    return remove(cacheKeys = listOf(cacheKey), cascade = cascade) > 0
   }
 
   override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
@@ -97,36 +97,35 @@ class MemoryCache(
   }
 
   override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
-    if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
-      return emptySet()
-    }
-    return withLock {
-      val changedKeys = internalMerge(record, cacheHeaders, recordMerger)
-      changedKeys + nextCache?.merge(record, cacheHeaders, recordMerger).orEmpty()
-    }
+    return merge(records = listOf(record), cacheHeaders = cacheHeaders, recordMerger = recordMerger)
   }
 
   override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
       return emptySet()
     }
-    return withLock {
-      val changedKeys = records.flatMap { record -> internalMerge(record, cacheHeaders, recordMerger) }.toSet()
-      changedKeys + nextCache?.merge(records, cacheHeaders, recordMerger).orEmpty()
-    }
-  }
-
-  private suspend fun internalMerge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
     val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
-    val existingRecord = loadRecord(record.key, cacheHeaders)
-    val changedKeys = if (existingRecord == null) {
-      lruCache[record.key] = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
-      record.fieldKeys()
-    } else {
-      val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
-      lruCache[record.key] = mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
-      changedKeys
+    val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
+    val recordsToInsert = mutableListOf<Record>()
+    val changedKeys = records.flatMap { record ->
+      val existingRecord = existingRecords[record.key]
+      if (existingRecord == null) {
+        val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+        recordsToInsert.add(record)
+        lruCache[record.key] = record
+        record.fieldKeys()
+      } else {
+        val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
+        val mergedRecordWithDates = mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+        recordsToInsert.add(mergedRecordWithDates)
+        lruCache[record.key] = mergedRecordWithDates
+        changedKeys
+      }
+    }.toSet()
+    withLock {
+      // Skip merging in the next cache as we already did it here
+      nextCache?.merge(recordsToInsert, cacheHeaders.newBuilder().addHeader(ApolloCacheHeaders.SKIP_MERGE, "true").build(), recordMerger)
     }
     return changedKeys
   }

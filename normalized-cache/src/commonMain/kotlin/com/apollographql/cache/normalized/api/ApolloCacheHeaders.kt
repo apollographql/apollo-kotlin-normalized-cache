@@ -46,4 +46,9 @@ object ApolloCacheHeaders {
    * True if field errors are allowed to replace cached values.
    */
   const val ERRORS_REPLACE_CACHED_VALUES = "apollo-errors-replace-cached-values"
+
+  /**
+   * When true, [NormalizedCache.merge] skips merging records with the existing ones, instead, they are inserted as-is.
+   */
+  const val SKIP_MERGE = "skip-merge"
 }

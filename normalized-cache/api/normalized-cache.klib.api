@@ -554,6 +554,8 @@ final object com.apollographql.cache.normalized.api/ApolloCacheHeaders { // com.
         final fun <get-MEMORY_CACHE_ONLY>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.MEMORY_CACHE_ONLY.<get-MEMORY_CACHE_ONLY>|<get-MEMORY_CACHE_ONLY>(){}[0]
     final const val RECEIVED_DATE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE|{}RECEIVED_DATE[0]
         final fun <get-RECEIVED_DATE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE.<get-RECEIVED_DATE>|<get-RECEIVED_DATE>(){}[0]
+    final const val SKIP_MERGE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SKIP_MERGE|{}SKIP_MERGE[0]
+        final fun <get-SKIP_MERGE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SKIP_MERGE.<get-SKIP_MERGE>|<get-SKIP_MERGE>(){}[0]
     final const val STALE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.STALE|{}STALE[0]
         final fun <get-STALE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.STALE.<get-STALE>|<get-STALE>(){}[0]
 }

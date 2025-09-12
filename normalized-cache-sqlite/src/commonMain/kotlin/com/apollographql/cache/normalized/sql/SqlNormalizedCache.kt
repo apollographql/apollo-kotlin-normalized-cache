@@ -119,23 +119,33 @@ class SqlNormalizedCache internal constructor(
       recordMerger: RecordMerger,
   ): Set<String> {
     recordDatabase.init()
-    val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
-    val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
-    return recordDatabase.transaction {
-      val existingRecords = selectRecords(records.map { it.key }).associateBy { it.key }
-      records.flatMap { record ->
-        val existingRecord = existingRecords[record.key]
-        if (existingRecord == null) {
-          recordDatabase.insertOrUpdateRecord(record.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
-          record.fieldKeys()
-        } else {
-          val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
-          if (mergedRecord.isNotEmpty()) {
-            recordDatabase.insertOrUpdateRecord(mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
-          }
-          changedKeys
+    return if (cacheHeaders.headerValue(ApolloCacheHeaders.SKIP_MERGE) == "true") {
+      // Merging has been done upstream, just insert or update the records as-is
+      recordDatabase.transaction {
+        for (record in records) {
+          recordDatabase.insertOrUpdateRecord(record)
         }
-      }.toSet()
+      }
+      emptySet()
+    } else {
+      val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
+      val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
+      recordDatabase.transaction {
+        val existingRecords = selectRecords(records.map { it.key }).associateBy { it.key }
+        records.flatMap { record ->
+          val existingRecord = existingRecords[record.key]
+          if (existingRecord == null) {
+            recordDatabase.insertOrUpdateRecord(record.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
+            record.fieldKeys()
+          } else {
+            val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
+            if (mergedRecord.isNotEmpty()) {
+              recordDatabase.insertOrUpdateRecord(mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
+            }
+            changedKeys
+          }
+        }.toSet()
+      }
     }
   }
 

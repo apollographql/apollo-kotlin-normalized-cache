@@ -280,6 +280,7 @@ public final class com/apollographql/cache/normalized/api/ApolloCacheHeaders {
 	public static final field MAX_STALE Ljava/lang/String;
 	public static final field MEMORY_CACHE_ONLY Ljava/lang/String;
 	public static final field RECEIVED_DATE Ljava/lang/String;
+	public static final field SKIP_MERGE Ljava/lang/String;
 	public static final field STALE Ljava/lang/String;
 }
 
