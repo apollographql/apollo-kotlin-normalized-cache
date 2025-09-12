@@ -38,7 +38,7 @@ internal class RecordDatabase(private val driver: SqlDriver) {
   }
 
   /**
-   * @param keys the keys of the records to select, size must be <= 999
+   * @param keys the keys of the records to select, size must be <= [parametersMax]
    */
   suspend fun selectRecords(keys: Collection<String>): List<Record> {
     return recordQueries.selectRecords(keys).awaitAsList().map { RecordSerializer.deserialize(it.key, it.record) }
@@ -54,7 +54,7 @@ internal class RecordDatabase(private val driver: SqlDriver) {
 
 
   /**
-   * @param keys the keys of the records to delete, size must be <= 999
+   * @param keys the keys of the records to delete, size must be <= [parametersMax]
    */
   suspend fun deleteRecords(keys: Collection<String>) {
     recordQueries.deleteRecords(keys)

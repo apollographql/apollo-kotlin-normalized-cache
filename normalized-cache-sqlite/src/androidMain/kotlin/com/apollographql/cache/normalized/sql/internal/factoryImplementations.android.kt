@@ -12,5 +12,5 @@ internal actual suspend fun maybeCreateOrMigrateSchema(driver: SqlDriver) {
 internal actual val parametersMax: Int = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
   999
 } else {
-  32767
+  32766
 }

@@ -140,7 +140,7 @@ class SqlNormalizedCache internal constructor(
   }
 
   /**
-   * Loads a list of records, making sure to not query more than 999 at a time
+   * Loads a list of records, making sure to not query more than [parametersMax] at a time
    * to help with the SQLite limitations
    */
   private suspend fun selectRecords(keys: Collection<CacheKey>): List<Record> {
