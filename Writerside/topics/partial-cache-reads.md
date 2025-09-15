@@ -18,9 +18,10 @@ a response with an exception if there are any errors.
 
 When executing operations, the built-in fetch policies ([`FetchPolicy.CacheFirst`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-fetch-policy/-cache-first/index.html?query=CacheFirst),
 [`FetchPolicy.CacheOnly`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-fetch-policy/-cache-only/index.html),
-etc.) will treat cache misses as exceptions (partial results are disabled).
+etc.) will treat cache misses as exceptions (partial results are disabled) by default.
 
-To benefit from partial cache reads, implement your own fetch policy interceptor as shown in this example:
+To benefit from partial cache reads, [you can set](options.md) [`throwOnCacheMiss(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html),
+or implement your own fetch policy interceptor as shown in this example:
 
 ```kotlin
 object PartialCacheOnlyInterceptor : ApolloInterceptor {

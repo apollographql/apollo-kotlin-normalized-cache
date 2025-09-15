@@ -30,7 +30,7 @@ apollo {
 }
 </code-block>
 
-This plugin generates some code to support the Normalized Cache features, such as declarative cache IDs, pagination and expiration.
+This plugin generates code to support the Normalized Cache features, such as declarative cache IDs, pagination and expiration.
 
 ## Declarative cache IDs (`@typePolicy`)
 
