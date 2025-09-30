@@ -22,6 +22,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import com.apollographql.apollo.cache.normalized.ApolloStore as LegacyApolloStore
+import com.apollographql.apollo.cache.normalized.api.CacheHeaders as LegacyCacheHeaders
 import com.apollographql.apollo.cache.normalized.api.CacheKey as LegacyCacheKey
 import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory as LegacyMemoryCacheFactory
 import com.apollographql.apollo.cache.normalized.api.NormalizedCache as LegacyNormalizedCache
@@ -156,16 +157,40 @@ class MigrationTest {
 
 private suspend fun CacheManager.migrateFrom(legacyStore: LegacyApolloStore) {
   accessCache { cache ->
-    cache.merge(
-        records = legacyStore.accessCache { it.allRecords() }.map { it.toRecord() },
-        cacheHeaders = CacheHeaders.NONE,
-        recordMerger = DefaultRecordMerger,
-    )
+    for (legacyRecords in legacyStore.accessCache { it.allRecordsSequence() }.chunked(50)) {
+      cache.merge(
+          records = legacyRecords.map { it.toRecord() },
+          cacheHeaders = CacheHeaders.NONE,
+          recordMerger = DefaultRecordMerger,
+      )
+    }
   }
 }
 
-private fun LegacyNormalizedCache.allRecords(): List<LegacyRecord> {
-  return dump().values.fold(emptyList()) { acc, map -> acc + map.values }
+private fun LegacyNormalizedCache.allRecordsSequence(): Sequence<LegacyRecord> {
+  suspend fun SequenceScope<LegacyRecord>.yieldRecordsRecursively(cache: LegacyNormalizedCache, cacheKeys: List<LegacyCacheKey>) {
+    for (cacheKeysChunk in cacheKeys.chunked(50)) {
+      val records = cache.loadRecords(cacheKeysChunk.map{it.key}, LegacyCacheHeaders.NONE)
+      yieldAll(records)
+      val references = records.flatMap{it.references()}
+      yieldRecordsRecursively(cache, references)
+    }
+  }
+  return sequence {
+    yieldRecordsRecursively(this@allRecordsSequence, listOf(LegacyCacheKey.rootKey()))
+  }
+}
+
+private fun LegacyRecord.references(): List<LegacyCacheKey> {
+  fun LegacyRecordValue.references(): List<LegacyCacheKey> {
+    return when (this) {
+      is LegacyCacheKey -> listOf(this)
+      is List<*> -> this.flatMap { it.references() }
+      is Map<*, *> -> this.values.flatMap { it.references() }
+      else -> emptyList()
+    }
+  }
+  return fields.values.flatMap { it.references() }
 }
 
 private fun LegacyRecord.toRecord(): Record = Record(
