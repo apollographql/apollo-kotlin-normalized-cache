@@ -11,15 +11,15 @@ internal class FetchNoCacheContext(val value: Boolean) : ExecutionContext.Elemen
   companion object Key : ExecutionContext.Key<FetchNoCacheContext>
 }
 
+internal val ExecutionOptions.noCache: Boolean
+  get() = executionContext[FetchNoCacheContext]?.value ?: false
+
 /**
  * Sets whether to skip the cache.
  * If set to true, the cache will not be queried at all.
  *
  * Default: false
  */
-internal val ExecutionOptions.noCache: Boolean
-  get() = executionContext[FetchNoCacheContext]?.value ?: false
-
 internal fun <T> MutableExecutionOptions<T>.noCache(noCache: Boolean): T {
   // noCache and onlyIfCached are mutually exclusive
   if (noCache) {

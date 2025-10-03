@@ -11,6 +11,9 @@ internal class ServerErrorsAsCacheMisses(val value: Boolean) : ExecutionContext.
   companion object Key : ExecutionContext.Key<ServerErrorsAsCacheMisses>
 }
 
+internal val ExecutionOptions.serverErrorsAsCacheMisses: Boolean
+  get() = executionContext[ServerErrorsAsCacheMisses]?.value ?: true
+
 /**
  * Sets whether GraphQL errors in the cache should be treated as cache misses.
  *
@@ -19,9 +22,6 @@ internal class ServerErrorsAsCacheMisses(val value: Boolean) : ExecutionContext.
  *
  * Default: true
  */
-internal val ExecutionOptions.serverErrorsAsCacheMisses: Boolean
-  get() = executionContext[ServerErrorsAsCacheMisses]?.value ?: true
-
 fun <T> MutableExecutionOptions<T>.serverErrorsAsCacheMisses(serverErrorsAsCacheMisses: Boolean): T =
   addExecutionContext(ServerErrorsAsCacheMisses(serverErrorsAsCacheMisses))
 
