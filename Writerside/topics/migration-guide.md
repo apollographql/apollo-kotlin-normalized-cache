@@ -254,10 +254,11 @@ For consistency, the `CacheKey` type is now used instead of `String` in more API
 - `Record.key`
 - `NormalizedCache.loadRecord()`
 
-## Removed APIs
+## Removed / deprecated APIs
 
 - `ApolloCacheHeaders.EVICT_AFTER_READ` is removed. Manually call `ApolloStore.remove()` when needed instead.
 - `NormalizedCache.remove(pattern: String)` is removed. Please open an issue if you need this feature back.
+- `FetchPolicy.CacheAndNetwork` is deprecated, as it caused some confusion when used with `.execute()`. This can be used instead: `fetchPolicy(FetchPolicy.CacheOnly).toFlow().onCompletion { emitAll(fetchPolicy(FetchPolicy.NetworkOnly).toFlow()) }`
 
 ## Other changes {id="other-changes-2"}
 
