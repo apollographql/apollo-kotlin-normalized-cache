@@ -12,11 +12,11 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.DataWithErrors
-import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.DefaultFieldKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultMaxAgeProvider
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.EmbeddedFieldsProvider
+import com.apollographql.cache.normalized.api.EmptyEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.EmptyMetadataGenerator
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
 import com.apollographql.cache.normalized.api.MaxAgeProvider
@@ -314,7 +314,7 @@ fun CacheManager(
     cacheResolver: CacheResolver = com.apollographql.cache.normalized.api.FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
     recordMerger: RecordMerger = DefaultRecordMerger,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
-    embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
+    embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
     enableOptimisticUpdates: Boolean = false,
 ): CacheManager = DefaultCacheManager(

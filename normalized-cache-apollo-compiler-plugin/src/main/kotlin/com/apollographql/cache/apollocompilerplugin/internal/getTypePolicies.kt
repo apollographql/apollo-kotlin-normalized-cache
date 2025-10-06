@@ -1,18 +1,16 @@
 package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.ast.GQLDirective
-import com.apollographql.apollo.ast.GQLField
 import com.apollographql.apollo.ast.GQLInterfaceTypeDefinition
 import com.apollographql.apollo.ast.GQLObjectTypeDefinition
-import com.apollographql.apollo.ast.GQLStringValue
 import com.apollographql.apollo.ast.GQLTypeDefinition
 import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.Schema.Companion.TYPE_POLICY
 import com.apollographql.apollo.ast.SourceAwareException
-import com.apollographql.apollo.ast.parseAsGQLSelections
 
 internal data class TypePolicy(
     val keyFields: Set<String>,
+    val embeddedFields: Set<String>,
 )
 
 /**
@@ -80,13 +78,8 @@ private fun Schema.validateAndComputeTypePolicy(
 }
 
 private fun GQLDirective.toTypePolicy(): TypePolicy {
-  val keyFields = (((arguments.singleOrNull { it.name == "keyFields" }?.value as? GQLStringValue)?.value ?: "")
-      .parseAsGQLSelections().value?.map { gqlSelection ->
-        (gqlSelection as GQLField).name
-      } ?: throw SourceAwareException("Apollo: keyArgs should be a selectionSet", sourceLocation))
-      .toSet()
-
   return TypePolicy(
-      keyFields = keyFields,
+      keyFields = extractFields("keyFields"),
+      embeddedFields = extractFields("embeddedFields")
   )
 }

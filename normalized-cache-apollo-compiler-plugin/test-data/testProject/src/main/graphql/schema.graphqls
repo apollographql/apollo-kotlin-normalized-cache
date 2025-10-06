@@ -1,4 +1,4 @@
-extend schema @link(url: "https://specs.apollo.dev/cache/v0.1/", import: ["@cacheControl"])
+extend schema @link(url: "https://specs.apollo.dev/cache/v0.3/", import: ["@cacheControl"])
 
 type Query {
     product: Product

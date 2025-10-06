@@ -3,14 +3,16 @@ package pagination
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.connection.UsersQuery
-import pagination.connection.pagination.Pagination
+import pagination.connection.cache.Cache
 import pagination.connection.type.buildPageInfo
 import pagination.connection.type.buildUser
 import pagination.connection.type.buildUserConnection
@@ -37,8 +39,10 @@ class ConnectionPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-        recordMerger = ConnectionRecordMerger
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
     )
     cacheManager.clearAll()
 
@@ -360,8 +364,10 @@ class ConnectionPaginationTest {
   private fun errorTest(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-        recordMerger = ConnectionRecordMerger
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
     )
     cacheManager.clearAll()
     val query = UsersQuery(first = Optional.Present(2))

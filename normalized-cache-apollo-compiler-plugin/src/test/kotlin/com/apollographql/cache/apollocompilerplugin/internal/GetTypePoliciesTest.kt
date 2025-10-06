@@ -3,7 +3,6 @@
 package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
-import com.apollographql.apollo.ast.ForeignSchema
 import com.apollographql.apollo.ast.SourceAwareException
 import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
@@ -59,12 +58,12 @@ class GetTypePoliciesTest {
         ).getOrThrow()
 
     val expected = mapOf(
-        "User" to TypePolicy(keyFields = setOf("id")),
-        "Animal" to TypePolicy(keyFields = setOf("kingdom", "species")),
-        "Lion" to TypePolicy(keyFields = setOf("kingdom", "species")),
-        "HasId" to TypePolicy(keyFields = setOf("id")),
-        "Circle" to TypePolicy(keyFields = setOf("id")),
-        "Square" to TypePolicy(keyFields = setOf("radius")),
+        "User" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
+        "Animal" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
+        "Lion" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
+        "HasId" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
+        "Circle" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
+        "Square" to TypePolicy(keyFields = setOf("radius"), embeddedFields = emptySet()),
     )
 
     assertEquals(expected, schema.getTypePolicies())
@@ -100,7 +99,7 @@ class GetTypePoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = listOf(ForeignSchema("cache", "v0.1", cacheGQLDefinitions))
+                foreignSchemas = listOf(cacheForeignSchema)
             )
         ).getOrThrow()
 
@@ -142,7 +141,7 @@ class GetTypePoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = listOf(ForeignSchema("cache", "v0.1", cacheGQLDefinitions))
+                foreignSchemas = listOf(cacheForeignSchema)
             )
         ).getOrThrow()
 

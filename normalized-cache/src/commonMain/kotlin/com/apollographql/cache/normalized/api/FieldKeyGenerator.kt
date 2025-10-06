@@ -44,13 +44,13 @@ object DefaultFieldKeyGenerator : FieldKeyGenerator {
  * A [FieldKeyGenerator] that generates field keys by excluding
  * [Relay connection types](https://relay.dev/graphql/connections.htm#sec-Connection-Types) pagination arguments.
  */
-class ConnectionFieldKeyGenerator(private val connectionFields: Map<String, List<String>>) : FieldKeyGenerator {
+class ConnectionFieldKeyGenerator(private val connectionTypes: Set<String>) : FieldKeyGenerator {
   companion object {
     private val paginationArguments = setOf("first", "last", "before", "after")
   }
 
   override fun getFieldKey(context: FieldKeyContext): String {
-    return if (context.field.name in connectionFields[context.parentType].orEmpty()) {
+    return if (context.field.type.rawType().name in connectionTypes) {
       context.field.newBuilder()
           .arguments(
               context.field.arguments.filter { argument ->

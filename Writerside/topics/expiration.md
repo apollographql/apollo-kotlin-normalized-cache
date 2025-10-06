@@ -11,7 +11,7 @@ When receiving a response from the server, the [`Cache-Control` HTTP header](htt
 > Apollo Server can be configured to include the `Cache-Control` header in responses. See the [caching documentation](https://www.apollographql.com/docs/apollo-server/performance/caching/) for more information.
 
 > The [`Expires` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expires) is not supported. Only `Cache-Control` is.
-{style="note"}
+> {style="note"}
 
 The cache can be configured to store the **expiration date** of the received fields in the corresponding records. To do so, call [`.storeExpirationDate(true)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/store-expiration-date.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.storeExpirationDate(storeExpirationDate:%20Boolean):%20T), and set your client's cache resolver to [
 `CacheControlCacheResolver`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-cache-control-cache-resolver/index.html):
@@ -89,7 +89,7 @@ To declare the maximum age of types and fields in the schema, use the `@cacheCon
 ```
 # First import the directives
 extend schema @link(
-  url: "https://specs.apollo.dev/cache/v0.1",
+  url: "https://specs.apollo.dev/cache/v0.3",
   import: ["@cacheControl", "@cacheControlField"]
 )
 

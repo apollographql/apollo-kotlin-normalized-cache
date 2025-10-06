@@ -11,7 +11,6 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.connectionProgrammatic.UsersQuery
-import pagination.connectionProgrammatic.type.Query
 import pagination.connectionProgrammatic.type.UserConnection
 import pagination.connectionProgrammatic.type.buildPageInfo
 import pagination.connectionProgrammatic.type.buildUser
@@ -38,16 +37,12 @@ class ConnectionProgrammaticPaginationTest {
 
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val connectionTypes = setOf(UserConnection.type.name)
-    val connectionFields = mapOf(Query.type.name to listOf("users"))
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
         metadataGenerator = ConnectionMetadataGenerator(connectionTypes),
         recordMerger = ConnectionRecordMerger,
-        fieldKeyGenerator = ConnectionFieldKeyGenerator(connectionFields),
-        embeddedFieldsProvider = ConnectionEmbeddedFieldsProvider(
-            connectionTypes = connectionTypes,
-            connectionFields = connectionFields
-        ),
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(connectionTypes),
+        embeddedFieldsProvider = ConnectionEmbeddedFieldsProvider(connectionTypes),
     )
     cacheManager.clearAll()
 

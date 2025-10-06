@@ -48,23 +48,25 @@ query UsersConnection($first: Int, $after: String, $last: Int, $before: String) 
 }
 ```
 
-If your schema uses this pagination style, the library supports it out of the box: use the `connectionFields` argument to specify the fields
-that return a connection:
+If your schema uses this pagination style, the library supports it out of the box: use the `@connection` directive on Connection types:
 
 ```graphql
-extend type Query @typePolicy(connectionFields: "usersConnection")
+# First import the directive
+extend schema @link(
+  url: "https://specs.apollo.dev/cache/v0.3",
+  import: ["@connection"]
+)
+
+# Then extend your types
+extend type UserConnection @connection
 ```
 
-In Kotlin, configure the cache like this, using the generated `Pagination` object:
+In Kotlin, configure the cache like this, using the generated `cache()` function:
 
 ```kotlin
 val client = ApolloClient.Builder()
     // ...
-    .normalizedCache(
-        normalizedCacheFactory = cacheFactory,
-        metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-        recordMerger = ConnectionRecordMerger
-    )
+    .cache(cacheFactory)
     .build()
 ```
 

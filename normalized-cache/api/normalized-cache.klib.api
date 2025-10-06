@@ -38,7 +38,7 @@ abstract interface com.apollographql.cache.normalized.api/CacheResolver { // com
 }
 
 abstract interface com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/EmbeddedFieldsProvider|null[0]
-    abstract fun getEmbeddedFields(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin.collections/List<kotlin/String> // com.apollographql.cache.normalized.api/EmbeddedFieldsProvider.getEmbeddedFields|getEmbeddedFields(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
+    abstract fun isEmbedded(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin/Boolean // com.apollographql.cache.normalized.api/EmbeddedFieldsProvider.isEmbedded|isEmbedded(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
 }
 
 abstract interface com.apollographql.cache.normalized.api/FieldKeyGenerator { // com.apollographql.cache.normalized.api/FieldKeyGenerator|null[0]
@@ -181,15 +181,15 @@ final class com.apollographql.cache.normalized.api/CacheKeyGeneratorContext { //
 }
 
 final class com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider : com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider|null[0]
-    constructor <init>(kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>, kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>;kotlin.collections.Set<kotlin.String>){}[0]
+    constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
 
-    final fun getEmbeddedFields(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin.collections/List<kotlin/String> // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.getEmbeddedFields|getEmbeddedFields(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
+    final fun isEmbedded(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin/Boolean // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.isEmbedded|isEmbedded(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
 
     final object Companion // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.Companion|null[0]
 }
 
 final class com.apollographql.cache.normalized.api/ConnectionFieldKeyGenerator : com.apollographql.cache.normalized.api/FieldKeyGenerator { // com.apollographql.cache.normalized.api/ConnectionFieldKeyGenerator|null[0]
-    constructor <init>(kotlin.collections/Map<kotlin/String, kotlin.collections/List<kotlin/String>>) // com.apollographql.cache.normalized.api/ConnectionFieldKeyGenerator.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.collections.List<kotlin.String>>){}[0]
+    constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/ConnectionFieldKeyGenerator.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
 
     final fun getFieldKey(com.apollographql.cache.normalized.api/FieldKeyContext): kotlin/String // com.apollographql.cache.normalized.api/ConnectionFieldKeyGenerator.getFieldKey|getFieldKey(com.apollographql.cache.normalized.api.FieldKeyContext){}[0]
 
@@ -202,9 +202,24 @@ final class com.apollographql.cache.normalized.api/ConnectionMetadataGenerator :
     final fun metadataForObject(kotlin/Any?, com.apollographql.cache.normalized.api/MetadataGeneratorContext): kotlin.collections/Map<kotlin/String, kotlin/Any?> // com.apollographql.cache.normalized.api/ConnectionMetadataGenerator.metadataForObject|metadataForObject(kotlin.Any?;com.apollographql.cache.normalized.api.MetadataGeneratorContext){}[0]
 }
 
-final class com.apollographql.cache.normalized.api/EmbeddedFieldsContext { // com.apollographql.cache.normalized.api/EmbeddedFieldsContext|null[0]
-    constructor <init>(com.apollographql.apollo.api/CompiledNamedType) // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.<init>|<init>(com.apollographql.apollo.api.CompiledNamedType){}[0]
+final class com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider : com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider|null[0]
+    constructor <init>(kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/EmbeddedFields>) // com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider.<init>|<init>(kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.EmbeddedFields>){}[0]
 
+    final fun isEmbedded(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin/Boolean // com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider.isEmbedded|isEmbedded(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
+}
+
+final class com.apollographql.cache.normalized.api/EmbeddedFields { // com.apollographql.cache.normalized.api/EmbeddedFields|null[0]
+    constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/EmbeddedFields.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
+
+    final val embeddedFields // com.apollographql.cache.normalized.api/EmbeddedFields.embeddedFields|{}embeddedFields[0]
+        final fun <get-embeddedFields>(): kotlin.collections/Set<kotlin/String> // com.apollographql.cache.normalized.api/EmbeddedFields.embeddedFields.<get-embeddedFields>|<get-embeddedFields>(){}[0]
+}
+
+final class com.apollographql.cache.normalized.api/EmbeddedFieldsContext { // com.apollographql.cache.normalized.api/EmbeddedFieldsContext|null[0]
+    constructor <init>(com.apollographql.apollo.api/CompiledNamedType, com.apollographql.apollo.api/CompiledField) // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.<init>|<init>(com.apollographql.apollo.api.CompiledNamedType;com.apollographql.apollo.api.CompiledField){}[0]
+
+    final val field // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.field|{}field[0]
+        final fun <get-field>(): com.apollographql.apollo.api/CompiledField // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.field.<get-field>|<get-field>(){}[0]
     final val parentType // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.parentType|{}parentType[0]
         final fun <get-parentType>(): com.apollographql.apollo.api/CompiledNamedType // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.parentType.<get-parentType>|<get-parentType>(){}[0]
 }
@@ -564,16 +579,16 @@ final object com.apollographql.cache.normalized.api/DefaultCacheResolver : com.a
     final fun resolveField(com.apollographql.cache.normalized.api/ResolverContext): kotlin/Any? // com.apollographql.cache.normalized.api/DefaultCacheResolver.resolveField|resolveField(com.apollographql.cache.normalized.api.ResolverContext){}[0]
 }
 
-final object com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider : com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider|null[0]
-    final fun getEmbeddedFields(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin.collections/List<kotlin/String> // com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider.getEmbeddedFields|getEmbeddedFields(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
-}
-
 final object com.apollographql.cache.normalized.api/DefaultFieldKeyGenerator : com.apollographql.cache.normalized.api/FieldKeyGenerator { // com.apollographql.cache.normalized.api/DefaultFieldKeyGenerator|null[0]
     final fun getFieldKey(com.apollographql.cache.normalized.api/FieldKeyContext): kotlin/String // com.apollographql.cache.normalized.api/DefaultFieldKeyGenerator.getFieldKey|getFieldKey(com.apollographql.cache.normalized.api.FieldKeyContext){}[0]
 }
 
 final object com.apollographql.cache.normalized.api/DefaultRecordMerger : com.apollographql.cache.normalized.api/RecordMerger { // com.apollographql.cache.normalized.api/DefaultRecordMerger|null[0]
     final fun merge(com.apollographql.cache.normalized.api/RecordMergerContext): kotlin/Pair<com.apollographql.cache.normalized.api/Record, kotlin.collections/Set<kotlin/String>> // com.apollographql.cache.normalized.api/DefaultRecordMerger.merge|merge(com.apollographql.cache.normalized.api.RecordMergerContext){}[0]
+}
+
+final object com.apollographql.cache.normalized.api/EmptyEmbeddedFieldsProvider : com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/EmptyEmbeddedFieldsProvider|null[0]
+    final fun isEmbedded(com.apollographql.cache.normalized.api/EmbeddedFieldsContext): kotlin/Boolean // com.apollographql.cache.normalized.api/EmptyEmbeddedFieldsProvider.isEmbedded|isEmbedded(com.apollographql.cache.normalized.api.EmbeddedFieldsContext){}[0]
 }
 
 final object com.apollographql.cache.normalized.api/EmptyMetadataGenerator : com.apollographql.cache.normalized.api/MetadataGenerator { // com.apollographql.cache.normalized.api/EmptyMetadataGenerator|null[0]
@@ -612,7 +627,7 @@ final val com.apollographql.cache.normalized/isFromCache // com.apollographql.ca
 final fun (com.apollographql.apollo/ApolloClient.Builder).com.apollographql.cache.normalized/cacheManager(com.apollographql.cache.normalized/CacheManager, kotlin/Boolean = ...): com.apollographql.apollo/ApolloClient.Builder // com.apollographql.cache.normalized/cacheManager|cacheManager@com.apollographql.apollo.ApolloClient.Builder(com.apollographql.cache.normalized.CacheManager;kotlin.Boolean){}[0]
 final fun (com.apollographql.apollo/ApolloClient.Builder).com.apollographql.cache.normalized/logCacheMisses(kotlin/Function1<kotlin/String, kotlin/Unit> = ...): com.apollographql.apollo/ApolloClient.Builder // com.apollographql.cache.normalized/logCacheMisses|logCacheMisses@com.apollographql.apollo.ApolloClient.Builder(kotlin.Function1<kotlin.String,kotlin.Unit>){}[0]
 final fun (com.apollographql.apollo/ApolloClient.Builder).com.apollographql.cache.normalized/normalizedCache(com.apollographql.cache.normalized.api/NormalizedCacheFactory, com.apollographql.cache.normalized.api/CacheKeyGenerator = ..., com.apollographql.cache.normalized.api/MetadataGenerator = ..., com.apollographql.cache.normalized.api/CacheResolver = ..., com.apollographql.cache.normalized.api/RecordMerger = ..., com.apollographql.cache.normalized.api/FieldKeyGenerator = ..., com.apollographql.cache.normalized.api/EmbeddedFieldsProvider = ..., com.apollographql.cache.normalized.api/MaxAgeProvider = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): com.apollographql.apollo/ApolloClient.Builder // com.apollographql.cache.normalized/normalizedCache|normalizedCache@com.apollographql.apollo.ApolloClient.Builder(com.apollographql.cache.normalized.api.NormalizedCacheFactory;com.apollographql.cache.normalized.api.CacheKeyGenerator;com.apollographql.cache.normalized.api.MetadataGenerator;com.apollographql.cache.normalized.api.CacheResolver;com.apollographql.cache.normalized.api.RecordMerger;com.apollographql.cache.normalized.api.FieldKeyGenerator;com.apollographql.cache.normalized.api.EmbeddedFieldsProvider;com.apollographql.cache.normalized.api.MaxAgeProvider;kotlin.Boolean;kotlin.Boolean){}[0]
-final fun (com.apollographql.apollo/ApolloClient.Builder).com.apollographql.cache.normalized/normalizedCache(com.apollographql.cache.normalized.api/NormalizedCacheFactory, kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/TypePolicy>, kotlin.collections/Set<kotlin/String>, kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/MaxAge>, kotlin.time/Duration, com.apollographql.cache.normalized.api/CacheKey.Scope, kotlin/Boolean, kotlin/Boolean): com.apollographql.apollo/ApolloClient.Builder // com.apollographql.cache.normalized/normalizedCache|normalizedCache@com.apollographql.apollo.ApolloClient.Builder(com.apollographql.cache.normalized.api.NormalizedCacheFactory;kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.TypePolicy>;kotlin.collections.Set<kotlin.String>;kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.MaxAge>;kotlin.time.Duration;com.apollographql.cache.normalized.api.CacheKey.Scope;kotlin.Boolean;kotlin.Boolean){}[0]
+final fun (com.apollographql.apollo/ApolloClient.Builder).com.apollographql.cache.normalized/normalizedCache(com.apollographql.cache.normalized.api/NormalizedCacheFactory, kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/TypePolicy>, kotlin.collections/Set<kotlin/String>, kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/EmbeddedFields>, kotlin.collections/Map<kotlin/String, com.apollographql.cache.normalized.api/MaxAge>, kotlin.time/Duration, com.apollographql.cache.normalized.api/CacheKey.Scope, kotlin/Boolean, kotlin/Boolean): com.apollographql.apollo/ApolloClient.Builder // com.apollographql.cache.normalized/normalizedCache|normalizedCache@com.apollographql.apollo.ApolloClient.Builder(com.apollographql.cache.normalized.api.NormalizedCacheFactory;kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.TypePolicy>;kotlin.collections.Set<kotlin.String>;kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.EmbeddedFields>;kotlin.collections.Map<kotlin.String,com.apollographql.cache.normalized.api.MaxAge>;kotlin.time.Duration;com.apollographql.cache.normalized.api.CacheKey.Scope;kotlin.Boolean;kotlin.Boolean){}[0]
 final fun (com.apollographql.cache.normalized.api/Record).com.apollographql.cache.normalized.api/expirationDate(kotlin/String): kotlin/Long? // com.apollographql.cache.normalized.api/expirationDate|expirationDate@com.apollographql.cache.normalized.api.Record(kotlin.String){}[0]
 final fun (com.apollographql.cache.normalized.api/Record).com.apollographql.cache.normalized.api/receivedDate(kotlin/String): kotlin/Long? // com.apollographql.cache.normalized.api/receivedDate|receivedDate@com.apollographql.cache.normalized.api.Record(kotlin.String){}[0]
 final fun (com.apollographql.cache.normalized.api/Record).com.apollographql.cache.normalized.api/withDates(kotlin/String?, kotlin/String?): com.apollographql.cache.normalized.api/Record // com.apollographql.cache.normalized.api/withDates|withDates@com.apollographql.cache.normalized.api.Record(kotlin.String?;kotlin.String?){}[0]

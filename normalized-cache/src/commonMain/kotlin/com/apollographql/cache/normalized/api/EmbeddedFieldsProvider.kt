@@ -1,8 +1,7 @@
 package com.apollographql.cache.normalized.api
 
+import com.apollographql.apollo.api.CompiledField
 import com.apollographql.apollo.api.CompiledNamedType
-import com.apollographql.apollo.api.InterfaceType
-import com.apollographql.apollo.api.ObjectType
 
 /**
  * A provider for fields whose value should be embedded in their [Record], rather than being dereferenced during normalization.
@@ -12,9 +11,9 @@ import com.apollographql.apollo.api.ObjectType
  */
 interface EmbeddedFieldsProvider {
   /**
-   * Returns the fields that should be embedded, given a [context]`.parentType`.
+   * Returns whether the field should be embedded.
    */
-  fun getEmbeddedFields(context: EmbeddedFieldsContext): List<String>
+  fun isEmbedded(context: EmbeddedFieldsContext): Boolean
 }
 
 /**
@@ -23,45 +22,40 @@ interface EmbeddedFieldsProvider {
  */
 class EmbeddedFieldsContext(
     val parentType: CompiledNamedType,
+    val field: CompiledField,
 )
+
+object EmptyEmbeddedFieldsProvider : EmbeddedFieldsProvider {
+  override fun isEmbedded(context: EmbeddedFieldsContext) = false
+}
 
 /**
  * An [EmbeddedFieldsProvider] that returns the fields specified by the `@typePolicy(embeddedFields: "...")` directive.
  */
-object DefaultEmbeddedFieldsProvider : EmbeddedFieldsProvider {
-  override fun getEmbeddedFields(context: EmbeddedFieldsContext): List<String> {
-    return context.parentType.embeddedFields
+class DefaultEmbeddedFieldsProvider(
+    private val embeddedFields: Map<String, EmbeddedFields>,
+) : EmbeddedFieldsProvider {
+  override fun isEmbedded(context: EmbeddedFieldsContext): Boolean {
+    val embeddedFields = embeddedFields[context.parentType.rawType().name] ?: return false
+    return context.field.name in embeddedFields.embeddedFields
   }
 }
-
-private val CompiledNamedType.embeddedFields: List<String>
-  get() = when (this) {
-    is ObjectType -> embeddedFields
-    is InterfaceType -> embeddedFields
-    else -> emptyList()
-  }
 
 /**
  * A [Relay connection types](https://relay.dev/graphql/connections.htm#sec-Connection-Types) aware [EmbeddedFieldsProvider].
  */
 class ConnectionEmbeddedFieldsProvider(
     /**
-     * Fields that are a Connection, associated with their parent type.
-     */
-    connectionFields: Map<String, List<String>>,
-
-    /**
      * The connection type names.
      */
-    connectionTypes: Set<String>,
+    private val connectionTypes: Set<String>,
 ) : EmbeddedFieldsProvider {
   companion object {
-    private val connectionFieldsToEmbed = listOf("pageInfo", "edges")
+    private val connectionFieldsToEmbed = setOf("pageInfo", "edges")
   }
 
-  private val embeddedFields = connectionFields + connectionTypes.associateWith { connectionFieldsToEmbed }
-
-  override fun getEmbeddedFields(context: EmbeddedFieldsContext): List<String> {
-    return embeddedFields[context.parentType.name].orEmpty()
+  override fun isEmbedded(context: EmbeddedFieldsContext): Boolean {
+    return context.field.type.rawType().name in connectionTypes ||
+        context.parentType.rawType().name in connectionTypes && context.field.name in connectionFieldsToEmbed
   }
 }

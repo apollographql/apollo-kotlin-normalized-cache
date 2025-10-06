@@ -4,12 +4,7 @@ package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.ast.GQLDocument
-import com.apollographql.apollo.ast.GQLInterfaceTypeDefinition
-import com.apollographql.apollo.ast.GQLObjectTypeDefinition
-import com.apollographql.apollo.ast.GQLStringValue
-import com.apollographql.apollo.ast.GQLUnionTypeDefinition
 import com.apollographql.apollo.ast.Schema
-import com.apollographql.apollo.ast.Schema.Companion.TYPE_POLICY
 import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.ApolloCompiler
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
@@ -40,6 +35,7 @@ private object Symbols {
   val MaxAgeDuration = MaxAge.nestedClass("Duration")
   val Seconds = MemberName(Duration.Companion::class.asTypeName(), "seconds", isExtension = true)
   val TypePolicy = ClassName("com.apollographql.cache.normalized.api", "TypePolicy")
+  val EmbeddedFields = ClassName("com.apollographql.cache.normalized.api", "EmbeddedFields")
   val ApolloClientBuilder = ClassName("com.apollographql.apollo", "ApolloClient", "Builder")
   val NormalizedCacheFactory = ClassName("com.apollographql.cache.normalized.api", "NormalizedCacheFactory")
   val CacheKeyScope = ClassName("com.apollographql.cache.normalized.api", "CacheKey", "Scope")
@@ -59,16 +55,20 @@ internal class CacheSchemaCodeGenerator(
     }
     val packageName = (
         environment.arguments["com.apollographql.cache.packageName"] as? String
-            // Fallback to the old argument name for compatibility with pre-v1.0.0 versions
+        // Fallback to the old argument name for compatibility with pre-v1.0.0 versions
             ?: environment.arguments["packageName"] as? String
             ?: throw IllegalArgumentException("com.apollographql.cache.packageName argument is required and must be a String")) + ".cache"
+    val typePolicies = validSchema.getTypePolicies()
+    val connectionTypes = validSchema.getConnectionTypes()
+    val embeddedFields = validSchema.getEmbeddedFields(typePolicies, connectionTypes)
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")
                 .addProperty(maxAgeProperty(validSchema))
-                .addProperty(typePoliciesProperty(validSchema))
-                .addProperty(connectionTypesProperty(validSchema, packageName))
-                .addFunction(cacheFunction(validSchema))
+                .addProperty(typePoliciesProperty(typePolicies))
+                .addProperty(embeddedFieldsProperty(embeddedFields))
+                .addProperty(connectionTypesProperty(connectionTypes))
+                .addFunction(cacheFunction())
                 .build()
         )
         .addFileComment(
@@ -108,21 +108,26 @@ internal class CacheSchemaCodeGenerator(
 
   private fun maxAgeProperty(schema: Schema): PropertySpec {
     val maxAges = schema.getMaxAges(environment.logger())
-    val initializer = CodeBlock.builder().apply {
-      add("mapOf(\n")
-      withIndent {
-        maxAges.forEach { (field, duration) ->
-          if (duration == -1) {
-            addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
-          } else {
-            addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
+    val initializer = if (maxAges.isEmpty()) {
+      CodeBlock.of("emptyMap()")
+    } else {
+
+      CodeBlock.builder().apply {
+        add("mapOf(\n")
+        withIndent {
+          maxAges.forEach { (field, duration) ->
+            if (duration == -1) {
+              addStatement("%S to %T,", field, Symbols.MaxAgeInherit)
+            } else {
+              addStatement("%S to %T(%L.%M),", field, Symbols.MaxAgeDuration, duration, Symbols.Seconds)
+            }
           }
         }
+        add(")")
       }
-      add(")")
+          .build()
     }
-        .build()
-    return PropertySpec.Companion.builder(
+    return PropertySpec.builder(
         name = "maxAges",
         type = MAP.parameterizedBy(STRING, Symbols.MaxAge)
     )
@@ -130,28 +135,32 @@ internal class CacheSchemaCodeGenerator(
         .build()
   }
 
-  private fun typePoliciesProperty(schema: Schema): PropertySpec {
-    val typePolicies = schema.getTypePolicies()
-    val initializer = CodeBlock.builder().apply {
-      add("mapOf(\n")
-      withIndent {
-        typePolicies.forEach { (type, typePolicy) ->
-          addStatement("%S to %T(", type, Symbols.TypePolicy)
-          withIndent {
-            addStatement("keyFields = setOf(")
+  private fun typePoliciesProperty(typePolicies: Map<String, TypePolicy>): PropertySpec {
+    val typePolicies = typePolicies.filter { it.value.keyFields.isNotEmpty() }
+    val initializer = if (typePolicies.isEmpty()) {
+      CodeBlock.of("emptyMap()")
+    } else {
+      CodeBlock.builder().apply {
+        add("mapOf(\n")
+        withIndent {
+          typePolicies.forEach { (type, typePolicy) ->
+            addStatement("%S to %T(", type, Symbols.TypePolicy)
             withIndent {
-              typePolicy.keyFields.forEach { keyField ->
-                addStatement("%S, ", keyField)
+              addStatement("keyFields = setOf(")
+              withIndent {
+                typePolicy.keyFields.forEach { keyField ->
+                  addStatement("%S, ", keyField)
+                }
               }
+              add("),\n")
             }
-            add("),\n")
+            addStatement("),")
           }
-          addStatement("),")
         }
+        add(")")
       }
-      add(")")
+          .build()
     }
-        .build()
     return PropertySpec.builder(
         name = "typePolicies",
         type = MAP.parameterizedBy(STRING, Symbols.TypePolicy)
@@ -160,14 +169,20 @@ internal class CacheSchemaCodeGenerator(
         .build()
   }
 
-  private fun connectionTypesProperty(schema: Schema, packageName: String): PropertySpec {
-    // TODO: connectionTypes is generated by the Apollo compiler for now, and we just reference it. Instead we should generate it here.
-    val hasPagination = schema.hasConnectionFields()
-    val initializer = if (hasPagination) {
-      val paginationPackageName = packageName.substringBeforeLast(".") + ".pagination"
-      CodeBlock.of("%T.connectionTypes", ClassName(paginationPackageName, "Pagination"))
-    } else {
+  private fun connectionTypesProperty(connectionTypes: Set<String>): PropertySpec {
+    val initializer = if (connectionTypes.isEmpty()) {
       CodeBlock.of("emptySet()")
+    } else {
+      CodeBlock.builder().apply {
+        add("setOf(\n")
+        withIndent {
+          connectionTypes.forEach { connectionType ->
+            addStatement("%S,", connectionType)
+          }
+        }
+        add(")")
+      }
+          .build()
     }
     return PropertySpec.builder(
         name = "connectionTypes",
@@ -177,8 +192,40 @@ internal class CacheSchemaCodeGenerator(
         .build()
   }
 
-  private fun cacheFunction(validSchema: Schema): FunSpec {
-    validSchema.hasConnectionFields()
+  private fun embeddedFieldsProperty(embeddedFields: Map<String, EmbeddedFields>): PropertySpec {
+    val initializer = if (embeddedFields.isEmpty()) {
+      CodeBlock.of("emptyMap()")
+    } else {
+      CodeBlock.builder().apply {
+        add("mapOf(\n")
+        withIndent {
+          embeddedFields.forEach { (type, embeddedField) ->
+            addStatement("%S to %T(", type, Symbols.EmbeddedFields)
+            withIndent {
+              addStatement("embeddedFields = setOf(")
+              withIndent {
+                embeddedField.embeddedFields.forEach { embeddedField ->
+                  addStatement("%S, ", embeddedField)
+                }
+              }
+              add("),\n")
+            }
+            addStatement("),")
+          }
+        }
+        add(")")
+      }
+          .build()
+    }
+    return PropertySpec.builder(
+        name = "embeddedFields",
+        type = MAP.parameterizedBy(STRING, Symbols.EmbeddedFields)
+    )
+        .initializer(initializer)
+        .build()
+  }
+
+  private fun cacheFunction(): FunSpec {
     return FunSpec.builder("cache")
         .receiver(Symbols.ApolloClientBuilder)
         .addParameter("normalizedCacheFactory", Symbols.NormalizedCacheFactory)
@@ -205,6 +252,7 @@ internal class CacheSchemaCodeGenerator(
                         "normalizedCacheFactory = normalizedCacheFactory,\n" +
                         "typePolicies = typePolicies,\n" +
                         "connectionTypes = connectionTypes, \n" +
+                        "embeddedFields = embeddedFields, \n" +
                         "maxAges = maxAges,\n" +
                         "defaultMaxAge = defaultMaxAge,\n" +
                         "keyScope = keyScope,\n" +
@@ -216,17 +264,5 @@ internal class CacheSchemaCodeGenerator(
                 .build()
         )
         .build()
-  }
-
-  private fun Schema.hasConnectionFields(): Boolean {
-    val directives = typeDefinitions.values.filterIsInstance<GQLObjectTypeDefinition>().flatMap { it.directives } +
-        typeDefinitions.values.filterIsInstance<GQLInterfaceTypeDefinition>().flatMap { it.directives } +
-        typeDefinitions.values.filterIsInstance<GQLUnionTypeDefinition>().flatMap { it.directives }
-    return directives.any {
-      originalDirectiveName(it.name) == TYPE_POLICY &&
-          it.arguments.any { arg ->
-            arg.name == "connectionFields" && !(arg.value as? GQLStringValue)?.value.isNullOrBlank()
-          }
-    }
   }
 }

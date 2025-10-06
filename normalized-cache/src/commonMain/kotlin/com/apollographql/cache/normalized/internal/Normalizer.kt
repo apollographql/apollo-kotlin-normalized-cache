@@ -16,11 +16,11 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.DataWithErrors
-import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.DefaultFieldKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultMaxAgeProvider
 import com.apollographql.cache.normalized.api.EmbeddedFieldsContext
 import com.apollographql.cache.normalized.api.EmbeddedFieldsProvider
+import com.apollographql.cache.normalized.api.EmptyEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.EmptyMetadataGenerator
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
@@ -119,7 +119,7 @@ internal class Normalizer(
           fieldPath = newFieldPath,
           type_ = mergedField.type,
           path = base?.append(fieldKey) ?: CacheKey(fieldKey),
-          embeddedFields = embeddedFieldsProvider.getEmbeddedFields(EmbeddedFieldsContext(parentType)),
+          isEmbedded = embeddedFieldsProvider.isEmbedded(EmbeddedFieldsContext(parentType = parentType, field = mergedField)),
       )
       val maxAge = maxAgeProvider.getMaxAge(MaxAgeContext(newFieldPath.map { it.toMaxAgeField() }))
       if (maxAge == Duration.ZERO) {
@@ -191,7 +191,7 @@ internal class Normalizer(
       fieldPath: List<CompiledField>,
       type_: CompiledType,
       path: CacheKey,
-      embeddedFields: List<String>,
+      isEmbedded: Boolean,
   ): Any? {
     val field = fieldPath.last()
 
@@ -215,7 +215,7 @@ internal class Normalizer(
       type is CompiledListType -> {
         check(value is List<*>)
         value.mapIndexed { index, item ->
-          replaceObjects(item, fieldPath, type.ofType, path.append(index.toString()), embeddedFields)
+          replaceObjects(item, fieldPath, type.ofType, path.append(index.toString()), isEmbedded)
         }
       }
       // Check for [isComposite] as we don't want to build a record for json scalars
@@ -230,7 +230,7 @@ internal class Normalizer(
         if (key == null) {
           key = path
         }
-        if (embeddedFields.contains(field.name)) {
+        if (isEmbedded) {
           buildFields(value, key, field.selections, field.type.rawType(), fieldPath)
               .mapValues { it.value.fieldValue }
         } else {
@@ -287,7 +287,7 @@ fun <D : Executable.Data> D.normalized(
     cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
-    embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
+    embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
 ): Map<CacheKey, Record> {
   val dataWithErrors = this.withErrors(executable, null, customScalarAdapters)
@@ -304,7 +304,7 @@ fun <D : Executable.Data> DataWithErrors.normalized(
     cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
-    embeddedFieldsProvider: EmbeddedFieldsProvider = DefaultEmbeddedFieldsProvider,
+    embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
 ): Map<CacheKey, Record> {
   val variables = executable.variables(customScalarAdapters, withDefaultValues = true)
