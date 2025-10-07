@@ -1,5 +1,8 @@
 package com.apollographql.cache.normalized.api
 
-class TypePolicy(
+import kotlin.jvm.JvmInline
+
+@JvmInline
+value class TypePolicy(
     val keyFields: Set<String>,
 )
