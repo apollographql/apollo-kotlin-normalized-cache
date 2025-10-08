@@ -86,7 +86,7 @@ class GetMaxAgesTest {
         "Publisher.name" to 20,
         "Publisher.id" to -1
     )
-    assert(maxAges == expected)
+    assertEquals(expected, maxAges)
   }
 
   @Test

@@ -8,6 +8,7 @@ import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
 import com.apollographql.apollo.ast.validateAsSchema
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 // language=GraphQL
 private val baseSchemaText = """
@@ -69,7 +70,7 @@ class GetConnectionTypesTest {
     val expected = setOf(
         "UserConnection"
     )
-    assert(connectionTypes == expected)
+    assertEquals(expected, connectionTypes)
   }
 
   @Test
@@ -94,7 +95,7 @@ class GetConnectionTypesTest {
     val expected = setOf(
         "UserConnection"
     )
-    assert(connectionTypes == expected)
+    assertEquals(expected, connectionTypes)
   }
 
 }

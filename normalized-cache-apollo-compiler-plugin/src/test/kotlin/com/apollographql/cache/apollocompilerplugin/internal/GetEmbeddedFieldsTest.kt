@@ -8,6 +8,7 @@ import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
 import com.apollographql.apollo.ast.validateAsSchema
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 // language=GraphQL
 private val baseSchemaText = """
@@ -72,9 +73,10 @@ class GetEmbeddedFieldsTest {
     val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
     val expected = mapOf(
         "Query" to EmbeddedFields(setOf("users")),
-        "User" to EmbeddedFields(setOf("name", "email"))
+        "User" to EmbeddedFields(setOf("name", "email")),
+        "UserConnection" to EmbeddedFields(setOf("edges", "pageInfo")),
     )
-    assert(embeddedFields == expected)
+    assertEquals(expected, embeddedFields)
   }
 
   @Test
@@ -101,9 +103,10 @@ class GetEmbeddedFieldsTest {
     val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
     val expected = mapOf(
         "Query" to EmbeddedFields(setOf("users")),
-        "User" to EmbeddedFields(setOf("name", "email"))
+        "User" to EmbeddedFields(setOf("name", "email")),
+        "UserConnection" to EmbeddedFields(setOf("edges", "pageInfo")),
     )
-    assert(embeddedFields == expected)
+    assertEquals(expected, embeddedFields)
   }
 
 }
