@@ -113,5 +113,5 @@ cacheResolver = CacheControlCacheResolver(
     maxAges = Cache.maxAges,
     defaultMaxAge = 1.hours,
   )
-),
+)
 ```

@@ -111,7 +111,6 @@ internal class CacheSchemaCodeGenerator(
     val initializer = if (maxAges.isEmpty()) {
       CodeBlock.of("emptyMap()")
     } else {
-
       CodeBlock.builder().apply {
         add("mapOf(\n")
         withIndent {
