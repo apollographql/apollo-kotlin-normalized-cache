@@ -5,17 +5,36 @@ with more configuration needed.
 
 #### Pagination arguments
 
-The `@fieldPolicy` directive has a `paginationArgs` argument that can be used to specify the arguments that should be omitted from the field key.
+Arguments that should be omitted from the field key can be specified programmatically by configuring your cache with a [`FieldKeyGenerator`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-field-key-generator/index.html?query=interface%20FieldKeyGenerator) implementation:
 
-Going back to [the example](pagination-home.md) with `usersPage`:
-
-
-```graphql
-extend type Query
-@fieldPolicy(forField: "usersPage" paginationArgs: "page")
+```kotlin
+object MyFieldKeyGenerator : FieldKeyGenerator {
+  override fun getFieldKey(context: FieldKeyContext): String {
+    return if (context.parentType == "Query" && context.field.name == "usersPage") {
+      context.field.newBuilder()
+          .arguments(
+              context.field.arguments.filter { argument ->
+                argument.definition.name != "page" // Omit the `page` argument from the field key
+              }
+          )
+          .build()
+          .nameWithArguments(context.variables)
+    } else {
+      DefaultFieldKeyGenerator.getFieldKey(context)
+    }
+  }
+}
 ```
 
-> This can also be done programmatically by configuring your cache with a [`FieldKeyGenerator`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-field-key-generator/index.html?query=interface%20FieldKeyGenerator) implementation.
+```kotlin
+val client = ApolloClient.Builder()
+    // ...
+    .normalizedCache(
+        normalizedCacheFactory = cacheFactory,
+        fieldKeyGenerator = MyFieldKeyGenerator, // Configure the cache with the custom field key generator
+    )
+    .build()
+```
 
 With that in place, after fetching the first page, the cache will look like this:
 
@@ -91,11 +110,25 @@ Fields in records can have arbitrary metadata attached to them, in addition to t
 
 Let's go back to the [example](pagination-relay-style.md) where Relay-style pagination is used.
 
-Configure the `paginationArgs` as seen previously:
+Configure the `fieldKeyGenerator` as seen previously:
 
-```graphql
-extend type Query
-@fieldPolicy(forField: "usersConnection" paginationArgs: "first,after,last,before")
+```kotlin
+object MyFieldKeyGenerator : FieldKeyGenerator {
+  override fun getFieldKey(context: FieldKeyContext): String {
+    return if (context.field.type.rawType().name == "UserConnection") {
+      context.field.newBuilder()
+          .arguments(
+              context.field.arguments.filter { argument ->
+                argument.definition.name !in setOf("first", "after", "last", "before") // Omit pagination arguments from the field key
+              }
+          )
+          .build()
+          .nameWithArguments(context.variables)
+    } else {
+      DefaultFieldKeyGenerator.getFieldKey(context)
+    }
+  }
+}
 ```
 
 Now let's store in the metadata of each `UserConnection` field the values of the `before` and `after` arguments of the field returning it,
