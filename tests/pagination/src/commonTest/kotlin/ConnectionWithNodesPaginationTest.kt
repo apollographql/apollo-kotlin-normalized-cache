@@ -2,14 +2,16 @@ package pagination
 
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
+import pagination.connection.cache.Cache
 import pagination.connectionWithNodes.UsersQuery
-import pagination.connectionWithNodes.pagination.Pagination
 import pagination.connectionWithNodes.type.buildPageInfo
 import pagination.connectionWithNodes.type.buildUser
 import pagination.connectionWithNodes.type.buildUserConnection
@@ -35,8 +37,10 @@ class ConnectionWithNodesPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        metadataGenerator = ConnectionMetadataGenerator(Pagination.connectionTypes),
-        recordMerger = ConnectionRecordMerger
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
     )
     cacheManager.clearAll()
 

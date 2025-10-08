@@ -4,6 +4,9 @@ import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
+import com.apollographql.cache.normalized.api.FieldKeyContext
+import com.apollographql.cache.normalized.api.FieldKeyGenerator
 import com.apollographql.cache.normalized.api.FieldRecordMerger
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
@@ -13,6 +16,7 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.offsetBasedWithPage.UsersQuery
+import pagination.offsetBasedWithPage.cache.Cache
 import pagination.offsetBasedWithPage.type.buildUser
 import pagination.offsetBasedWithPage.type.buildUserPage
 import kotlin.math.max
@@ -40,7 +44,25 @@ class OffsetBasedWithPagePaginationTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
         metadataGenerator = OffsetPaginationMetadataGenerator("UserPage"),
-        recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger())
+        recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger()),
+        fieldKeyGenerator = object : FieldKeyGenerator{
+          override fun getFieldKey(context: FieldKeyContext): String {
+            return if (context.field.type.rawType().name == "UserPage") {
+              // Exclude offset and limit arguments from the field key
+              context.field.newBuilder()
+                  .arguments(
+                      context.field.arguments.filter { argument ->
+                        argument.definition.name !in setOf("offset", "limit")
+                      }
+                  )
+                  .build()
+                  .nameWithArguments(context.variables)
+            } else {
+              context.field.nameWithArguments(context.variables)
+            }
+          }
+        },
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
     )
     cacheManager.clearAll()
 

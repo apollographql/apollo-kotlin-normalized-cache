@@ -8,6 +8,9 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
+import com.apollographql.cache.normalized.api.FieldKeyContext
+import com.apollographql.cache.normalized.api.FieldKeyGenerator
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -16,6 +19,7 @@ import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import kotlinx.coroutines.flow.toList
 import pagination.cursorBased.UsersQuery
+import pagination.cursorBased.cache.Cache
 import pagination.cursorBased.type.buildPageInfo
 import pagination.cursorBased.type.buildUser
 import pagination.cursorBased.type.buildUserConnection
@@ -44,7 +48,24 @@ class CursorBasedPaginationTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
         metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
-        recordMerger = ConnectionRecordMerger
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = object : FieldKeyGenerator{
+          override fun getFieldKey(context: FieldKeyContext): String {
+            return if (context.field.type.rawType().name == "UserConnection") {
+              context.field.newBuilder()
+                  .arguments(
+                      context.field.arguments.filter { argument ->
+                        argument.definition.name !in setOf("first", "last", "before", "after")
+                      }
+                  )
+                  .build()
+                  .nameWithArguments(context.variables)
+            } else {
+              context.field.nameWithArguments(context.variables)
+            }
+          }
+        },
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
     )
     cacheManager.clearAll()
 
@@ -355,7 +376,24 @@ class CursorBasedPaginationTest {
         .normalizedCache(
             normalizedCacheFactory = MemoryCacheFactory(),
             metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
-            recordMerger = ConnectionRecordMerger
+            recordMerger = ConnectionRecordMerger,
+            fieldKeyGenerator = object : FieldKeyGenerator{
+              override fun getFieldKey(context: FieldKeyContext): String {
+                return if (context.field.type.rawType().name == "UserConnection") {
+                  context.field.newBuilder()
+                      .arguments(
+                          context.field.arguments.filter { argument ->
+                            argument.definition.name !in setOf("first", "last", "before", "after")
+                          }
+                      )
+                      .build()
+                      .nameWithArguments(context.variables)
+                } else {
+                  context.field.nameWithArguments(context.variables)
+                }
+              }
+            },
+            embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
         )
         .build()
 
