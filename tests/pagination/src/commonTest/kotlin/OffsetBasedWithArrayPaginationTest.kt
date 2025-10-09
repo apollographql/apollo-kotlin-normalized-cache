@@ -3,6 +3,8 @@ package pagination
 import com.apollographql.apollo.api.Optional
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.api.FieldKeyContext
+import com.apollographql.cache.normalized.api.FieldKeyGenerator
 import com.apollographql.cache.normalized.api.FieldRecordMerger
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
@@ -37,7 +39,24 @@ class OffsetBasedWithArrayPaginationTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
         metadataGenerator = OffsetPaginationMetadataGenerator("users"),
-        recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger())
+        recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger()),
+        fieldKeyGenerator = object : FieldKeyGenerator{
+          override fun getFieldKey(context: FieldKeyContext): String {
+            return if (context.parentType == "Query" && context.field.name == "users") {
+              // Exclude offset and limit arguments from the field key
+              context.field.newBuilder()
+                  .arguments(
+                      context.field.arguments.filter { argument ->
+                        argument.definition.name !in setOf("offset", "limit")
+                      }
+                  )
+                  .build()
+                  .nameWithArguments(context.variables)
+            } else {
+              context.field.nameWithArguments(context.variables)
+            }
+          }
+        },
     )
     cacheManager.clearAll()
 

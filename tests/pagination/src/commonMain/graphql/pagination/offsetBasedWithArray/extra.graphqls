@@ -1,5 +1,3 @@
-extend schema @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3", import: ["@typePolicy", "@fieldPolicy"])
-
-extend type Query @fieldPolicy(forField: "users", paginationArgs: "offset, limit")
+extend schema @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3", import: ["@typePolicy"])
 
 extend type User @typePolicy(keyFields: "id")

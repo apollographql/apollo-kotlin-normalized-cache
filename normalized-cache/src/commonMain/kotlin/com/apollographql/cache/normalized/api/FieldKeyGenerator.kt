@@ -29,8 +29,7 @@ class FieldKeyContext(
 )
 
 /**
- * A [FieldKeyGenerator] that returns the field name with its arguments, excluding pagination arguments defined with the
- * `@fieldPolicy(forField: "...", paginationArgs: "...")` directive.
+ * A [FieldKeyGenerator] that returns the field name with all its arguments.
  *
  * @see CompiledField.nameWithArguments
  */
