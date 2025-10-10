@@ -6,6 +6,79 @@ import com.apollographql.apollo.ast.parseAsGQLDocument
 
 private val cacheDefinitions_0_3 = """
   ""${'"'}
+  Defines key fields and embedded fields for an object or interface.
+  ""${'"'}
+  directive @typePolicy(
+      ""${'"'}
+      A selection set containing fields used to compute the cache key of an object.
+      Nested selection sets are not supported. Order is important.
+  
+      Key fields can be defined on interfaces. In that case, the key fields apply to all sub-types and sub-types are not allowed to define their own key fields.
+      If a type implements multiple interfaces with key fields, the key fields must match across all interfaces with key fields.
+  
+      The key fields are automatically added to the operations by the compiler plugin.
+      Aliased key fields are not recognized and the compiler adds a non-aliased version of the field if that happens.
+      If a type is queried through an interface/union, this may add fragments.
+  
+      For an example, this query:
+  
+      ```graphql
+      query {
+          product {
+              price
+          }
+      }
+      ```
+  
+      is turned into this one after compilation:
+  
+      ```graphql
+      query {
+          product {
+              ... on Book {
+                  isbn
+              }
+              ... on Movie {
+                  id
+              }
+              price
+          }
+      }
+      ```
+  
+      ""${'"'}
+      keyFields: String! = ""
+  
+      ""${'"'}
+      A selection set containing fields that should be embedded in their parent Record rather than being stored in their own records.
+      Nested selection sets are not supported. Order is unimportant.
+      ""${'"'}
+      embeddedFields: String! = ""
+      
+      # Not part of the spec but avoids a validation error due to mismatch with the kotlin_labs version
+      connectionFields: String! = ""
+  ) on OBJECT | INTERFACE
+  
+  ""${'"'}
+  Defines key arguments for a given field.
+  ""${'"'}
+  directive @fieldPolicy(
+      ""${'"'}
+      The name of the field this policy applies to.
+      ""${'"'}
+      forField: String!
+  
+      ""${'"'}
+      A list of arguments used to compute the cache key of the object this field points to.
+      The list is parsed as a selection set: both spaces and comas are valid separators.
+      ""${'"'}
+      keyArgs: String! = ""
+      
+      # Not part of the spec but avoids a validation error due to mismatch with the kotlin_labs version
+      paginationArgs: String! = ""
+  ) repeatable on OBJECT
+  
+  ""${'"'}
   Possible values for the `@cacheControl` `scope` argument (unused on the client).
   ""${'"'}
   enum CacheControlScope {
@@ -111,7 +184,7 @@ private val cacheDefinitions_0_3 = """
       name: String!
       cascade: Boolean!
   ) repeatable on OBJECT | INTERFACE
-
+  
   ""${'"'}
   Marks the type as a pagination connection type, as defined by the [Relay Cursor Connections Specification](https://relay.dev/graphql/connections.htm#sec-Connection-Types).
   ""${'"'}

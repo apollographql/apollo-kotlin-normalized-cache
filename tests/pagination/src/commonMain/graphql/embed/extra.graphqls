@@ -1,4 +1,6 @@
-extend schema @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3", import: ["@typePolicy", "@fieldPolicy"])
+extend schema
+@link(url: "https://specs.apollo.dev/kotlin_labs/v0.5")
+@link(url: "https://specs.apollo.dev/cache/v0.3", import: ["@typePolicy"])
 
 extend type Query @typePolicy(embeddedFields: "hero")
 extend type Hero @typePolicy(embeddedFields: "friends")

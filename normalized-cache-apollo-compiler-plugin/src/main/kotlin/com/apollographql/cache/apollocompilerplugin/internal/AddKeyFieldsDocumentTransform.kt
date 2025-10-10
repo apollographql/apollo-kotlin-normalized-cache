@@ -31,32 +31,35 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
       document: GQLDocument,
       extraFragmentDefinitions: List<GQLFragmentDefinition>,
   ): GQLDocument {
+    val keyFields = schema.getTypePolicies().mapValues { it.value.keyFields }
     return document.copy(
         definitions = document.definitions.map {
           when (it) {
-            is GQLFragmentDefinition -> it.withRequiredFields(schema)
-            is GQLOperationDefinition -> it.withRequiredFields(schema)
+            is GQLFragmentDefinition -> it.withRequiredFields(schema, keyFields)
+            is GQLOperationDefinition -> it.withRequiredFields(schema, keyFields)
             else -> it
           }
         }
     )
   }
 
-  private fun GQLOperationDefinition.withRequiredFields(schema: Schema): GQLOperationDefinition {
+  private fun GQLOperationDefinition.withRequiredFields(schema: Schema, keyFields: Map<String, Set<String>>): GQLOperationDefinition {
     val parentType = rootTypeDefinition(schema)!!.name
     return copy(
         selections = selections.withRequiredFields(
             schema = schema,
+            keyFields = keyFields,
             parentType = parentType,
             isRoot = false,
         )
     )
   }
 
-  private fun GQLFragmentDefinition.withRequiredFields(schema: Schema): GQLFragmentDefinition {
+  private fun GQLFragmentDefinition.withRequiredFields(schema: Schema, keyFields: Map<String, Set<String>>): GQLFragmentDefinition {
     return copy(
         selections = selections.withRequiredFields(
             schema = schema,
+            keyFields = keyFields,
             parentType = typeCondition.name,
             isRoot = true,
         ),
@@ -70,6 +73,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
   @OptIn(ApolloInternal::class)
   private fun List<GQLSelection>.withRequiredFields(
       schema: Schema,
+      keyFields: Map<String, Set<String>>,
       parentType: String,
       isRoot: Boolean,
   ): List<GQLSelection> {
@@ -82,8 +86,9 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
           it.copy(
               selections = it.selections.withRequiredFields(
                   schema = schema,
+                  keyFields = keyFields,
                   parentType = it.typeCondition?.name ?: parentType,
-                  isRoot = false
+                  isRoot = false,
               )
           )
         }
@@ -91,6 +96,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
         is GQLFragmentSpread -> it
         is GQLField -> it.withRequiredFields(
             schema = schema,
+            keyFields = keyFields,
             parentType = parentType
         )
       }
@@ -100,10 +106,10 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
       return newSelections
     }
 
-    val keyFields = schema.keyFields(parentType)
+    val parentTypeKeyFields = keyFields[parentType] ?: emptySet()
     newSelections.filterIsInstance<GQLField>().forEach {
       // Disallow fields whose alias conflicts with a key field, or is "__typename"
-      if (keyFields.contains(it.alias) || it.alias == "__typename") {
+      if (parentTypeKeyFields.contains(it.alias) || it.alias == "__typename") {
         throw SourceAwareException(
             error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
             sourceLocation = it.sourceLocation
@@ -113,10 +119,10 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
 
     // Add key fields
     val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }
-    val fieldNamesToAdd = (keyFields - fieldNames)
+    val fieldNamesToAdd = (parentTypeKeyFields - fieldNames)
 
     // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
-    val inlineFragmentsToAdd = if (keyFields.isEmpty()) {
+    val inlineFragmentsToAdd = if (parentTypeKeyFields.isEmpty()) {
       val parentTypeDefinition = schema.typeDefinition(parentType)
       val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
         schema.possibleTypes(parentTypeDefinition)
@@ -124,7 +130,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
         emptySet()
       }
       possibleTypes
-          .associateWith { possibleType -> schema.keyFields(possibleType) }
+          .associateWith { possibleType -> keyFields[possibleType] ?: emptySet() }
           .mapNotNull { (possibleType, possibleTypeKeyFields) ->
             val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames
             if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
@@ -150,13 +156,15 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
 
   private fun GQLField.withRequiredFields(
       schema: Schema,
+      keyFields: Map<String, Set<String>>,
       parentType: String,
   ): GQLField {
     val typeDefinition = definitionFromScope(schema, parentType)!!
     val newSelectionSet = selections.withRequiredFields(
         schema = schema,
+        keyFields = keyFields,
         parentType = typeDefinition.type.rawType().name,
-        isRoot = true
+        isRoot = true,
     )
     return copy(selections = newSelectionSet)
   }
