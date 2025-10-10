@@ -1,11 +1,10 @@
 extend schema
 @link(
-  url: "https://specs.apollo.dev/kotlin_labs/v0.3",
-  import: ["@fieldPolicy", "@typePolicy"]
+  url: "https://specs.apollo.dev/kotlin_labs/v0.3"
 )
 @link(
   url: "https://specs.apollo.dev/cache/v0.3",
-  import: ["@cacheControl", "@cacheControlField"]
+  import: ["@typePolicy", "@cacheControl", "@cacheControlField"]
 )
 @link(
   url: "https://specs.apollo.dev/nullability/v0.4",
