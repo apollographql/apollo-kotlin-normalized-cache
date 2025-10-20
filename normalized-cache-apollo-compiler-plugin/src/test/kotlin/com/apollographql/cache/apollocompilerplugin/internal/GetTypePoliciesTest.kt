@@ -69,8 +69,8 @@ class GetTypePoliciesTest {
     assertEquals(expected, schema.getTypePolicies())
   }
 
-  // TODO: Ignored because the same checks are already done in validateAsSchema in v4.
-  // TODO: Un-ignore when using v5.
+  // TODO: Ignored because the same checks are already done in validateAsSchema in AK < v6.
+  // TODO: Un-ignore when using AK v6.
   @Ignore
   @Test
   fun `cannot inherit different keys from different interfaces`() {
@@ -115,8 +115,8 @@ class GetTypePoliciesTest {
     }
   }
 
-  // TODO: Ignored because the same checks are already done in validateAsSchema in v4.
-  // TODO: Un-ignore when using v5.
+  // TODO: Ignored because the same checks are already done in validateAsSchema in AK < v6.
+  // TODO: Un-ignore when using AK v6.
   @Ignore
   @Test
   fun `type cannot have key fields since it implements interfaces which also have key fields`() {

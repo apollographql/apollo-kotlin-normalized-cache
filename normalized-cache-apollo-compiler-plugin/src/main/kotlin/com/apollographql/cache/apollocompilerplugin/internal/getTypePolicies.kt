@@ -39,17 +39,21 @@ private fun Schema.validateAndComputeTypePolicy(
   if (typePolicyCache.contains(typeDefinition.name)) {
     return typePolicyCache[typeDefinition.name]
   }
-  val (directives, interfaces) = when (typeDefinition) {
+  val (directives, allInterfaces) = when (typeDefinition) {
     is GQLObjectTypeDefinition -> typeDefinition.directives to typeDefinition.implementsInterfaces
     is GQLInterfaceTypeDefinition -> typeDefinition.directives to typeDefinition.implementsInterfaces
     else -> error("Unexpected $typeDefinition")
   }
 
-  val interfacesTypePolicy = interfaces.mapNotNull { validateAndComputeTypePolicy(typeDefinitions[it]!!, typePolicyCache) }
-  val distinct = interfacesTypePolicy.distinct()
+  val interfacesToTypePolicy = allInterfaces.associate { it to validateAndComputeTypePolicy(typeDefinitions[it]!!, typePolicyCache) }
+      .filterValues { it != null }
+  val interfaces = interfacesToTypePolicy.keys.toList()
+  val interfacesTypePolicies = interfacesToTypePolicy.values.toList()
+
+  val distinct = interfacesTypePolicies.distinct()
   if (distinct.size > 1) {
     val extra = interfaces.indices.joinToString("\n") {
-      "${interfaces[it]}: ${interfacesTypePolicy[it]}"
+      "${interfaces[it]}: ${interfacesTypePolicies[it]}"
     }
     throw SourceAwareException(
         error = "Apollo: Type '${typeDefinition.name}' cannot inherit different @typePolicy from different interfaces:\n$extra",
@@ -62,7 +66,7 @@ private fun Schema.validateAndComputeTypePolicy(
   val ret = if (typePolicy != null) {
     if (distinct.isNotEmpty()) {
       val extra = interfaces.indices.joinToString("\n") {
-        "${interfaces[it]}: ${interfacesTypePolicy[it]}"
+        "${interfaces[it]}: ${interfacesTypePolicies[it]}"
       }
       throw SourceAwareException(
           error = "Apollo: Type '${typeDefinition.name}' cannot have @typePolicy since it implements the following interfaces which also have @typePolicy: $extra",
