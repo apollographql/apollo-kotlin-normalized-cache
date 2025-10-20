@@ -70,7 +70,7 @@ apollo {
 }
 </code-block>
 
-> If you are already using an Apollo compiler plugin, make sure to update to Apollo Kotlin v5 or later, as this is required to use multiple plugins.
+> If you are already using an Apollo compiler plugin, make sure to update to Apollo Kotlin v5+ to use multiple plugins. Alternatively, you can also wrap the cache plugin in your own plugin.
 
 {style="note"}
 
