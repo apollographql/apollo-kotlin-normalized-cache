@@ -1,3 +1,25 @@
 .link {
     border-color: inherit;
 }
+
+:root.theme-dark {
+    --wh-color-white: rgb(207 215 214);
+    --wh-color-bg-main: #13222a;
+    --wh-color-bg-main-dark: rgb(13 23 28);
+    --wh-color-accent-substrate-bg: #13222a;
+    --wh-color-border-default: rgb(37 66 80);
+}
+
+.app__footer {
+    display: none !important;
+}
+
+.app__header {
+    border-bottom: 1px solid;
+    border-bottom-color: var(--wh-color-border-default);
+}
+
+.sub-title__edit-info {
+    color: rgb(207 215 214 / 35%);
+
+}

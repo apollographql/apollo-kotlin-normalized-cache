@@ -3,7 +3,7 @@
 
 <instance-profile
     id="doc"
-    name="apollo-kotlin-normalized-cache"
+    name="Apollo Kotlin Normalized Cache"
     start-page="welcome.md"
 >
 

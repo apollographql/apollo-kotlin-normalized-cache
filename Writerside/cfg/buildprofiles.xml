@@ -11,10 +11,9 @@
       <download-title>GitHub</download-title>
       <download-page>https://github.com/apollographql/apollo-kotlin-normalized-cache/</download-page>
       <showDownloadButton>true</showDownloadButton>
-      <enable-browser-edits>true</enable-browser-edits>
-      <browser-edits-url>https://github.com/apollographql/apollo-kotlin-normalized-cache/edit/main/Writerside/
-      </browser-edits-url>
+      <enable-contribution>false</enable-contribution>
       <custom-css>custom.css</custom-css>
+      <primary-color>#fc5200</primary-color>
     </variables>
   </build-profile>
 </buildprofiles>

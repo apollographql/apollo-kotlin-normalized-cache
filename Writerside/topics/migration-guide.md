@@ -3,13 +3,15 @@
 The Normalized Cache is now hosted in this dedicated repository and published at its own cadence and versioning scheme.
 
 The Normalized Cache in the [Apollo Kotlin main repository](https://github.com/apollographql/apollo-kotlin) will not receive new features - they
-are added here instead. In the future, the main repository Normalized Cache will be deprecated and then removed.
+are added here instead. In the future, the main repository version will be deprecated and then removed.
 
 This guide highlights the main differences between this library and the main repository version, and how to migrate from it.
 
 ## Artifacts and packages
 
-To use this library, update the dependencies to your project:
+The Normalized Cache requires Apollo Kotlin ***v4.3.0*** or later.
+
+First, update the dependencies to your project:
 
 ```kotlin
 // build.gradle.kts
@@ -47,7 +49,7 @@ Configure the [compiler plugin](compiler-plugin.md) in your `build.gradle.kts` f
 ```kotlin
 apollo {
   service("service") {
-    packageName.set("com.example")
+    // ...
 
     // Add this
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%") {
@@ -61,7 +63,7 @@ apollo {
 // For Apollo Kotlin v5 and later
 apollo {
   service("service") {
-    packageName.set("com.example")
+    // ...
 
     // Add this
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
