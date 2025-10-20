@@ -1,0 +1,4 @@
+extend schema
+@link(url: "https://specs.apollo.dev/cache/v0.3", import: ["@connection"])
+
+extend type UserConnection @connection

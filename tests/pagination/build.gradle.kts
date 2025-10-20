@@ -104,9 +104,18 @@ apollo {
       argument("com.apollographql.cache.packageName", packageName.get())
     }
   }
-  service("pagination.connectionProgrammatic") {
-    packageName.set("pagination.connectionProgrammatic")
-    srcDir("src/commonMain/graphql/pagination/connectionProgrammatic")
+  service("pagination.connectionProgrammaticConnections") {
+    packageName.set("pagination.connectionProgrammaticConnections")
+    srcDir("src/commonMain/graphql/pagination/connectionProgrammaticConnections")
+    generateDataBuilders.set(true)
+
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("com.apollographql.cache.packageName", packageName.get())
+    }
+  }
+  service("pagination.connectionProgrammaticTypePolicies") {
+    packageName.set("pagination.connectionProgrammaticTypePolicies")
+    srcDir("src/commonMain/graphql/pagination/connectionProgrammaticTypePolicies")
     generateDataBuilders.set(true)
 
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {

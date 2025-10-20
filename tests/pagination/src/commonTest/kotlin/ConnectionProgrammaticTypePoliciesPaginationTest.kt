@@ -6,20 +6,22 @@ import com.apollographql.cache.normalized.api.ConnectionEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
+import com.apollographql.cache.normalized.api.IdCacheKeyResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
-import pagination.connectionProgrammatic.UsersQuery
-import pagination.connectionProgrammatic.type.UserConnection
-import pagination.connectionProgrammatic.type.buildPageInfo
-import pagination.connectionProgrammatic.type.buildUser
-import pagination.connectionProgrammatic.type.buildUserConnection
-import pagination.connectionProgrammatic.type.buildUserEdge
+import pagination.connectionProgrammaticTypePolicies.UsersQuery
+import pagination.connectionProgrammaticTypePolicies.cache.Cache
+import pagination.connectionProgrammaticTypePolicies.type.buildPageInfo
+import pagination.connectionProgrammaticTypePolicies.type.buildUser
+import pagination.connectionProgrammaticTypePolicies.type.buildUserConnection
+import pagination.connectionProgrammaticTypePolicies.type.buildUserEdge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class ConnectionProgrammaticPaginationTest {
+class ConnectionProgrammaticTypePoliciesPaginationTest {
   @Test
   fun memoryCache() {
     test(MemoryCacheFactory())
@@ -36,13 +38,14 @@ class ConnectionProgrammaticPaginationTest {
   }
 
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
-    val connectionTypes = setOf(UserConnection.type.name)
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
-        metadataGenerator = ConnectionMetadataGenerator(connectionTypes),
+        cacheKeyGenerator = IdCacheKeyGenerator(),
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        cacheResolver = IdCacheKeyResolver(),
         recordMerger = ConnectionRecordMerger,
-        fieldKeyGenerator = ConnectionFieldKeyGenerator(connectionTypes),
-        embeddedFieldsProvider = ConnectionEmbeddedFieldsProvider(connectionTypes),
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = ConnectionEmbeddedFieldsProvider(Cache.connectionTypes),
     )
     cacheManager.clearAll()
 
