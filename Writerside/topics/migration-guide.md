@@ -57,6 +57,23 @@ apollo {
 }
 ```
 
+<code-block lang="kotlin" collapsible="true" collapsed-title="For Apollo Kotlin v5+">
+// For Apollo Kotlin v5 and later
+apollo {
+  service("service") {
+    packageName.set("com.example")
+
+    // Add this
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
+  }
+}
+</code-block>
+
+> If you are already using an Apollo compiler plugin, make sure to update to Apollo Kotlin v5 or later, as this is required to use multiple plugins.
+
+{style="note"}
+
 In most cases, updating the coordinates/imports and adding the compiler plugin will be enough to migrate your project.
 But there were also a few renames and API breaking changes - read on for more details.
 
