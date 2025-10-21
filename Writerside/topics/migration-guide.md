@@ -273,6 +273,19 @@ For consistency, the `CacheKey` type is now used instead of `String` in more API
 - `Record.key`
 - `NormalizedCache.loadRecord()`
 
+## Directives
+
+The directives that you can use to configure the cache must be imported with the `@link` directive:
+
+```graphql
+# extra.graphqls
+extend schema
+@link(url: "https://specs.apollo.dev/kotlin_labs/v0.5")
+@link(url: "https://specs.apollo.dev/cache/v0.3", import: ["@typePolicy", "@fieldPolicy", "@connection", "@cacheControl", "@cacheControlField"])
+```
+Note that `@typePolicy` and `@fieldPolicy` exist both in `kotlin_labs` and `cache`, which is why the first `@link` is needed to "un-import" the `kotlin_labs` versions.
+In the future we intend to deprecate and then remove the `kotlin_labs` versions.
+
 ## Removed / deprecated APIs
 
 - `ApolloCacheHeaders.EVICT_AFTER_READ` is removed. Manually call `ApolloStore.remove()` when needed instead.
