@@ -261,10 +261,10 @@ fun FieldPolicyCacheResolver(
 ) = object : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
     val keyArgs = context.field.argumentValues(context.variables) { it.definition.isKey }
-    val keyArgsValues = keyArgs.values
-    if (keyArgsValues.isEmpty()) {
+    if (keyArgs.values.isEmpty()) {
       return DefaultCacheResolver.resolveField(context)
     }
+    val keyArgsValues = keyArgs.entries.sortedBy { it.key }.map { it.value }
     var type = context.field.type
     if (type is CompiledNotNullType) {
       type = type.ofType

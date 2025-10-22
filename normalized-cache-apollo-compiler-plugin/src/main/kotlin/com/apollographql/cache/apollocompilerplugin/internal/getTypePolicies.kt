@@ -7,9 +7,10 @@ import com.apollographql.apollo.ast.GQLTypeDefinition
 import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.Schema.Companion.TYPE_POLICY
 import com.apollographql.apollo.ast.SourceAwareException
+import java.util.SortedSet
 
 internal data class TypePolicy(
-    val keyFields: Set<String>,
+    val keyFields: SortedSet<String>,
     val embeddedFields: Set<String>,
 )
 
@@ -83,7 +84,7 @@ private fun Schema.validateAndComputeTypePolicy(
 
 private fun GQLDirective.toTypePolicy(): TypePolicy {
   return TypePolicy(
-      keyFields = extractFields("keyFields"),
+      keyFields = extractFields("keyFields").toSortedSet(),
       embeddedFields = extractFields("embeddedFields")
   )
 }

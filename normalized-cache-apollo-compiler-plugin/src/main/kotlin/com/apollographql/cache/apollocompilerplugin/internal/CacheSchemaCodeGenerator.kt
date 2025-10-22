@@ -147,7 +147,7 @@ internal class CacheSchemaCodeGenerator(
             withIndent {
               addStatement("keyFields = setOf(")
               withIndent {
-                typePolicy.keyFields.forEach { keyField ->
+                typePolicy.keyFields.sorted().forEach { keyField ->
                   addStatement("%S, ", keyField)
                 }
               }

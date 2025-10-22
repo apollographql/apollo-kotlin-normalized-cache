@@ -109,7 +109,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
     val parentTypeKeyFields = keyFields[parentType] ?: emptySet()
     newSelections.filterIsInstance<GQLField>().forEach {
       // Disallow fields whose alias conflicts with a key field, or is "__typename"
-      if (parentTypeKeyFields.contains(it.alias) || it.alias == "__typename") {
+      if (it.alias != null && (parentTypeKeyFields.contains(it.alias) || it.alias == "__typename")) {
         throw SourceAwareException(
             error = "Apollo: Field '${it.alias}: ${it.name}' in $parentType conflicts with key fields",
             sourceLocation = it.sourceLocation

@@ -58,12 +58,43 @@ class GetTypePoliciesTest {
         ).getOrThrow()
 
     val expected = mapOf(
-        "User" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Animal" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
-        "Lion" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
-        "HasId" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Circle" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Square" to TypePolicy(keyFields = setOf("radius"), embeddedFields = emptySet()),
+        "User" to TypePolicy(keyFields = sortedSetOf("id"), embeddedFields = emptySet()),
+        "Animal" to TypePolicy(keyFields = sortedSetOf("kingdom", "species"), embeddedFields = emptySet()),
+        "Lion" to TypePolicy(keyFields = sortedSetOf("kingdom", "species"), embeddedFields = emptySet()),
+        "HasId" to TypePolicy(keyFields = sortedSetOf("id"), embeddedFields = emptySet()),
+        "Circle" to TypePolicy(keyFields = sortedSetOf("id"), embeddedFields = emptySet()),
+        "Square" to TypePolicy(keyFields = sortedSetOf("radius"), embeddedFields = emptySet()),
+    )
+
+    assertEquals(expected, schema.getTypePolicies())
+  }
+
+  @Test
+  fun ensureTypePolicyKeyFieldsAreSorted() {
+    // language=GraphQL
+    val schema = """
+      type Query {
+        animal: Animal
+      }
+      
+      type Animal @typePolicy(keyFields: "kingdom species genus class domain") {
+        kingdom: String!
+        species: String!
+        genus: String!
+        domain: String!
+        class: String!
+      }
+    """.trimIndent()
+        .parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = emptyList()
+            )
+        ).getOrThrow()
+
+    val expected = mapOf(
+        "Animal" to TypePolicy(keyFields = sortedSetOf("class", "domain", "genus", "kingdom", "species"), embeddedFields = emptySet()),
     )
 
     assertEquals(expected, schema.getTypePolicies())
