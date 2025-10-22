@@ -11,7 +11,7 @@ Compared to the previous version, this library brings:
 - [Pagination support](pagination-home.md)
 - [](expiration.md) (a.k.a. Time to live)
 - [](garbage-collection.md), and [trimming](trimming.md)
-- Partial results from the cache
+- [Partial results from the cache](partial-cache-reads.md)
 - API simplifications
 - Key scope support
 - SQL cache improved performance

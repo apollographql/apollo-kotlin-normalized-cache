@@ -21,7 +21,7 @@ Compared to the previous version, this new normalized cache brings:
 - [Pagination support](https://apollographql.github.io/apollo-kotlin-normalized-cache/pagination-home.html)
 - [Expiration](https://apollographql.github.io/apollo-kotlin-normalized-cache/expiration.html) (a.k.a. Time to live)
 - [Garbage collection](https://apollographql.github.io/apollo-kotlin-normalized-cache/garbage-collection.html), and [trimming](https://apollographql.github.io/apollo-kotlin-normalized-cache/trimming.html)
-- Partial results from the cache
+- [Partial results from the cache](https://apollographql.github.io/apollo-kotlin-normalized-cache/partial-cache-reads.html)
 - API simplifications
 - Key scope support
 - SQL cache improved performance
