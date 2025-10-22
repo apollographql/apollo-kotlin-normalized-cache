@@ -2,6 +2,8 @@
 
 PUT_CHANGELOG_HERE
 
+- Database files are now stored in the `cache` directory by default on Android (#164)
+
 # v1.0.0-alpha.7
 _2025-10-14_
 
