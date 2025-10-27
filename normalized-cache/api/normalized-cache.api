@@ -448,8 +448,9 @@ public final class com/apollographql/cache/normalized/api/EmbeddedFields {
 }
 
 public final class com/apollographql/cache/normalized/api/EmbeddedFieldsContext {
-	public fun <init> (Lcom/apollographql/apollo/api/CompiledNamedType;Lcom/apollographql/apollo/api/CompiledField;)V
+	public fun <init> (Ljava/util/Map;Lcom/apollographql/apollo/api/CompiledNamedType;Lcom/apollographql/apollo/api/CompiledField;)V
 	public final fun getField ()Lcom/apollographql/apollo/api/CompiledField;
+	public final fun getObj ()Ljava/util/Map;
 	public final fun getParentType ()Lcom/apollographql/apollo/api/CompiledNamedType;
 }
 

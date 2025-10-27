@@ -209,10 +209,12 @@ final class com.apollographql.cache.normalized.api/DefaultEmbeddedFieldsProvider
 }
 
 final class com.apollographql.cache.normalized.api/EmbeddedFieldsContext { // com.apollographql.cache.normalized.api/EmbeddedFieldsContext|null[0]
-    constructor <init>(com.apollographql.apollo.api/CompiledNamedType, com.apollographql.apollo.api/CompiledField) // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.<init>|<init>(com.apollographql.apollo.api.CompiledNamedType;com.apollographql.apollo.api.CompiledField){}[0]
+    constructor <init>(kotlin.collections/Map<kotlin/String, kotlin/Any?>, com.apollographql.apollo.api/CompiledNamedType, com.apollographql.apollo.api/CompiledField) // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.<init>|<init>(kotlin.collections.Map<kotlin.String,kotlin.Any?>;com.apollographql.apollo.api.CompiledNamedType;com.apollographql.apollo.api.CompiledField){}[0]
 
     final val field // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.field|{}field[0]
         final fun <get-field>(): com.apollographql.apollo.api/CompiledField // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.field.<get-field>|<get-field>(){}[0]
+    final val obj // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.obj|{}obj[0]
+        final fun <get-obj>(): kotlin.collections/Map<kotlin/String, kotlin/Any?> // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.obj.<get-obj>|<get-obj>(){}[0]
     final val parentType // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.parentType|{}parentType[0]
         final fun <get-parentType>(): com.apollographql.apollo.api/CompiledNamedType // com.apollographql.cache.normalized.api/EmbeddedFieldsContext.parentType.<get-parentType>|<get-parentType>(){}[0]
 }
