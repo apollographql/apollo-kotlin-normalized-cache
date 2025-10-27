@@ -119,7 +119,7 @@ internal class Normalizer(
           fieldPath = newFieldPath,
           type_ = mergedField.type,
           path = base?.append(fieldKey) ?: CacheKey(fieldKey),
-          isEmbedded = embeddedFieldsProvider.isEmbedded(EmbeddedFieldsContext(parentType = parentType, field = mergedField)),
+          isEmbedded = embeddedFieldsProvider.isEmbedded(EmbeddedFieldsContext(obj = obj, parentType = parentType, field = mergedField)),
       )
       val maxAge = maxAgeProvider.getMaxAge(MaxAgeContext(newFieldPath.map { it.toMaxAgeField() }))
       if (maxAge == Duration.ZERO) {
@@ -184,7 +184,6 @@ internal class Normalizer(
    * @param value a json value from the response. Can be [com.apollographql.apollo.api.json.ApolloJsonElement] or [Error]
    * @param fieldPath the path to the field currently being normalized
    * @param type_ the type currently being normalized. It can be different from `field.type` for lists.
-   * @param embeddedFields the embedded fields of the parent
    */
   private fun replaceObjects(
       value: Any?,

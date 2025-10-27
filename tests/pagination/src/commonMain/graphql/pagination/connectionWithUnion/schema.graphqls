@@ -1,0 +1,38 @@
+type Query {
+  someField: SomeUnion
+}
+
+union SomeUnion = SomeType
+
+type SomeType {
+  users(first: Int = 10, after: String = null, last: Int = null, before: String = null): UserConnection
+}
+
+type Error {
+  code: Int!
+  message: String!
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge!]!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  admin: Boolean
+}

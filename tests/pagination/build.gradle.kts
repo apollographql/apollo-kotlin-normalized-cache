@@ -95,6 +95,15 @@ apollo {
       argument("com.apollographql.cache.packageName", packageName.get())
     }
   }
+  service("pagination.connectionWithUnion") {
+    packageName.set("pagination.connectionWithUnion")
+    srcDir("src/commonMain/graphql/pagination/connectionWithUnion")
+    generateDataBuilders.set(true)
+
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
+      argument("com.apollographql.cache.packageName", packageName.get())
+    }
+  }
   service("pagination.connectionWithNodes") {
     packageName.set("pagination.connectionWithNodes")
     srcDir("src/commonMain/graphql/pagination/connectionWithNodes")

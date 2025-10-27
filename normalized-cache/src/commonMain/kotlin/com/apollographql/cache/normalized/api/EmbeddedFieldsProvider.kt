@@ -17,10 +17,11 @@ interface EmbeddedFieldsProvider {
 }
 
 /**
- * A context passed to [EmbeddedFieldsProvider.getEmbeddedFields].
- * @see [EmbeddedFieldsProvider.getEmbeddedFields]
+ * A context passed to [EmbeddedFieldsProvider.isEmbedded].
+ * @see [EmbeddedFieldsProvider.isEmbedded]
  */
 class EmbeddedFieldsContext(
+    val obj: DataWithErrors,
     val parentType: CompiledNamedType,
     val field: CompiledField,
 )
@@ -30,13 +31,17 @@ object EmptyEmbeddedFieldsProvider : EmbeddedFieldsProvider {
 }
 
 /**
- * An [EmbeddedFieldsProvider] that returns the fields specified by the `@typePolicy(embeddedFields: "...")` directive.
+ * An [EmbeddedFieldsProvider] that returns the fields specified by the `@typePolicy(embeddedFields: "...")` and `@connection` directives.
  */
 class DefaultEmbeddedFieldsProvider(
     private val embeddedFields: Map<String, EmbeddedFields>,
 ) : EmbeddedFieldsProvider {
   override fun isEmbedded(context: EmbeddedFieldsContext): Boolean {
-    val embeddedFields = embeddedFields[context.parentType.rawType().name] ?: return false
+    // Try the server returned type first
+    val typeName = context.obj["__typename"]?.toString()
+    val embeddedFields = typeName?.let { embeddedFields[it] } ?:
+    // Fallback to the schema type
+    embeddedFields[context.parentType.rawType().name] ?: return false
     return context.field.name in embeddedFields.embeddedFields
   }
 }
