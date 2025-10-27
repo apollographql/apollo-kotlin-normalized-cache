@@ -8,7 +8,7 @@
 [![Slack](https://img.shields.io/static/v1?label=kotlinlang&message=apollo-kotlin&color=A97BFF&logo=slack&style=flat-square)](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.apollographql.cache/normalized-cache?style=flat-square)](https://central.sonatype.com/namespace/com.apollographql.cache)
-[![Snapshots](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fapollographql%2Fcache%2Fnormalized-cache%2Fmaven-metadata.xml&style=flat-square&label=snapshots&color=%2315252D&strategy=latestProperty)](https://central.sonatype.com/repository/maven-snapshots/com/apollographql/cache/)
+[![Snapshots](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fapollographql%2Fcache%2Fnormalized-cache%2Fmaven-metadata.xml&style=flat-square&label=snapshots&color=%2315252D&strategy=latestProperty)](https://central.sonatype.com/repository/maven-snapshots/com/apollographql/cache/normalized-cache/maven-metadata.xml)
 
 </div>
 
