@@ -91,7 +91,7 @@ fun KotlinMultiplatformExtension.configureKmp(
   }
   if (withAndroid) {
     androidTarget {
-      publishAllLibraryVariants()
+      publishLibraryVariants("release", "debug")
     }
   }
 

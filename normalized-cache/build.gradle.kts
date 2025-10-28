@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("org.jetbrains.kotlin.plugin.atomicfu")
+  id("org.jetbrains.kotlinx.atomicfu")
 }
 
 lib()
