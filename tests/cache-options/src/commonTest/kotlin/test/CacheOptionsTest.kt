@@ -435,6 +435,182 @@ class CacheOptionsTest {
   }
 
   @Test
+  fun listsWithNullMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsWithNull(memoryCacheManager)
+  }
+
+  @Test
+  fun listsWithNullSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsWithNull(sqlCacheManager)
+  }
+
+  @Test
+  fun listsWithNullMemoryThenSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    listsWithNull(memoryThenSqlCacheManager)
+  }
+
+  private suspend fun listsWithNull(cacheManager: CacheManager) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "users": [
+                {
+                  "__typename": "User",
+                  "id": "1",
+                  "firstName": "John",
+                  "lastName": "Smith",
+                  "email": "jsmith@example.com"
+                },
+                {
+                  "__typename": "User",
+                  "id": "2",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "email": "jdoe@example.com"
+                },
+                null
+              ]
+            }
+          }
+          """
+    )
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "users": [
+                {
+                  "__typename": "User",
+                  "id": "4",
+                  "firstName": "Kevin",
+                  "lastName": "Jones",
+                  "email": "kjones@example.com"
+                },
+                {
+                  "__typename": "User",
+                  "id": "5",
+                  "firstName": "Alice",
+                  "lastName": "Johnson",
+                  "email": "ajohnson@example.com"
+                },
+                null
+              ]
+            }
+          }
+          """
+    )
+
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cacheManager(cacheManager)
+        .build()
+        .use { apolloClient ->
+          val networkResult1 = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              networkResult1.data
+          )
+          assertNull(networkResult1.errors)
+
+          val networkResult2 = apolloClient.query(UsersQuery(listOf("4", "5", "6")))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertEquals(
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "4",
+                          firstName = "Kevin",
+                          lastName = "Jones",
+                          email = "kjones@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "5",
+                          firstName = "Alice",
+                          lastName = "Johnson",
+                          email = "ajohnson@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              networkResult2.data
+          )
+          assertNull(networkResult2.errors)
+
+
+          val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3", "4", "5", "6")))
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .serverErrorsAsCacheMisses(false)
+              .throwOnCacheMiss(false)
+              .execute()
+          assertEquals(
+              UsersQuery.Data(
+                  users = listOf(
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "1",
+                          firstName = "John",
+                          lastName = "Smith",
+                          email = "jsmith@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "2",
+                          firstName = "Jane",
+                          lastName = "Doe",
+                          email = "jdoe@example.com",
+                      ),
+                      null,
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "4",
+                          firstName = "Kevin",
+                          lastName = "Jones",
+                          email = "kjones@example.com",
+                      ),
+                      UsersQuery.User(
+                          __typename = "User",
+                          id = "5",
+                          firstName = "Alice",
+                          lastName = "Johnson",
+                          email = "ajohnson@example.com",
+                      ),
+                      null,
+                  )
+              ),
+              cacheResult.data,
+          )
+          assertNull(cacheResult.errors)
+        }
+  }
+
+
+  @Test
   fun listsFromDifferentFieldsMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
     listsFromDifferentFields(memoryCacheManager)
   }

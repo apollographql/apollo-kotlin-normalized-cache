@@ -133,6 +133,44 @@ fun ResolverContext.getFieldKey(): String {
 }
 
 /**
+ * Returns the items in list fields in the parent matching the given name and key argument, keyed by the key argument value.
+ *
+ * For example, if `parent` contains:
+ * ```
+ * someList({"ids": ["aaa", "bbb", "ccc"]}): [ a, b, c ]
+ * someList({"ids": ["ddd", "eee"], "someArg": 42}): [ d, e ]
+ * otherField1: "value"
+ * otherField2: 123
+ * ```
+ *
+ * and `field.name` is `someList`, calling `listItemsInParent(context, "ids")` will return:
+ * ```
+ * "aaa" to a
+ * "bbb" to b
+ * "ccc" to c
+ * "ddd" to d
+ * "eee" to e
+ * ```
+ *
+ * Note: this relies on the default format of the field keys as per [DefaultFieldKeyGenerator].
+ */
+fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
+  val keyPrefix = "${this.field.name}("
+  val filteredParent = this.parent.filterKeys { it.startsWith(keyPrefix) && it.contains("\"$keyArg\":") }
+  val items: Map<Any?, Any?> = filteredParent.map { (k, v) ->
+    val argumentsText = k.removePrefix(keyPrefix).removeSuffix(")")
+    val argumentsMap = Buffer().writeUtf8(argumentsText).jsonReader().buffer().root as Map<*, *>
+    val keyValues = argumentsMap[keyArg] as List<*>
+    keyValues.mapIndexed { index, id ->
+      id to (v as List<*>)[index]
+    }.toMap()
+  }.fold(emptyMap()) { acc, map ->
+    acc + map
+  }
+  return items
+}
+
+/**
  * A cache resolver that uses the parent to resolve fields.
  */
 object DefaultCacheResolver : CacheResolver {
@@ -275,8 +313,8 @@ fun FieldPolicyCacheResolver(
         // Only support single key argument which is a flat list
         if (keyArgsValues.size == 1) {
           val keyArgsValue = keyArgsValues.first() as? List<*>
-          if (keyArgsValue != null && keyArgsValue.firstOrNull() !is List<*>) {
-            val listItemsInParent: Map<Any?, Any?> = listItemsInParent(context, keyArgs.keys.first())
+          if (keyArgsValue != null) {
+            val listItemsInParent: Map<Any?, Any?> = context.listItemsInParent(keyArgs.keys.first())
             return keyArgsValue.mapIndexed { index, value ->
               if (listItemsInParent.containsKey(value)) {
                 listItemsInParent[value]?.let {
@@ -322,24 +360,5 @@ fun FieldPolicyCacheResolver(
       builder.path(path!!.toMutableList().apply { this[this.lastIndex] = index })
     }
     return builder.build()
-  }
-
-  private fun listItemsInParent(
-      context: ResolverContext,
-      keyArg: String,
-  ): Map<Any?, Any?> {
-    val keyPrefix = "${context.field.name}("
-    val filteredParent = context.parent.filterKeys { it.startsWith(keyPrefix) && it.contains("\"$keyArg\":") }
-    val items: Map<Any?, Any?> = filteredParent.map { (k, v) ->
-      val argumentsText = k.removePrefix(keyPrefix).removeSuffix(")")
-      val argumentsMap = Buffer().writeUtf8(argumentsText).jsonReader().buffer().root as Map<*, *>
-      val keyValues = argumentsMap[keyArg] as List<*>
-      keyValues.mapIndexed { index, id ->
-        id to (v as List<*>)[index]
-      }.toMap()
-    }.fold(emptyMap()) { acc, map ->
-      acc + map
-    }
-    return items
   }
 }

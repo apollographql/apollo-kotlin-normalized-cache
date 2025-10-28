@@ -383,6 +383,7 @@ public final class com/apollographql/cache/normalized/api/CacheResolverKt {
 	public static synthetic fun FieldPolicyCacheResolver$default (Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheResolver;
 	public static final fun getFieldKey (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/String;
 	public static final fun getFieldPolicyCacheResolver ()Lcom/apollographql/cache/normalized/api/CacheResolver;
+	public static final fun listItemsInParent (Lcom/apollographql/cache/normalized/api/ResolverContext;Ljava/lang/String;)Ljava/util/Map;
 }
 
 public final class com/apollographql/cache/normalized/api/ConnectionEmbeddedFieldsProvider : com/apollographql/cache/normalized/api/EmbeddedFieldsProvider {
