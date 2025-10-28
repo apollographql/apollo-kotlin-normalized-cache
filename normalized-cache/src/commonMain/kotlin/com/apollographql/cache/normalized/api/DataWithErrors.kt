@@ -47,13 +47,19 @@ internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?, ope
       dataWithErrors.withErrorAt(path, error)
     } catch (e: Exception) {
       // Could not inline error, log and ignore
-      val message = "Could not inline error at path $path with message \"${error.message}\" for operation '$operationName'"
-      apolloExceptionHandler(Exception(message, e))
+      apolloExceptionHandler(CannotInlineErrorException(errorPath = path, errorMessage = error.message, operationName = operationName, cause = e))
       dataWithErrors
     }
   }
   return dataWithErrors
 }
+
+class CannotInlineErrorException(
+    val errorPath: List<Any>,
+    val errorMessage: String,
+    val operationName: String,
+    override val cause: Exception,
+) : RuntimeException("Could not inline error at path $errorPath with message \"$errorMessage\" for operation '$operationName'", cause)
 
 
 @Suppress("UNCHECKED_CAST")

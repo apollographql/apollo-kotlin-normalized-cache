@@ -184,6 +184,19 @@ final class com.apollographql.cache.normalized.api/CacheKeyGeneratorContext { //
         final fun <get-variables>(): com.apollographql.apollo.api/Executable.Variables // com.apollographql.cache.normalized.api/CacheKeyGeneratorContext.variables.<get-variables>|<get-variables>(){}[0]
 }
 
+final class com.apollographql.cache.normalized.api/CannotInlineErrorException : kotlin/RuntimeException { // com.apollographql.cache.normalized.api/CannotInlineErrorException|null[0]
+    constructor <init>(kotlin.collections/List<kotlin/Any>, kotlin/String, kotlin/String, kotlin/Exception) // com.apollographql.cache.normalized.api/CannotInlineErrorException.<init>|<init>(kotlin.collections.List<kotlin.Any>;kotlin.String;kotlin.String;kotlin.Exception){}[0]
+
+    final val cause // com.apollographql.cache.normalized.api/CannotInlineErrorException.cause|{}cause[0]
+        final fun <get-cause>(): kotlin/Exception // com.apollographql.cache.normalized.api/CannotInlineErrorException.cause.<get-cause>|<get-cause>(){}[0]
+    final val errorMessage // com.apollographql.cache.normalized.api/CannotInlineErrorException.errorMessage|{}errorMessage[0]
+        final fun <get-errorMessage>(): kotlin/String // com.apollographql.cache.normalized.api/CannotInlineErrorException.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+    final val errorPath // com.apollographql.cache.normalized.api/CannotInlineErrorException.errorPath|{}errorPath[0]
+        final fun <get-errorPath>(): kotlin.collections/List<kotlin/Any> // com.apollographql.cache.normalized.api/CannotInlineErrorException.errorPath.<get-errorPath>|<get-errorPath>(){}[0]
+    final val operationName // com.apollographql.cache.normalized.api/CannotInlineErrorException.operationName|{}operationName[0]
+        final fun <get-operationName>(): kotlin/String // com.apollographql.cache.normalized.api/CannotInlineErrorException.operationName.<get-operationName>|<get-operationName>(){}[0]
+}
+
 final class com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider : com.apollographql.cache.normalized.api/EmbeddedFieldsProvider { // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider|null[0]
     constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/ConnectionEmbeddedFieldsProvider.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
 
