@@ -8,8 +8,10 @@ import com.apollographql.apollo.api.CompiledSelection
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.MapJsonWriter
+import com.apollographql.apollo.exception.apolloExceptionHandler
 
 /**
  * Encapsulates GraphQL data as a Map with inlined errors.
@@ -28,21 +30,31 @@ fun <D : Executable.Data> D.withErrors(
   val writer = MapJsonWriter()
   executable.adapter().toJson(writer, customScalarAdapters, this)
   @Suppress("UNCHECKED_CAST")
-  return (writer.root() as Map<String, ApolloJsonElement>).withErrors(errors)
+  return (writer.root() as Map<String, ApolloJsonElement>).withErrors(errors, operationName = (executable as? Operation)?.name()
+      ?: "Not an operation"
+  )
 }
 
 /**
  * Returns this data with the given [errors] inlined.
  */
-internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): DataWithErrors {
+internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?, operationName: String): DataWithErrors {
   if (errors == null || errors.isEmpty()) return this
   var dataWithErrors = this
   for (error in errors) {
     val path = error.path ?: continue
-    dataWithErrors = dataWithErrors.withErrorAt(path, error)
+    dataWithErrors = try {
+      dataWithErrors.withErrorAt(path, error)
+    } catch (e: Exception) {
+      // Could not inline error, log and ignore
+      val message = "Could not inline error at path $path with message \"${error.message}\" for operation '$operationName'"
+      apolloExceptionHandler(Exception(message, e))
+      dataWithErrors
+    }
   }
   return dataWithErrors
 }
+
 
 @Suppress("UNCHECKED_CAST")
 private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: Error): DataWithErrors {
