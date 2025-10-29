@@ -20,8 +20,11 @@ internal fun GQLDirective.extractFields(argumentName: String): List<String> {
   return (((arguments.singleOrNull { it.name == argumentName }?.value as? GQLStringValue)?.value ?: "")
       .parseAsGQLSelections().value?.map { gqlSelection ->
         if (gqlSelection !is GQLField) {
-          throw SourceAwareException("Apollo: $argumentName values should be field selections", sourceLocation)
+          throw SourceAwareException("Apollo: $argumentName values must be field selections", sourceLocation)
+        }
+        if (gqlSelection.selections.isNotEmpty()) {
+          throw SourceAwareException("Apollo: composite fields are not supported in $argumentName", sourceLocation)
         }
         gqlSelection.name
-      } ?: throw SourceAwareException("Apollo: $argumentName should be a selectionSet", sourceLocation))
+      } ?: throw SourceAwareException("Apollo: $argumentName must be a selectionSet", sourceLocation))
 }
