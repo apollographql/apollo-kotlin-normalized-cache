@@ -4,5 +4,5 @@ import kotlin.jvm.JvmInline
 
 @JvmInline
 value class EmbeddedFields(
-    val embeddedFields: Set<String>,
+    val embeddedFields: List<String>,
 )

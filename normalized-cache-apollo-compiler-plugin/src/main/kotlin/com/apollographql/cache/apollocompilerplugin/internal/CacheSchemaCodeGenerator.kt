@@ -145,7 +145,7 @@ internal class CacheSchemaCodeGenerator(
           typePolicies.forEach { (type, typePolicy) ->
             addStatement("%S to %T(", type, Symbols.TypePolicy)
             withIndent {
-              addStatement("keyFields = setOf(")
+              addStatement("keyFields = listOf(")
               withIndent {
                 typePolicy.keyFields.forEach { keyField ->
                   addStatement("%S, ", keyField)
@@ -201,7 +201,7 @@ internal class CacheSchemaCodeGenerator(
           embeddedFields.forEach { (type, embeddedField) ->
             addStatement("%S to %T(", type, Symbols.EmbeddedFields)
             withIndent {
-              addStatement("embeddedFields = setOf(")
+              addStatement("embeddedFields = listOf(")
               withIndent {
                 embeddedField.embeddedFields.forEach { embeddedField ->
                   addStatement("%S, ", embeddedField)

@@ -435,17 +435,17 @@ public final class com/apollographql/cache/normalized/api/DefaultRecordMerger : 
 }
 
 public final class com/apollographql/cache/normalized/api/EmbeddedFields {
-	public static final synthetic fun box-impl (Ljava/util/Set;)Lcom/apollographql/cache/normalized/api/EmbeddedFields;
-	public static fun constructor-impl (Ljava/util/Set;)Ljava/util/Set;
+	public static final synthetic fun box-impl (Ljava/util/List;)Lcom/apollographql/cache/normalized/api/EmbeddedFields;
+	public static fun constructor-impl (Ljava/util/List;)Ljava/util/List;
 	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Ljava/util/Set;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Ljava/util/Set;Ljava/util/Set;)Z
-	public final fun getEmbeddedFields ()Ljava/util/Set;
+	public static fun equals-impl (Ljava/util/List;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/List;Ljava/util/List;)Z
+	public final fun getEmbeddedFields ()Ljava/util/List;
 	public fun hashCode ()I
-	public static fun hashCode-impl (Ljava/util/Set;)I
+	public static fun hashCode-impl (Ljava/util/List;)I
 	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Ljava/util/Set;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Ljava/util/Set;
+	public static fun toString-impl (Ljava/util/List;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/List;
 }
 
 public final class com/apollographql/cache/normalized/api/EmbeddedFieldsContext {
@@ -699,17 +699,17 @@ public final class com/apollographql/cache/normalized/api/SchemaCoordinatesMaxAg
 }
 
 public final class com/apollographql/cache/normalized/api/TypePolicy {
-	public static final synthetic fun box-impl (Ljava/util/Set;)Lcom/apollographql/cache/normalized/api/TypePolicy;
-	public static fun constructor-impl (Ljava/util/Set;)Ljava/util/Set;
+	public static final synthetic fun box-impl (Ljava/util/List;)Lcom/apollographql/cache/normalized/api/TypePolicy;
+	public static fun constructor-impl (Ljava/util/List;)Ljava/util/List;
 	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Ljava/util/Set;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Ljava/util/Set;Ljava/util/Set;)Z
-	public final fun getKeyFields ()Ljava/util/Set;
+	public static fun equals-impl (Ljava/util/List;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/List;Ljava/util/List;)Z
+	public final fun getKeyFields ()Ljava/util/List;
 	public fun hashCode ()I
-	public static fun hashCode-impl (Ljava/util/Set;)I
+	public static fun hashCode-impl (Ljava/util/List;)I
 	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Ljava/util/Set;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Ljava/util/Set;
+	public static fun toString-impl (Ljava/util/List;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/List;
 }
 
 public final class com/apollographql/cache/normalized/internal/NormalizerKt {

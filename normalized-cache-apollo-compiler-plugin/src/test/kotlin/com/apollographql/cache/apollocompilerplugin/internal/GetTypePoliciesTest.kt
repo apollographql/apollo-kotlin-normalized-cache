@@ -1,4 +1,5 @@
 @file:OptIn(ApolloExperimental::class)
+@file:Suppress("ApolloMissingGraphQLDefinitionImport", "GraphQLUnresolvedReference")
 
 package com.apollographql.cache.apollocompilerplugin.internal
 
@@ -58,12 +59,12 @@ class GetTypePoliciesTest {
         ).getOrThrow()
 
     val expected = mapOf(
-        "User" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Animal" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
-        "Lion" to TypePolicy(keyFields = setOf("kingdom", "species"), embeddedFields = emptySet()),
-        "HasId" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Circle" to TypePolicy(keyFields = setOf("id"), embeddedFields = emptySet()),
-        "Square" to TypePolicy(keyFields = setOf("radius"), embeddedFields = emptySet()),
+        "User" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
+        "Animal" to TypePolicy(keyFields = listOf("kingdom", "species"), embeddedFields = emptyList()),
+        "Lion" to TypePolicy(keyFields = listOf("kingdom", "species"), embeddedFields = emptyList()),
+        "HasId" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
+        "Circle" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
+        "Square" to TypePolicy(keyFields = listOf("radius"), embeddedFields = emptyList()),
     )
 
     assertEquals(expected, schema.getTypePolicies())

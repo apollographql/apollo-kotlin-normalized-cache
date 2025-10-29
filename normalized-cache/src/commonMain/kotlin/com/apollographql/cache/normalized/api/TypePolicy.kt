@@ -4,5 +4,5 @@ import kotlin.jvm.JvmInline
 
 @JvmInline
 value class TypePolicy(
-    val keyFields: Set<String>,
+    val keyFields: List<String>,
 )

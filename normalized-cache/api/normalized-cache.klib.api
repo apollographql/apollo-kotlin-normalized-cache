@@ -541,10 +541,10 @@ final value class com.apollographql.cache.normalized.api/CacheKey { // com.apoll
 }
 
 final value class com.apollographql.cache.normalized.api/EmbeddedFields { // com.apollographql.cache.normalized.api/EmbeddedFields|null[0]
-    constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/EmbeddedFields.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
+    constructor <init>(kotlin.collections/List<kotlin/String>) // com.apollographql.cache.normalized.api/EmbeddedFields.<init>|<init>(kotlin.collections.List<kotlin.String>){}[0]
 
     final val embeddedFields // com.apollographql.cache.normalized.api/EmbeddedFields.embeddedFields|{}embeddedFields[0]
-        final fun <get-embeddedFields>(): kotlin.collections/Set<kotlin/String> // com.apollographql.cache.normalized.api/EmbeddedFields.embeddedFields.<get-embeddedFields>|<get-embeddedFields>(){}[0]
+        final fun <get-embeddedFields>(): kotlin.collections/List<kotlin/String> // com.apollographql.cache.normalized.api/EmbeddedFields.embeddedFields.<get-embeddedFields>|<get-embeddedFields>(){}[0]
 
     final fun equals(kotlin/Any?): kotlin/Boolean // com.apollographql.cache.normalized.api/EmbeddedFields.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // com.apollographql.cache.normalized.api/EmbeddedFields.hashCode|hashCode(){}[0]
@@ -552,10 +552,10 @@ final value class com.apollographql.cache.normalized.api/EmbeddedFields { // com
 }
 
 final value class com.apollographql.cache.normalized.api/TypePolicy { // com.apollographql.cache.normalized.api/TypePolicy|null[0]
-    constructor <init>(kotlin.collections/Set<kotlin/String>) // com.apollographql.cache.normalized.api/TypePolicy.<init>|<init>(kotlin.collections.Set<kotlin.String>){}[0]
+    constructor <init>(kotlin.collections/List<kotlin/String>) // com.apollographql.cache.normalized.api/TypePolicy.<init>|<init>(kotlin.collections.List<kotlin.String>){}[0]
 
     final val keyFields // com.apollographql.cache.normalized.api/TypePolicy.keyFields|{}keyFields[0]
-        final fun <get-keyFields>(): kotlin.collections/Set<kotlin/String> // com.apollographql.cache.normalized.api/TypePolicy.keyFields.<get-keyFields>|<get-keyFields>(){}[0]
+        final fun <get-keyFields>(): kotlin.collections/List<kotlin/String> // com.apollographql.cache.normalized.api/TypePolicy.keyFields.<get-keyFields>|<get-keyFields>(){}[0]
 
     final fun equals(kotlin/Any?): kotlin/Boolean // com.apollographql.cache.normalized.api/TypePolicy.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // com.apollographql.cache.normalized.api/TypePolicy.hashCode|hashCode(){}[0]

@@ -1,4 +1,5 @@
 @file:OptIn(ApolloExperimental::class)
+@file:Suppress("ApolloMissingGraphQLDefinitionImport", "GraphQLUnresolvedReference")
 
 package com.apollographql.cache.apollocompilerplugin.internal
 
@@ -71,7 +72,7 @@ class AddKeyFieldsExecutableDocumentTransformTest {
       interface HasID @typePolicy(keyFields: "id") {
         id: ID!
       }
-
+      
       interface User implements HasID {
         id: ID!
         name: String!

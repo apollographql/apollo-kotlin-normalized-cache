@@ -9,8 +9,8 @@ import com.apollographql.apollo.ast.Schema.Companion.TYPE_POLICY
 import com.apollographql.apollo.ast.SourceAwareException
 
 internal data class TypePolicy(
-    val keyFields: Set<String>,
-    val embeddedFields: Set<String>,
+    val keyFields: List<String>,
+    val embeddedFields: List<String>,
 )
 
 /**

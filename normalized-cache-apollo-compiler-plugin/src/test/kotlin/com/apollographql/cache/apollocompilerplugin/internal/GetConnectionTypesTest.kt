@@ -1,4 +1,5 @@
 @file:OptIn(ApolloExperimental::class)
+@file:Suppress("ApolloMissingGraphQLDefinitionImport", "GraphQLUnresolvedReference")
 
 package com.apollographql.cache.apollocompilerplugin.internal
 

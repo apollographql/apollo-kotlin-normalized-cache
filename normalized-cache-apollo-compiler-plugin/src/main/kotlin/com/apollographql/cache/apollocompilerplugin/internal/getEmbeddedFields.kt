@@ -6,7 +6,7 @@ import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.rawType
 
 internal data class EmbeddedFields(
-    val embeddedFields: Set<String>,
+    val embeddedFields: List<String>,
 )
 
 internal fun Schema.getEmbeddedFields(
@@ -14,20 +14,20 @@ internal fun Schema.getEmbeddedFields(
     connectionTypes: Set<String>,
 ): Map<String, EmbeddedFields> {
   // Fields manually specified as embedded
-  val embeddedFields: Map<String, Set<String>> = typePolicies
+  val embeddedFields: Map<String, List<String>> = typePolicies
       .filter { it.value.embeddedFields.isNotEmpty() }
       .mapValues { it.value.embeddedFields }
   // Fields that are of a connection type
-  val connectionFields: Map<String, Set<String>> = getConnectionFields(connectionTypes)
+  val connectionFields: Map<String, List<String>> = getConnectionFields(connectionTypes)
   // Specific Connection type fields
-  val connectionTypeFields: Map<String, Set<String>> = connectionTypes.associateWith { setOf("edges", "pageInfo") }
+  val connectionTypeFields: Map<String, List<String>> = connectionTypes.associateWith { listOf("edges", "pageInfo") }
   // Merge all
   return (embeddedFields.entries + connectionFields.entries + connectionTypeFields.entries)
       .groupBy({ it.key }, { it.value })
-      .mapValues { entry -> EmbeddedFields(entry.value.flatten().toSet()) }
+      .mapValues { entry -> EmbeddedFields(entry.value.flatten().distinct()) }
 }
 
-private fun Schema.getConnectionFields(connectionTypes: Set<String>): Map<String, Set<String>> {
+private fun Schema.getConnectionFields(connectionTypes: Set<String>): Map<String, List<String>> {
   return typeDefinitions.values
       .filter { it is GQLObjectTypeDefinition || it is GQLInterfaceTypeDefinition }
       .mapNotNull { typeDefinition ->
@@ -38,7 +38,7 @@ private fun Schema.getConnectionFields(connectionTypes: Set<String>): Map<String
           } else {
             null
           }
-        }.toSet()
+        }
         if (connectionFields.isNotEmpty()) {
           typeDefinition.name to connectionFields
         } else {

@@ -16,7 +16,7 @@ internal val GQLTypeDefinition.fields
     else -> emptyList()
   }
 
-internal fun GQLDirective.extractFields(argumentName: String): Set<String> {
+internal fun GQLDirective.extractFields(argumentName: String): List<String> {
   return (((arguments.singleOrNull { it.name == argumentName }?.value as? GQLStringValue)?.value ?: "")
       .parseAsGQLSelections().value?.map { gqlSelection ->
         if (gqlSelection !is GQLField) {
@@ -24,5 +24,4 @@ internal fun GQLDirective.extractFields(argumentName: String): Set<String> {
         }
         gqlSelection.name
       } ?: throw SourceAwareException("Apollo: $argumentName should be a selectionSet", sourceLocation))
-      .toSet()
 }

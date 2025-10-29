@@ -1,4 +1,5 @@
 @file:OptIn(ApolloExperimental::class)
+@file:Suppress("ApolloMissingGraphQLDefinitionImport", "GraphQLUnresolvedReference")
 
 package com.apollographql.cache.apollocompilerplugin.internal
 
@@ -16,6 +17,7 @@ import kotlin.test.fail
 class GetMaxAgesTest {
   @Test
   fun basic() {
+    // language=GraphQL
     val schemaText = """
       schema {
         query: Query
@@ -91,35 +93,36 @@ class GetMaxAgesTest {
 
   @Test
   fun validationErrors() {
+    // language=GraphQL
     val schemaText = """
       schema {
         query: Query
       }
-
+      
       extend schema @link(
         url: "https://specs.apollo.dev/cache/v0.3",
         import: ["@cacheControl", "@cacheControlField"]
       )
-
+      
       type Query {
         book: Book
         cachedBook: Book @cacheControl(maxAge: 60, inheritMaxAge: true)
         reader: Reader @cacheControl(maxAge: 40, inheritMaxAge: false)
       }
-
+      
       type Book @cacheControl(maxAge: 50, inheritMaxAge: true) {
         title: String
       }
-
+      
       type Reader @cacheControl(maxAge: 50, inheritMaxAge: false){
         book: Book
       }
-
+      
       type Publisher {
         id: ID!
         name: String!
       }
-
+      
       extend type Publisher
       @cacheControlField(name: "name", maxAge: 20, inheritMaxAge: true)
       @cacheControlField(name: "id", maxAge: 20, inheritMaxAge: false)

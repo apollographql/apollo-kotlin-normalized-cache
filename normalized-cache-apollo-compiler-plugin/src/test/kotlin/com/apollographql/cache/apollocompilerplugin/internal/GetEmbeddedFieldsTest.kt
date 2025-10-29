@@ -1,4 +1,5 @@
 @file:OptIn(ApolloExperimental::class)
+@file:Suppress("ApolloMissingGraphQLDefinitionImport", "GraphQLUnresolvedReference")
 
 package com.apollographql.cache.apollocompilerplugin.internal
 
@@ -72,9 +73,9 @@ class GetEmbeddedFieldsTest {
     val connectionTypes = schema.getConnectionTypes()
     val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
     val expected = mapOf(
-        "Query" to EmbeddedFields(setOf("users")),
-        "User" to EmbeddedFields(setOf("name", "email")),
-        "UserConnection" to EmbeddedFields(setOf("edges", "pageInfo")),
+        "Query" to EmbeddedFields(listOf("users")),
+        "User" to EmbeddedFields(listOf("name", "email")),
+        "UserConnection" to EmbeddedFields(listOf("edges", "pageInfo")),
     )
     assertEquals(expected, embeddedFields)
   }
@@ -102,9 +103,9 @@ class GetEmbeddedFieldsTest {
     val connectionTypes = schema.getConnectionTypes()
     val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
     val expected = mapOf(
-        "Query" to EmbeddedFields(setOf("users")),
-        "User" to EmbeddedFields(setOf("name", "email")),
-        "UserConnection" to EmbeddedFields(setOf("edges", "pageInfo")),
+        "Query" to EmbeddedFields(listOf("users")),
+        "User" to EmbeddedFields(listOf("name", "email")),
+        "UserConnection" to EmbeddedFields(listOf("edges", "pageInfo")),
     )
     assertEquals(expected, embeddedFields)
   }
