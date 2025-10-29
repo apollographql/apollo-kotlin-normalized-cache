@@ -203,16 +203,17 @@ object DefaultCacheResolver : CacheResolver {
  */
 class CacheControlCacheResolver(
     private val maxAgeProvider: MaxAgeProvider,
-    private val delegateResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
+    private val delegateResolver: CacheResolver,
 ) : CacheResolver {
   /**
    * Creates a new [CacheControlCacheResolver] with no max ages. Use this constructor if you want to consider only the expiration dates.
    */
   constructor(
-      delegateResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
+      maxAgeProvider: MaxAgeProvider,
+      fieldPolicies: Map<String, FieldPolicies>,
   ) : this(
-      maxAgeProvider = DefaultMaxAgeProvider,
-      delegateResolver = delegateResolver,
+      maxAgeProvider = maxAgeProvider,
+      delegateResolver = FieldPolicyCacheResolver(fieldPolicies = fieldPolicies, keyScope = CacheKey.Scope.TYPE),
   )
 
   override fun resolveField(context: ResolverContext): Any? {
@@ -271,19 +272,6 @@ class CacheControlCacheResolver(
 /**
  * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
  *
- * Note: this namespaces the ids with the **schema** type, will lead to cache misses for:
- * - unions
- * - interfaces that have a `@typePolicy` on subtypes.
- *
- * If the ids are unique across the whole service, use `FieldPolicyCacheResolver(keyScope = CacheKey.Scope.SERVICE)`. Otherwise there is
- * no way to resolve the cache key automatically for those cases.
- */
-@Deprecated("Use FieldPolicyCacheResolver(keyScope) instead")
-val FieldPolicyCacheResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE)
-
-/**
- * A cache resolver that uses `@fieldPolicy` directives to resolve fields and delegates to [DefaultCacheResolver] otherwise.
- *
  * Note: using a [CacheKey.Scope.TYPE] `keyScope` namespaces the ids with the **schema** type, which will lead to cache misses for:
  * - unions
  * - interfaces that have a `@typePolicy` on subtypes.
@@ -291,15 +279,20 @@ val FieldPolicyCacheResolver: CacheResolver = FieldPolicyCacheResolver(keyScope 
  * If the ids are unique across the whole service, use [CacheKey.Scope.SERVICE]. Otherwise there is no way to resolve the cache keys
  * automatically for those cases.
  *
+ * @param fieldPolicies the field policies where to look for key arguments
  * @param keyScope the scope of the computed cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the schema type name, or
  * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
  */
-fun FieldPolicyCacheResolver(
-    keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
-) = object : CacheResolver {
+class FieldPolicyCacheResolver(
+    private val fieldPolicies: Map<String, FieldPolicies>,
+    private val keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+) : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
-    val keyArgs = context.field.argumentValues(context.variables) { it.definition.isKey }
-    val keyArgsValues = keyArgs.values
+    val fieldPolicy =
+      fieldPolicies[context.parentType]?.fieldPolicies[context.field.name] ?: return DefaultCacheResolver.resolveField(context)
+    val keyArgsMap = context.field.argumentValues(context.variables) { it.definition.name in fieldPolicy.keyArgs }
+    // Keep the same order as defined in the field policy
+    val keyArgsValues = fieldPolicy.keyArgs.map { keyArgsMap[it] }
     if (keyArgsValues.isEmpty()) {
       return DefaultCacheResolver.resolveField(context)
     }
@@ -314,7 +307,7 @@ fun FieldPolicyCacheResolver(
         if (keyArgsValues.size == 1) {
           val keyArgsValue = keyArgsValues.first() as? List<*>
           if (keyArgsValue != null) {
-            val listItemsInParent: Map<Any?, Any?> = context.listItemsInParent(keyArgs.keys.first())
+            val listItemsInParent: Map<Any?, Any?> = context.listItemsInParent(fieldPolicy.keyArgs.first())
             return keyArgsValue.mapIndexed { index, value ->
               if (listItemsInParent.containsKey(value)) {
                 listItemsInParent[value]?.let {

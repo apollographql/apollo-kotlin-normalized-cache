@@ -10,7 +10,9 @@ import com.apollographql.apollo.interceptor.ApolloInterceptorChain
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.api.withErrors
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.errorsReplaceCachedValues
@@ -25,6 +27,7 @@ import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
 import kotlinx.coroutines.flow.Flow
 import okio.use
+import test.cache.Cache
 import test.fragment.UserFields
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -43,11 +46,14 @@ class StoreErrorsTest {
     mockServer.close()
   }
 
-  private val memoryCacheManager = CacheManager(MemoryCacheFactory())
+  private val memoryCacheManager =
+    CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
-  private val sqlCacheManager = CacheManager(SqlNormalizedCacheFactory())
+  private val sqlCacheManager =
+    CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
-  private val memoryThenSqlCacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  private val memoryThenSqlCacheManager =
+    CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
   @Test
   fun simpleMemory() = runTest(before = { setUp() }, after = { tearDown() }) {

@@ -29,7 +29,6 @@ import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
 import com.apollographql.cache.normalized.api.Record
-import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.api.append
 import com.apollographql.cache.normalized.api.toMaxAgeField
 import com.apollographql.cache.normalized.api.withErrors
@@ -281,16 +280,25 @@ internal class Normalizer(
  */
 fun <D : Executable.Data> D.normalized(
     executable: Executable<D>,
+    cacheKeyGenerator: CacheKeyGenerator,
     rootKey: CacheKey = CacheKey.QUERY_ROOT,
     customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
-    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
 ): Map<CacheKey, Record> {
   val dataWithErrors = this.withErrors(executable, null, customScalarAdapters)
-  return dataWithErrors.normalized(executable, rootKey, customScalarAdapters, cacheKeyGenerator, metadataGenerator, fieldKeyGenerator, embeddedFieldsProvider, maxAgeProvider)
+  return dataWithErrors.normalized(
+      executable = executable,
+      cacheKeyGenerator = cacheKeyGenerator,
+      rootKey = rootKey,
+      customScalarAdapters = customScalarAdapters,
+      metadataGenerator = metadataGenerator,
+      fieldKeyGenerator = fieldKeyGenerator,
+      embeddedFieldsProvider = embeddedFieldsProvider,
+      maxAgeProvider = maxAgeProvider,
+  )
 }
 
 /**
@@ -298,15 +306,28 @@ fun <D : Executable.Data> D.normalized(
  */
 fun <D : Executable.Data> DataWithErrors.normalized(
     executable: Executable<D>,
+    cacheKeyGenerator: CacheKeyGenerator,
     rootKey: CacheKey = CacheKey.QUERY_ROOT,
     customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
-    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
     maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
 ): Map<CacheKey, Record> {
   val variables = executable.variables(customScalarAdapters, withDefaultValues = true)
-  return Normalizer(variables, rootKey, cacheKeyGenerator, metadataGenerator, fieldKeyGenerator, embeddedFieldsProvider, maxAgeProvider)
-      .normalize(this, executable.rootField().selections, executable.rootField().type.rawType(), listOf(executable.rootField()))
+  return Normalizer(
+      variables = variables,
+      rootKey = rootKey,
+      cacheKeyGenerator = cacheKeyGenerator,
+      metadataGenerator = metadataGenerator,
+      fieldKeyGenerator = fieldKeyGenerator,
+      embeddedFieldsProvider = embeddedFieldsProvider,
+      maxAgeProvider = maxAgeProvider,
+  )
+      .normalize(
+          map = this,
+          selections = executable.rootField().selections,
+          parentType = executable.rootField().type.rawType(),
+          fieldPath = listOf(executable.rootField()),
+      )
 }

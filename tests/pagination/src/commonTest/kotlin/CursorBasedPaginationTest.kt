@@ -11,7 +11,9 @@ import com.apollographql.cache.normalized.api.ConnectionRecordMerger
 import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
@@ -47,9 +49,11 @@ class CursorBasedPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
         metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
         recordMerger = ConnectionRecordMerger,
-        fieldKeyGenerator = object : FieldKeyGenerator{
+        fieldKeyGenerator = object : FieldKeyGenerator {
           override fun getFieldKey(context: FieldKeyContext): String {
             return if (context.field.type.rawType().name == "UserConnection") {
               context.field.newBuilder()
@@ -65,7 +69,7 @@ class CursorBasedPaginationTest {
             }
           }
         },
-        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
     )
     cacheManager.clearAll()
 
@@ -375,9 +379,11 @@ class CursorBasedPaginationTest {
         .networkTransport(QueueTestNetworkTransport())
         .normalizedCache(
             normalizedCacheFactory = MemoryCacheFactory(),
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+            cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
             metadataGenerator = ConnectionMetadataGenerator(setOf("UserConnection")),
             recordMerger = ConnectionRecordMerger,
-            fieldKeyGenerator = object : FieldKeyGenerator{
+            fieldKeyGenerator = object : FieldKeyGenerator {
               override fun getFieldKey(context: FieldKeyContext): String {
                 return if (context.field.type.rawType().name == "UserConnection") {
                   context.field.newBuilder()
@@ -393,7 +399,7 @@ class CursorBasedPaginationTest {
                 }
               }
             },
-            embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
+            embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
         )
         .build()
 

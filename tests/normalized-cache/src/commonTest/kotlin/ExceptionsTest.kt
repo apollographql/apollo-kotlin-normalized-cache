@@ -3,6 +3,8 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.exception.ApolloHttpException
 import com.apollographql.apollo.exception.ApolloNetworkException
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.testing.runTest
@@ -136,7 +138,11 @@ class ExceptionsTest {
   fun v3ExceptionHandlingKeepsPartialDataWithCache() = runTest(before = { setUp() }, after = { tearDown() }) {
     mockServer.enqueueString(PARTIAL_DATA_RESPONSE.trimIndent())
     val errorClient = apolloClient.newBuilder()
-        .normalizedCache(MemoryCacheFactory(1024 * 1024))
+        .normalizedCache(
+            normalizedCacheFactory = MemoryCacheFactory(1024 * 1024),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = DefaultCacheResolver,
+        )
         .build()
     val response = errorClient.query(HeroAndFriendsNamesQuery(Episode.EMPIRE)).executeV3()
     assertNotNull(response.data)

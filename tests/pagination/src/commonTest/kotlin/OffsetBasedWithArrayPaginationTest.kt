@@ -5,14 +5,17 @@ import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.FieldRecordMerger
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.offsetBasedWithArray.UsersQuery
+import pagination.offsetBasedWithArray.cache.Cache
 import pagination.offsetBasedWithArray.type.buildUser
 import kotlin.math.max
 import kotlin.math.min
@@ -38,6 +41,8 @@ class OffsetBasedWithArrayPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
         metadataGenerator = OffsetPaginationMetadataGenerator("users"),
         recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger()),
         fieldKeyGenerator = object : FieldKeyGenerator{

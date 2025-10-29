@@ -15,6 +15,8 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -58,7 +60,13 @@ class DeferNormalizedCacheTest {
   private lateinit var cacheManager: CacheManager
 
   private suspend fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory(), enableOptimisticUpdates = true)
+    cacheManager =
+      CacheManager(
+          normalizedCacheFactory = MemoryCacheFactory(),
+          cacheKeyGenerator = DefaultCacheKeyGenerator,
+          cacheResolver = DefaultCacheResolver,
+          enableOptimisticUpdates = true,
+      )
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
   }
@@ -74,7 +82,7 @@ class DeferNormalizedCacheTest {
 
     // Cache is empty
     assertIs<CacheMissException>(
-        apolloClient.query(WithFragmentSpreadsQuery()).execute().exception
+        apolloClient.query(WithFragmentSpreadsQuery()).execute().exception,
     )
 
     // Fill the cache by doing a network only request
@@ -93,13 +101,18 @@ class DeferNormalizedCacheTest {
 
     // We get the last/fully formed data
     val cacheExpected = WithFragmentSpreadsQuery.Data(
-        listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-            ComputerFields.Screen("Screen", "640x480",
-                ScreenFields(false)
-            )
-        )
-        )
-        )
+        listOf(
+            WithFragmentSpreadsQuery.Computer(
+                "Computer", "Computer1",
+                ComputerFields(
+                    "386", 1993,
+                    ComputerFields.Screen(
+                        "Screen", "640x480",
+                        ScreenFields(false),
+                    ),
+                ),
+            ),
+        ),
     )
     assertEquals(cacheExpected, cacheActual)
   }
@@ -125,23 +138,32 @@ class DeferNormalizedCacheTest {
 
     val networkExpected = listOf(
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
+            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen("Screen", "640x480", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480",
-                    ScreenFields(false)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen(
+                            "Screen", "640x480",
+                            ScreenFields(false),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
     assertEquals(networkExpected, networkActual)
@@ -166,23 +188,32 @@ class DeferNormalizedCacheTest {
 
     val networkExpected = listOf(
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
+            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen("Screen", "640x480", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480",
-                    ScreenFields(false)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen(
+                            "Screen", "640x480",
+                            ScreenFields(false),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
     assertEquals(networkExpected, networkActual)
@@ -213,23 +244,32 @@ class DeferNormalizedCacheTest {
 
     val networkExpected = listOf(
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
+            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen("Screen", "640x480", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480",
-                    ScreenFields(false)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen(
+                            "Screen", "640x480",
+                            ScreenFields(false),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
     assertEquals(networkExpected, networkActual)
@@ -262,23 +302,32 @@ class DeferNormalizedCacheTest {
 
     val networkExpected = listOf(
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
+            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen("Screen", "640x480", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480",
-                    ScreenFields(false)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen(
+                            "Screen", "640x480",
+                            ScreenFields(false),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
     assertEquals(networkExpected, networkActual)
@@ -299,23 +348,32 @@ class DeferNormalizedCacheTest {
         networkExpected.last(),
 
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer2", null))
+            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer2", null)),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer2", ComputerFields("486", 1996,
-                ComputerFields.Screen("Screen", "800x600", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer2",
+                    ComputerFields(
+                        "486", 1996,
+                        ComputerFields.Screen("Screen", "800x600", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer2", ComputerFields("486", 1996,
-                ComputerFields.Screen("Screen", "800x600",
-                    ScreenFields(true)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsQuery.Computer(
+                    "Computer", "Computer2",
+                    ComputerFields(
+                        "486", 1996,
+                        ComputerFields.Screen(
+                            "Screen", "800x600",
+                            ScreenFields(true),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
 
@@ -344,21 +402,27 @@ class DeferNormalizedCacheTest {
         ApolloResponse.Builder(
             query,
             uuid,
-        ).data(WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
-        )
+        ).data(
+            WithFragmentSpreadsQuery.Data(
+                listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
+            ),
         ).build(),
 
         ApolloResponse.Builder(
             query,
             uuid,
-        ).data(WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
-        )
+        ).data(
+            WithFragmentSpreadsQuery.Data(
+                listOf(
+                    WithFragmentSpreadsQuery.Computer(
+                        "Computer", "Computer1",
+                        ComputerFields(
+                            "386", 1993,
+                            ComputerFields.Screen("Screen", "640x480", null),
+                        ),
+                    ),
+                ),
+            ),
         ).build(),
 
         ApolloResponse.Builder(
@@ -367,20 +431,24 @@ class DeferNormalizedCacheTest {
         )
             .data(
                 WithFragmentSpreadsQuery.Data(
-                    listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                        ComputerFields.Screen("Screen", "640x480", null)
-                    )
-                    )
-                    )
-                )
+                    listOf(
+                        WithFragmentSpreadsQuery.Computer(
+                            "Computer", "Computer1",
+                            ComputerFields(
+                                "386", 1993,
+                                ComputerFields.Screen("Screen", "640x480", null),
+                            ),
+                        ),
+                    ),
+                ),
             )
             .errors(
                 listOf(
                     Error.Builder(message = "Cannot resolve isColor")
                         .locations(listOf(Error.Location(1, 119)))
                         .path(listOf("computers", 0, "screen", "isColor"))
-                        .build()
-                )
+                        .build(),
+                ),
             )
             .build(),
     )
@@ -403,21 +471,27 @@ class DeferNormalizedCacheTest {
         ApolloResponse.Builder(
             query,
             uuid,
-        ).data(WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null))
-        )
+        ).data(
+            WithFragmentSpreadsQuery.Data(
+                listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", null)),
+            ),
         ).build(),
 
         ApolloResponse.Builder(
             query,
             uuid,
-        ).data(WithFragmentSpreadsQuery.Data(
-            listOf(WithFragmentSpreadsQuery.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
-        )
+        ).data(
+            WithFragmentSpreadsQuery.Data(
+                listOf(
+                    WithFragmentSpreadsQuery.Computer(
+                        "Computer", "Computer1",
+                        ComputerFields(
+                            "386", 1993,
+                            ComputerFields.Screen("Screen", "640x480", null),
+                        ),
+                    ),
+                ),
+            ),
         ).build(),
     )
 
@@ -434,16 +508,17 @@ class DeferNormalizedCacheTest {
                     emit(networkResponse as ApolloResponse<D>)
                   }
                   delay(10)
-                  emit(ApolloResponse.Builder(requestUuid = uuid, operation = query)
-                      .exception(ApolloNetworkException("Network error"))
-                      .isLast(true)
-                      .build() as ApolloResponse<D>
+                  emit(
+                      ApolloResponse.Builder(requestUuid = uuid, operation = query)
+                          .exception(ApolloNetworkException("Network error"))
+                          .isLast(true)
+                          .build() as ApolloResponse<D>,
                   )
                 }
               }
 
               override fun dispose() {}
-            }
+            },
         )
         .build()
 
@@ -475,23 +550,32 @@ class DeferNormalizedCacheTest {
 
     val networkExpected = listOf(
         WithFragmentSpreadsMutation.Data(
-            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", null))
+            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", null)),
         ),
         WithFragmentSpreadsMutation.Data(
-            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480", null)
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsMutation.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen("Screen", "640x480", null),
+                    ),
+                ),
+            ),
         ),
         WithFragmentSpreadsMutation.Data(
-            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", ComputerFields("386", 1993,
-                ComputerFields.Screen("Screen", "640x480",
-                    ScreenFields(false)
-                )
-            )
-            )
-            )
+            listOf(
+                WithFragmentSpreadsMutation.Computer(
+                    "Computer", "Computer1",
+                    ComputerFields(
+                        "386", 1993,
+                        ComputerFields.Screen(
+                            "Screen", "640x480",
+                            ScreenFields(false),
+                        ),
+                    ),
+                ),
+            ),
         ),
     )
     assertEquals(networkExpected, networkActual)
@@ -501,10 +585,12 @@ class DeferNormalizedCacheTest {
 
     println(cacheActual)
     // We get the last/fully formed data
-    val cacheExpected = ComputerFields("386", 1993,
-        ComputerFields.Screen("Screen", "640x480",
-            ScreenFields(false)
-        )
+    val cacheExpected = ComputerFields(
+        "386", 1993,
+        ComputerFields.Screen(
+            "Screen", "640x480",
+            ScreenFields(false),
+        ),
     )
     assertEquals(cacheExpected, cacheActual)
   }
@@ -519,8 +605,8 @@ class DeferNormalizedCacheTest {
     mockServer.enqueueMultipart("application/json").enqueueStrings(jsonList)
     val responses = apolloClient.mutation(WithFragmentSpreadsMutation()).optimisticUpdates(
         WithFragmentSpreadsMutation.Data(
-            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", null))
-        )
+            listOf(WithFragmentSpreadsMutation.Computer("Computer", "Computer1", null)),
+        ),
     ).toFlow()
 
     val exception = assertFailsWith<ApolloException> {

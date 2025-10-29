@@ -6,11 +6,14 @@ import com.apollographql.cache.normalized.api.ConnectionEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.connectionProgrammaticConnections.UsersQuery
+import pagination.connectionProgrammaticConnections.cache.Cache
 import pagination.connectionProgrammaticConnections.type.UserConnection
 import pagination.connectionProgrammaticConnections.type.buildPageInfo
 import pagination.connectionProgrammaticConnections.type.buildUser
@@ -39,6 +42,8 @@ class ConnectionProgrammaticConnectionsPaginationTest {
     val connectionTypes = setOf(UserConnection.type.name)
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
         metadataGenerator = ConnectionMetadataGenerator(connectionTypes),
         recordMerger = ConnectionRecordMerger,
         fieldKeyGenerator = ConnectionFieldKeyGenerator(connectionTypes),

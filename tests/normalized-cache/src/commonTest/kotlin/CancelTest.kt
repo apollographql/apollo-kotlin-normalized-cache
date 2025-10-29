@@ -2,6 +2,8 @@ package test
 
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
@@ -44,7 +46,11 @@ class CancelTest {
   @Test
   fun canCancelQueryCacheAndNetwork() = runTest(before = { setUp() }, after = { tearDown() }) {
     mockServer.enqueueString(EpisodeHeroNameResponse, 500)
-    val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).normalizedCache(MemoryCacheFactory()).build()
+    val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).normalizedCache(
+        normalizedCacheFactory = MemoryCacheFactory(),
+        cacheKeyGenerator = DefaultCacheKeyGenerator,
+        cacheResolver = DefaultCacheResolver,
+    ).build()
 
     val job = launch {
       apolloClient.query(EpisodeHeroNameQuery(Episode.EMPIRE)).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlow().toList()

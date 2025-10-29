@@ -11,6 +11,8 @@ import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.CacheKeyResolver
 import com.apollographql.cache.normalized.api.CacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
@@ -39,13 +41,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal object IdBasedCacheKeyResolver : CacheResolver, CacheKeyGenerator {
-
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext) =
     obj["id"]?.toString()?.let(::CacheKey)
-        ?: @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator.cacheKeyForObject(obj, context)
+        ?: TypePolicyCacheKeyGenerator(typePolicies = Cache.typePolicies, keyScope = CacheKey.Scope.TYPE).cacheKeyForObject(obj, context)
 
   override fun resolveField(context: ResolverContext): Any? {
-    return FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE).resolveField(context)
+    return FieldPolicyCacheResolver(fieldPolicies = Cache.fieldPolicies, keyScope = CacheKey.Scope.TYPE).resolveField(context)
   }
 }
 
@@ -125,7 +126,7 @@ class NormalizationTest {
     val mockserver = MockServer()
     val apolloClient = ApolloClient.Builder()
         .serverUrl(mockserver.url())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
         .build()
 
     mockserver.enqueueString("""
@@ -245,10 +246,10 @@ class NormalizationTest {
                       )
                     }
 
-                    return FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE).resolveField(context)
+                    return FieldPolicyCacheResolver(Cache.fieldPolicies, keyScope = CacheKey.Scope.TYPE).resolveField(context)
                   }
-                }
-            )
+                },
+            ),
         )
         .build()
 

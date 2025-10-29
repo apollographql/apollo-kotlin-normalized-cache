@@ -3,6 +3,8 @@ package test
 import cache.include.GetUserQuery
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -15,7 +17,7 @@ class IncludeTest {
   @Test
   fun simple() = runTest {
     val client = ApolloClient.Builder()
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), DefaultCacheKeyGenerator, DefaultCacheResolver)
         .serverUrl("https://unused.com")
         .build()
 

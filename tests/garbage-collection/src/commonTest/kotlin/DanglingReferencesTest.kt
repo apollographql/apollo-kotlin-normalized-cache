@@ -5,6 +5,8 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.allRecords
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -18,6 +20,7 @@ import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
 import kotlinx.coroutines.test.TestResult
 import okio.use
+import test.cache.Cache
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -25,14 +28,16 @@ import kotlin.test.assertTrue
 
 class DanglingReferencesTest {
   @Test
-  fun simpleMemory() = simple(CacheManager(MemoryCacheFactory()))
+  fun simpleMemory() =
+    simple(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun simpleSql() = simple(CacheManager(SqlNormalizedCacheFactory()))
+  fun simpleSql() =
+    simple(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
   fun simpleChained(): TestResult {
-    return simple(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+    return simple(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
   }
 
   private fun simple(cacheManager: CacheManager) = runTest {
@@ -68,13 +73,16 @@ class DanglingReferencesTest {
   }
 
   @Test
-  fun multipleMemory() = multiple(CacheManager(MemoryCacheFactory()))
+  fun multipleMemory() =
+    multiple(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun multipleSql() = multiple(CacheManager(SqlNormalizedCacheFactory()))
+  fun multipleSql() =
+    multiple(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun multipleChained() = multiple(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+  fun multipleChained() =
+    multiple(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun multiple(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()

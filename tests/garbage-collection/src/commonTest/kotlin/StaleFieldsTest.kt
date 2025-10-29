@@ -8,8 +8,10 @@ import com.apollographql.cache.normalized.allRecords
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheManager
@@ -33,14 +35,16 @@ import kotlin.time.Duration.Companion.seconds
 
 class StaleFieldsTest {
   @Test
-  fun clientControlledRemoveFieldsMemory() = clientControlledRemoveFields(CacheManager(MemoryCacheFactory()))
+  fun clientControlledRemoveFieldsMemory() =
+    clientControlledRemoveFields(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun clientControlledRemoveFieldsSql() = clientControlledRemoveFields(CacheManager(SqlNormalizedCacheFactory()))
+  fun clientControlledRemoveFieldsSql() =
+    clientControlledRemoveFields(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
   fun clientControlledRemoveFieldsChained() =
-    clientControlledRemoveFields(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+    clientControlledRemoveFields(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun clientControlledRemoveFields(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()
@@ -110,14 +114,16 @@ class StaleFieldsTest {
   }
 
   @Test
-  fun clientControlledRemoveRecordsMemory() = clientControlledRemoveRecords(CacheManager(MemoryCacheFactory()))
+  fun clientControlledRemoveRecordsMemory() =
+    clientControlledRemoveRecords(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun clientControlledRemoveRecordsSql() = clientControlledRemoveRecords(CacheManager(SqlNormalizedCacheFactory()))
+  fun clientControlledRemoveRecordsSql() =
+    clientControlledRemoveRecords(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
   fun clientControlledRemoveRecordsChained() =
-    clientControlledRemoveRecords(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+    clientControlledRemoveRecords(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun clientControlledRemoveRecords(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()
@@ -188,14 +194,16 @@ class StaleFieldsTest {
   }
 
   @Test
-  fun serverControlledRemoveFieldsMemory() = serverControlledRemoveFields(CacheManager(MemoryCacheFactory()))
+  fun serverControlledRemoveFieldsMemory() =
+    serverControlledRemoveFields(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun serverControlledRemoveFieldsSql() = serverControlledRemoveFields(CacheManager(SqlNormalizedCacheFactory()))
+  fun serverControlledRemoveFieldsSql() =
+    serverControlledRemoveFields(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
   fun serverControlledRemoveFieldsChained() =
-    serverControlledRemoveFields(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+    serverControlledRemoveFields(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun serverControlledRemoveFields(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()

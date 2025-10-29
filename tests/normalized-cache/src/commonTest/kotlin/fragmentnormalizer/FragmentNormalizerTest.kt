@@ -2,6 +2,8 @@ package test.fragmentnormalizer
 
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.internal.normalized
@@ -22,7 +24,7 @@ class FragmentNormalizerTest {
 
     val apolloClient = ApolloClient.Builder()
         .serverUrl("https:/example.com")
-        .normalizedCache(cacheFactory)
+        .normalizedCache(cacheFactory, cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
         .build()
 
     var fragment1 = ConversationFragment(

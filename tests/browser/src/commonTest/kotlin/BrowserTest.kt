@@ -4,6 +4,8 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.normalizedCache
@@ -23,7 +25,8 @@ class BrowserTest {
         .networkTransport(QueueTestNetworkTransport())
         .normalizedCache(
             normalizedCacheFactory = SqlNormalizedCacheFactory(),
-            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies)
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies, CacheKey.Scope.TYPE),
+            cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies, CacheKey.Scope.TYPE),
         )
         .build()
         .use { apolloClient ->

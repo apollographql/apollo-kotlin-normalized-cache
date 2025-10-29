@@ -6,6 +6,8 @@ import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
@@ -95,7 +97,7 @@ class ThreadTests {
     }
 
     val apolloClient = ApolloClient.Builder()
-        .normalizedCache(MyMemoryCacheFactory(currentThreadId()))
+        .normalizedCache(MyMemoryCacheFactory(currentThreadId()), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
         .networkTransport(QueueTestNetworkTransport())
         .build()
 

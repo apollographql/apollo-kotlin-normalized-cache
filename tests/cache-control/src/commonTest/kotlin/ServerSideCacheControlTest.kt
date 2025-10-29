@@ -5,6 +5,9 @@ import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
+import com.apollographql.cache.normalized.api.DefaultMaxAgeProvider
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchPolicy
@@ -43,7 +46,8 @@ class ServerSideCacheControlTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
-            cacheResolver = CacheControlCacheResolver(),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = CacheControlCacheResolver(DefaultMaxAgeProvider, DefaultCacheResolver),
         )
         .storeExpirationDate(true)
         .serverUrl(mockServer.url())

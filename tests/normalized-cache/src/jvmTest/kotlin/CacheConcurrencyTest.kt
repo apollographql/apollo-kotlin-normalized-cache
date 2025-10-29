@@ -4,6 +4,8 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
+import com.apollographql.cache.normalized.api.IdCacheKeyResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
@@ -18,7 +20,8 @@ class CacheConcurrencyTest {
 
   @Test
   fun storeConcurrently() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory(maxSizeBytes = 1000))
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(maxSizeBytes = 1000), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver())
     val executor = Executors.newFixedThreadPool(10)
     val dispatcher = executor.asCoroutineDispatcher()
 

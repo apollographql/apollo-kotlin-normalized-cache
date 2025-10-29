@@ -13,6 +13,8 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.doNotStore
@@ -32,7 +34,11 @@ class CacheFlagsTest {
   private lateinit var cacheManager: CacheManager
 
   private fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory())
+    cacheManager = CacheManager(
+        normalizedCacheFactory = MemoryCacheFactory(),
+        cacheKeyGenerator = DefaultCacheKeyGenerator,
+        cacheResolver = DefaultCacheResolver,
+    )
     apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
   }
 
@@ -46,7 +52,7 @@ class CacheFlagsTest {
 
     // Since the previous request was not stored, this should fail
     assertIs<CacheMissException>(
-        apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().exception
+        apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().exception,
     )
   }
 
@@ -54,7 +60,7 @@ class CacheFlagsTest {
   private val partialResponseErrors = listOf(
       Error.Builder(message = "An error Happened")
           .locations(listOf(Error.Location(0, 0)))
-          .build()
+          .build(),
   )
 
   @Test
@@ -75,30 +81,32 @@ class CacheFlagsTest {
     val query = HeroNameQuery()
     val data = HeroNameQuery.Data(HeroNameQuery.Hero(__typename = "Droid", name = "R2-D2"))
 
-    cacheManager = CacheManager(MemoryCacheFactory())
+    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
     val queueTestNetworkTransport = QueueTestNetworkTransport()
     apolloClient = ApolloClient.Builder()
         .cacheManager(cacheManager)
-        .networkTransport(object : NetworkTransport {
-          val delegate = queueTestNetworkTransport
-          override fun <D : Operation.Data> execute(request: ApolloRequest<D>): Flow<ApolloResponse<D>> {
-            return delegate.execute(request).map { response ->
-              // Parse data, errors or anything else and decide whether to store the response or not
-              response.newBuilder().cacheHeaders(CacheHeaders.Builder().addHeader(ApolloCacheHeaders.DO_NOT_STORE, "").build()).build()
-            }
-          }
+        .networkTransport(
+            object : NetworkTransport {
+              val delegate = queueTestNetworkTransport
+              override fun <D : Operation.Data> execute(request: ApolloRequest<D>): Flow<ApolloResponse<D>> {
+                return delegate.execute(request).map { response ->
+                  // Parse data, errors or anything else and decide whether to store the response or not
+                  response.newBuilder().cacheHeaders(CacheHeaders.Builder().addHeader(ApolloCacheHeaders.DO_NOT_STORE, "").build()).build()
+                }
+              }
 
-          override fun dispose() {
-          }
+              override fun dispose() {
+              }
 
-        })
+            },
+        )
         .build()
     queueTestNetworkTransport.enqueue(ApolloResponse.Builder(query, uuid4()).data(data).build())
 
     apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst).execute()
     // Since the previous request was not stored, this should fail
     assertIs<CacheMissException>(
-        apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().exception
+        apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute().exception,
     )
   }
 }

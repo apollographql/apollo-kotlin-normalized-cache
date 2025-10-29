@@ -8,6 +8,8 @@ import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.toList
 import okio.use
+import test.cache.Cache
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -41,11 +44,26 @@ class CacheOptionsTest {
     mockServer.close()
   }
 
-  private val memoryCacheManager = CacheManager(MemoryCacheFactory())
+  private val memoryCacheManager =
+    CacheManager(
+        normalizedCacheFactory = MemoryCacheFactory(),
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+    )
 
-  private val sqlCacheManager = CacheManager(SqlNormalizedCacheFactory())
+  private val sqlCacheManager =
+    CacheManager(
+        normalizedCacheFactory = SqlNormalizedCacheFactory(),
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+    )
 
-  private val memoryThenSqlCacheManager = CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  private val memoryThenSqlCacheManager =
+    CacheManager(
+        normalizedCacheFactory = MemoryCacheFactory().chain(SqlNormalizedCacheFactory()),
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+    )
 
   @Test
   fun simpleMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
@@ -83,7 +101,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -100,16 +118,16 @@ class CacheOptionsTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = null
-                  )
+                      nickName = null,
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(MeWithNickNameQuery())
@@ -117,11 +135,11 @@ class CacheOptionsTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -156,7 +174,7 @@ class CacheOptionsTest {
               }
             }
           }
-          """
+          """,
     )
     mockServer.enqueueString(
         // language=JSON
@@ -172,7 +190,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -190,9 +208,9 @@ class CacheOptionsTest {
                       firstName = "John",
                       lastName = "Smith",
                       email = "jdoe@example.com",
-                  )
+                  ),
               ),
-              networkResult1.data
+              networkResult1.data,
           )
           assertNull(networkResult1.errors)
 
@@ -201,15 +219,15 @@ class CacheOptionsTest {
               .execute()
           assertEquals(
               UserByCategoryQuery.Data(
-                  user = null
+                  user = null,
               ),
-              networkResult2.data
+              networkResult2.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("'User' can't be reached").path(listOf("user")).build()
+                  Error.Builder("'User' can't be reached").path(listOf("user")).build(),
               ),
-              networkResult2.errors
+              networkResult2.errors,
           )
 
           val cacheResult = apolloClient.query(UserByCategoryQuery(Category(1, "test2")))
@@ -219,11 +237,11 @@ class CacheOptionsTest {
               .execute()
           assertEquals(
               networkResult2.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult2.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -275,7 +293,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
     mockServer.enqueueString(
         // language=JSON
@@ -307,7 +325,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
 
     ApolloClient.Builder()
@@ -336,15 +354,15 @@ class CacheOptionsTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult1.data
+              networkResult1.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("User `3` not found").path(listOf("users", 2)).build()
+                  Error.Builder("User `3` not found").path(listOf("users", 2)).build(),
               ),
-              networkResult1.errors
+              networkResult1.errors,
           )
 
           val networkResult2 = apolloClient.query(UsersQuery(listOf("4", "5", "6")))
@@ -368,15 +386,15 @@ class CacheOptionsTest {
                           email = "ajohnson@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult2.data
+              networkResult2.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("User `6` not found").path(listOf("users", 2)).build()
+                  Error.Builder("User `6` not found").path(listOf("users", 2)).build(),
               ),
-              networkResult2.errors
+              networkResult2.errors,
           )
 
 
@@ -419,7 +437,7 @@ class CacheOptionsTest {
                       ),
                       null,
                       null,
-                  )
+                  ),
               ),
               cacheResult.data,
           )
@@ -474,7 +492,7 @@ class CacheOptionsTest {
               ]
             }
           }
-          """
+          """,
     )
     mockServer.enqueueString(
         // language=JSON
@@ -500,7 +518,7 @@ class CacheOptionsTest {
               ]
             }
           }
-          """
+          """,
     )
 
     ApolloClient.Builder()
@@ -529,9 +547,9 @@ class CacheOptionsTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult1.data
+              networkResult1.data,
           )
           assertNull(networkResult1.errors)
 
@@ -556,9 +574,9 @@ class CacheOptionsTest {
                           email = "ajohnson@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult2.data
+              networkResult2.data,
           )
           assertNull(networkResult2.errors)
 
@@ -601,7 +619,7 @@ class CacheOptionsTest {
                           email = "ajohnson@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
               cacheResult.data,
           )
@@ -656,7 +674,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
 
     ApolloClient.Builder()
@@ -685,15 +703,15 @@ class CacheOptionsTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult1.data
+              networkResult1.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("User `3` not found").path(listOf("allUsers", 2)).build()
+                  Error.Builder("User `3` not found").path(listOf("allUsers", 2)).build(),
               ),
-              networkResult1.errors
+              networkResult1.errors,
           )
 
           val cacheResult1 = apolloClient.query(AllUsersQuery())
@@ -719,7 +737,7 @@ class CacheOptionsTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
               cacheResult1.data,
           )
@@ -754,7 +772,7 @@ class CacheOptionsTest {
                       ),
                       null,
                       null,
-                  )
+                  ),
               ),
               cacheResult2.data,
           )
@@ -808,7 +826,7 @@ class CacheOptionsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -827,16 +845,16 @@ class CacheOptionsTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = null
-                  )
+                      nickName = null,
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(MeWithNickNameAndProjectQuery())
@@ -850,16 +868,16 @@ class CacheOptionsTest {
                       firstName = "John",
                       lastName = "Smith",
                       nickName = null,
-                      bestFriend = null
-                  )
+                      bestFriend = null,
+                  ),
               ),
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult.errors!! + listOf(
-                  Error.Builder("Object 'User:1' has no field named 'bestFriend' in the cache").path(listOf("me", "bestFriend")).build()
+                  Error.Builder("Object 'User:1' has no field named 'bestFriend' in the cache").path(listOf("me", "bestFriend")).build(),
               ),
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -894,7 +912,7 @@ class CacheOptionsTest {
               }
             }
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -915,10 +933,10 @@ class CacheOptionsTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = "js"
-                  )
+                      nickName = "js",
+                  ),
               ),
-              results[1].data
+              results[1].data,
           )
           assertNull(results[1].exception)
         }

@@ -2,7 +2,6 @@ package com.apollographql.cache.normalized.api
 
 import com.apollographql.apollo.api.CompiledField
 import com.apollographql.apollo.api.Executable
-import com.apollographql.apollo.api.keyFields
 
 /**
  * An [CacheKeyGenerator] is responsible for finding an id for a given object
@@ -41,24 +40,11 @@ class CacheKeyGeneratorContext(
 )
 
 /**
- * A [CacheKeyGenerator] that uses the `@typePolicy` directive to compute the cache key.
- *
- * Note: this uses the key fields of the **schema** type and therefore can't generate cache keys for:
- * - unions
- * - interfaces that have a `@typePolicy` on subtypes.
- *
- * For those cases, prefer `fun TypePolicyCacheKeyGenerator(typePolicies, keyScope)`, which uses the concrete type (found in `__typename`)
- * instead.
+ * A [CacheKeyGenerator] that does not generate any cache key.
  */
-@Deprecated("Use TypePolicyCacheKeyGenerator(typePolicies, keyScope) instead")
-val TypePolicyCacheKeyGenerator: CacheKeyGenerator = object : CacheKeyGenerator {
+object DefaultCacheKeyGenerator : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
-    val keyFields = context.field.type.rawType().keyFields()
-    return if (keyFields.isNotEmpty()) {
-      CacheKey(obj["__typename"].toString(), keyFields.map { obj[it].toString() })
-    } else {
-      null
-    }
+    return null
   }
 }
 
@@ -71,10 +57,10 @@ val TypePolicyCacheKeyGenerator: CacheKeyGenerator = object : CacheKeyGenerator 
  * @param keyScope the scope of the generated cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the concrete type name, or
  * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
  */
-fun TypePolicyCacheKeyGenerator(
-    typePolicies: Map<String, TypePolicy>,
-    keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
-) = object : CacheKeyGenerator {
+class TypePolicyCacheKeyGenerator(
+    private val typePolicies: Map<String, TypePolicy>,
+    private val keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+) : CacheKeyGenerator {
   override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
     val typeName = obj["__typename"].toString()
     val typePolicy = typePolicies[typeName]

@@ -1,6 +1,7 @@
 
 import com.apollographql.apollo.api.Optional
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.testing.runTest
 import com.example.GetCatIncludeVariableWithDefaultQuery
@@ -21,7 +22,7 @@ class IncludeTest {
       }
     }
 
-    val normalized = data.normalized(operation)
+    val normalized = data.normalized(operation, DefaultCacheKeyGenerator)
     assertNull((normalized[CacheKey("animal")] as Map<*, *>)["species"])
   }
 
@@ -35,7 +36,7 @@ class IncludeTest {
       }
     }
 
-    val normalized = data.normalized(operation)
+    val normalized = data.normalized(operation, DefaultCacheKeyGenerator)
     assertNull((normalized[CacheKey("animal")] as Map<*, *>)["barf"])
   }
 }

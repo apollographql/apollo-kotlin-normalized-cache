@@ -3,6 +3,7 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.cacheManager
@@ -27,8 +28,9 @@ class CacheResolverTest {
         .cacheManager(
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
-                cacheResolver = resolver
-            )
+                cacheKeyGenerator = DefaultCacheKeyGenerator,
+                cacheResolver = resolver,
+            ),
         )
         .build()
 

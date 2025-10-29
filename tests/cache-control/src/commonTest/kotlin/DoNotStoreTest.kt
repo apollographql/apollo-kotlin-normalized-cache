@@ -13,8 +13,10 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultFieldKeyGenerator
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.fetchPolicy
@@ -97,6 +99,8 @@ class DoNotStoreTest {
         .serverUrl(mockServer.url())
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+            cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
             maxAgeProvider = maxAgeProvider,
         )
         .build()
@@ -195,8 +199,10 @@ class DoNotStoreTest {
         .serverUrl(mockServer.url())
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+            cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
             maxAgeProvider = maxAgeProvider,
-            fieldKeyGenerator = fieldKeyGenerator
+            fieldKeyGenerator = fieldKeyGenerator,
         )
         .build()
         .use { apolloClient ->

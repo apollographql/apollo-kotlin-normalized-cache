@@ -9,6 +9,8 @@ import com.apollographql.apollo.api.json.JsonWriter
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.FetchPolicy
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
@@ -23,7 +25,7 @@ class NumberTest {
   fun test() = runTest {
     ApolloClient.Builder()
         .networkTransport(QueueTestNetworkTransport())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
         .addCustomScalarAdapter(com.example.type.Number.type, NumberAdapter())
         .build()
         .use { apolloClient ->

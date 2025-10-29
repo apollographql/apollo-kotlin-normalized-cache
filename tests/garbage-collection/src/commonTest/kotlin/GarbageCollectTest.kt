@@ -5,7 +5,9 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.allRecords
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheManager
@@ -26,13 +28,16 @@ import kotlin.time.Duration.Companion.seconds
 
 class GarbageCollectTest {
   @Test
-  fun garbageCollectMemory() = garbageCollect(CacheManager(MemoryCacheFactory()))
+  fun garbageCollectMemory() =
+    garbageCollect(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun garbageCollectSql() = garbageCollect(CacheManager(SqlNormalizedCacheFactory()))
+  fun garbageCollectSql() =
+    garbageCollect(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun garbageCollectChained() = garbageCollect(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+  fun garbageCollectChained() =
+    garbageCollect(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun garbageCollect(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()

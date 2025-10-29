@@ -2,6 +2,7 @@ package test
 
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.json.jsonReader
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.testing.runTest
 import okio.Buffer
@@ -36,9 +37,9 @@ class SchemaChangesTest {
 
     val data = operation.adapter().fromJson(
         Buffer().writeUtf8(v2Data).jsonReader(),
-        CustomScalarAdapters.Empty
+        CustomScalarAdapters.Empty,
     )
 
-    data.normalized(operation)
+    data.normalized(operation, DefaultCacheKeyGenerator)
   }
 }

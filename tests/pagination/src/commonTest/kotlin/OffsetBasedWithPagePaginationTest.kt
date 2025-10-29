@@ -7,11 +7,13 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.FieldRecordMerger
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
@@ -43,9 +45,11 @@ class OffsetBasedWithPagePaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
         metadataGenerator = OffsetPaginationMetadataGenerator("UserPage"),
         recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger()),
-        fieldKeyGenerator = object : FieldKeyGenerator{
+        fieldKeyGenerator = object : FieldKeyGenerator {
           override fun getFieldKey(context: FieldKeyContext): String {
             return if (context.field.type.rawType().name == "UserPage") {
               // Exclude offset and limit arguments from the field key
@@ -62,7 +66,7 @@ class OffsetBasedWithPagePaginationTest {
             }
           }
         },
-        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
     )
     cacheManager.clearAll()
 

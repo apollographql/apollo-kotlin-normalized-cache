@@ -3,6 +3,8 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestResponse
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -23,12 +25,15 @@ class NormalizedCacheThreadingTest {
     var cacheCreateThreadName: String? = null
     val apolloClient = ApolloClient.Builder()
         .networkTransport(QueueTestNetworkTransport())
-        .normalizedCache(object : NormalizedCacheFactory() {
-          override fun create(): NormalizedCache {
-            cacheCreateThreadName = currentThreadId()
-            return MemoryCacheFactory().create()
-          }
-        }).build()
+        .normalizedCache(
+            object : NormalizedCacheFactory() {
+              override fun create(): NormalizedCache {
+                cacheCreateThreadName = currentThreadId()
+                return MemoryCacheFactory().create()
+              }
+            },
+            cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver,
+        ).build()
     assertNull(cacheCreateThreadName)
 
     val query = CharacterNameByIdQuery("")

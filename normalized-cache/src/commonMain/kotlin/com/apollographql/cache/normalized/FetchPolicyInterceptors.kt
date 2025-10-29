@@ -1,5 +1,3 @@
-@file:JvmName("FetchPolicyInterceptors")
-
 package com.apollographql.cache.normalized
 
 import com.apollographql.apollo.api.ApolloRequest
@@ -23,7 +21,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.single
-import kotlin.jvm.JvmName
 
 /**
  * An interceptor that emits the response from the cache first, and if there was a cache miss, emits the response(s) from the network.

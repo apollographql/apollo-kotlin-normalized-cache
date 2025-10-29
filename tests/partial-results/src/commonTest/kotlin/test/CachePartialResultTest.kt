@@ -14,10 +14,12 @@ import com.apollographql.cache.normalized.api.CacheControlCacheResolver
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
 import com.apollographql.cache.normalized.api.IdCacheKeyResolver
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchFromCache
@@ -72,7 +74,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(MeWithoutNickNameWithEmailQuery())
@@ -266,7 +268,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
         .build()
         .use { apolloClient ->
           // Prime the cache
@@ -602,7 +604,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
         .build()
         .use { apolloClient ->
           val networkResult = apolloClient.query(WithFragmentsQuery())
@@ -720,7 +722,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory(), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE)))
+        .normalizedCache(MemoryCacheFactory(), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies))
         .storeReceivedDate(true)
         .build()
         .use { apolloClient ->
@@ -791,7 +793,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory(), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE)))
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
         .storeReceivedDate(true)
         .build()
         .use { apolloClient ->
@@ -860,7 +862,7 @@ class CachePartialResultTest {
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory(), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE)))
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
         .storeReceivedDate(true)
         .build()
         .use { apolloClient ->

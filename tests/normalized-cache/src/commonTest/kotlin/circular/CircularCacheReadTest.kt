@@ -2,6 +2,8 @@ package test.circular
 
 import circular.GetUserQuery
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
@@ -10,7 +12,8 @@ import kotlin.test.assertEquals
 class CircularCacheReadTest {
   @Test
   fun circularReferenceDoesNotStackOverflow() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory())
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
 
     val operation = GetUserQuery()
 

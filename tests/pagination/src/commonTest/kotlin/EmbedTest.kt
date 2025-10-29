@@ -5,6 +5,8 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheKeyGenerator
 import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -42,7 +44,9 @@ class EmbedTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = MemoryCacheFactory(),
-            embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
+            cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+            cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+            embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
         )
         .serverUrl("unused")
         .build()

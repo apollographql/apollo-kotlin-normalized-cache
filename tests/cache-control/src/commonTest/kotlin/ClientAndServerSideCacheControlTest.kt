@@ -7,6 +7,8 @@ import com.apollographql.apollo.api.Query
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.MaxAge
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
@@ -57,14 +59,16 @@ class ClientAndServerSideCacheControlTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
             cacheResolver = CacheControlCacheResolver(
-                SchemaCoordinatesMaxAgeProvider(
+                maxAgeProvider = SchemaCoordinatesMaxAgeProvider(
                     mapOf(
                         "User.email" to MaxAge.Duration(2.seconds),
                     ),
                     defaultMaxAge = 20.seconds,
-                )
-            )
+                ),
+                delegateResolver = DefaultCacheResolver,
+            ),
         )
         .storeExpirationDate(true)
         .serverUrl(mockServer.url())
@@ -88,7 +92,7 @@ class ClientAndServerSideCacheControlTest {
         MockResponse.Builder()
             .addHeader("Cache-Control", "max-age=10")
             .body(data)
-            .build()
+            .build(),
     )
     client.query(GetUserQuery()).fetchPolicy(FetchPolicy.NetworkOnly).cacheHeaders(receivedDate(currentTimeSeconds() - 10)).execute()
 
@@ -106,7 +110,7 @@ class ClientAndServerSideCacheControlTest {
         MockResponse.Builder()
             .addHeader("Cache-Control", "max-age=0")
             .body(data)
-            .build()
+            .build(),
     )
     client.query(GetUserQuery()).fetchPolicy(FetchPolicy.NetworkOnly).cacheHeaders(receivedDate(currentTimeSeconds())).execute()
 
@@ -136,14 +140,16 @@ class ClientAndServerSideCacheControlTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
             cacheResolver = CacheControlCacheResolver(
                 SchemaCoordinatesMaxAgeProvider(
                     mapOf(
                         "User.email" to MaxAge.Duration(2.seconds),
                     ),
                     defaultMaxAge = 20.seconds,
-                )
-            )
+                ),
+                delegateResolver = DefaultCacheResolver,
+            ),
         )
         .storeExpirationDate(true)
         .serverUrl(mockServer.url())
@@ -167,7 +173,7 @@ class ClientAndServerSideCacheControlTest {
         MockResponse.Builder()
             .addHeader("Cache-Control", "max-age=10")
             .body(data)
-            .build()
+            .build(),
     )
     client.query(GetUserQuery()).fetchPolicy(FetchPolicy.NetworkOnly).cacheHeaders(receivedDate(currentTimeSeconds() - 10)).execute()
 
@@ -186,7 +192,7 @@ class ClientAndServerSideCacheControlTest {
         MockResponse.Builder()
             .addHeader("Cache-Control", "max-age=0")
             .body(data)
-            .build()
+            .build(),
     )
     client.query(GetUserQuery()).fetchPolicy(FetchPolicy.NetworkOnly).cacheHeaders(receivedDate(currentTimeSeconds())).execute()
 
@@ -215,8 +221,9 @@ class ClientAndServerSideCacheControlTest {
     val mockServer = MockServer()
     val client = ApolloClient.Builder()
         .normalizedCache(
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
             normalizedCacheFactory = normalizedCacheFactory,
-            cacheResolver = CacheControlCacheResolver(GlobalMaxAgeProvider(1.days)),
+            cacheResolver = CacheControlCacheResolver(GlobalMaxAgeProvider(1.days), DefaultCacheResolver),
         )
         .serverUrl(mockServer.url())
         .build()

@@ -297,6 +297,7 @@ internal class CacheSchemaCodeGenerator(
                     "return %M(\n⇥" +
                         "normalizedCacheFactory = normalizedCacheFactory,\n" +
                         "typePolicies = typePolicies,\n" +
+                        "fieldPolicies = fieldPolicies,\n" +
                         "connectionTypes = connectionTypes, \n" +
                         "embeddedFields = embeddedFields, \n" +
                         "maxAges = maxAges,\n" +
@@ -307,7 +308,7 @@ internal class CacheSchemaCodeGenerator(
                         ")",
                     Symbols.NormalisedCacheExtension,
                 )
-                .build()
+                .build(),
         )
         .build()
   }

@@ -22,7 +22,6 @@ actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory =
  * @param useNoBackupDirectory Sets whether to use a no backup directory or not.
  * @param windowSizeBytes Size of cursor window in bytes, per [android.database.CursorWindow] (Android 28+ only), or null to use the default.
  */
-@JvmOverloads
 fun SqlNormalizedCacheFactory(
     context: Context,
     name: String? = "apollo.db",

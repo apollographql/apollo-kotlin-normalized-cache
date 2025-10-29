@@ -1,5 +1,3 @@
-@file:JvmName("NormalizedCache")
-
 package com.apollographql.cache.normalized
 
 import com.apollographql.apollo.ApolloClient
@@ -16,11 +14,12 @@ import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheKeyGenerator
-import com.apollographql.cache.normalized.api.CacheKeyGeneratorContext
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
 import com.apollographql.cache.normalized.api.ConnectionMetadataGenerator
 import com.apollographql.cache.normalized.api.ConnectionRecordMerger
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.DefaultEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.DefaultFieldKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultMaxAgeProvider
@@ -30,6 +29,7 @@ import com.apollographql.cache.normalized.api.EmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.EmptyEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.EmptyMetadataGenerator
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.FieldPolicies
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.MaxAge
@@ -44,8 +44,6 @@ import com.apollographql.cache.normalized.internal.ApolloCacheInterceptor
 import com.apollographql.cache.normalized.internal.WatcherInterceptor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 import kotlin.time.Duration
 
 /**
@@ -57,17 +55,15 @@ import kotlin.time.Duration
  * where the cache is created will also be isolated so that the cache can be mutated.
  *
  * @param cacheResolver a [CacheResolver] to customize normalization
- *
+ * @param cacheKeyGenerator a [CacheKeyGenerator] to generate cache keys for objects
  * @param writeToCacheAsynchronously set to true to write to the cache after the response has been emitted.
- * This allows to display results faster
+ * This allows to display results faster.
  */
-@JvmOverloads
-@JvmName("configureApolloClientBuilder2")
 fun ApolloClient.Builder.normalizedCache(
     normalizedCacheFactory: NormalizedCacheFactory,
-    cacheKeyGenerator: CacheKeyGenerator = @Suppress("DEPRECATION") TypePolicyCacheKeyGenerator,
+    cacheKeyGenerator: CacheKeyGenerator,
+    cacheResolver: CacheResolver,
     metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
-    cacheResolver: CacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
     recordMerger: RecordMerger = DefaultRecordMerger,
     fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
     embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
@@ -86,6 +82,45 @@ fun ApolloClient.Builder.normalizedCache(
           embeddedFieldsProvider = embeddedFieldsProvider,
           maxAgeProvider = maxAgeProvider,
           enableOptimisticUpdates = enableOptimisticUpdates,
+      ),
+      writeToCacheAsynchronously,
+  )
+}
+
+fun ApolloClient.Builder.normalizedCache(
+    normalizedCacheFactory: NormalizedCacheFactory,
+    typePolicies: Map<String, TypePolicy>,
+    fieldPolicies: Map<String, FieldPolicies>,
+    metadataGenerator: MetadataGenerator = EmptyMetadataGenerator,
+    recordMerger: RecordMerger = DefaultRecordMerger,
+    fieldKeyGenerator: FieldKeyGenerator = DefaultFieldKeyGenerator,
+    embeddedFieldsProvider: EmbeddedFieldsProvider = EmptyEmbeddedFieldsProvider,
+    maxAgeProvider: MaxAgeProvider = DefaultMaxAgeProvider,
+    keyScope: CacheKey.Scope = CacheKey.Scope.TYPE,
+    enableOptimisticUpdates: Boolean = false,
+    writeToCacheAsynchronously: Boolean = false,
+): ApolloClient.Builder {
+  val cacheKeyGenerator = if (typePolicies.isEmpty()) {
+    DefaultCacheKeyGenerator
+  } else {
+    TypePolicyCacheKeyGenerator(typePolicies, keyScope)
+  }
+  val cacheResolver = if (fieldPolicies.isEmpty()) {
+    DefaultCacheResolver
+  } else {
+    FieldPolicyCacheResolver(fieldPolicies, keyScope)
+  }
+  return cacheManager(
+      CacheManager(
+          normalizedCacheFactory = normalizedCacheFactory,
+          cacheKeyGenerator = cacheKeyGenerator,
+          metadataGenerator = metadataGenerator,
+          cacheResolver = cacheResolver,
+          recordMerger = recordMerger,
+          fieldKeyGenerator = fieldKeyGenerator,
+          embeddedFieldsProvider = embeddedFieldsProvider,
+          maxAgeProvider = maxAgeProvider,
+          enableOptimisticUpdates = enableOptimisticUpdates,
       ), writeToCacheAsynchronously
   )
 }
@@ -93,6 +128,7 @@ fun ApolloClient.Builder.normalizedCache(
 fun ApolloClient.Builder.normalizedCache(
     normalizedCacheFactory: NormalizedCacheFactory,
     typePolicies: Map<String, TypePolicy>,
+    fieldPolicies: Map<String, FieldPolicies>,
     connectionTypes: Set<String>,
     embeddedFields: Map<String, EmbeddedFields>,
     maxAges: Map<String, MaxAge>,
@@ -102,11 +138,7 @@ fun ApolloClient.Builder.normalizedCache(
     writeToCacheAsynchronously: Boolean,
 ): ApolloClient.Builder {
   val cacheKeyGenerator = if (typePolicies.isEmpty()) {
-    object : CacheKeyGenerator {
-      override fun cacheKeyForObject(obj: Map<String, Any?>, context: CacheKeyGeneratorContext): CacheKey? {
-        return null
-      }
-    }
+    DefaultCacheKeyGenerator
   } else {
     TypePolicyCacheKeyGenerator(typePolicies, keyScope)
   }
@@ -120,12 +152,17 @@ fun ApolloClient.Builder.normalizedCache(
   } else {
     SchemaCoordinatesMaxAgeProvider(maxAges, defaultMaxAge)
   }
+  val fieldPolicyResolver = if (fieldPolicies.isEmpty()) {
+    DefaultCacheResolver
+  } else {
+    FieldPolicyCacheResolver(fieldPolicies, keyScope)
+  }
   val cacheResolver = if (maxAges.isEmpty()) {
-    FieldPolicyCacheResolver(keyScope)
+    fieldPolicyResolver
   } else {
     CacheControlCacheResolver(
         maxAgeProvider = maxAgeProvider,
-        delegateResolver = FieldPolicyCacheResolver(keyScope),
+        delegateResolver = fieldPolicyResolver,
     )
   }
   val recordMerger = if (connectionTypes.isEmpty()) {
@@ -163,7 +200,6 @@ fun ApolloClient.Builder.normalizedCache(
   }
 }
 
-@JvmName("-logCacheMisses")
 fun ApolloClient.Builder.logCacheMisses(
     log: (String) -> Unit = { println(it) },
 ): ApolloClient.Builder {

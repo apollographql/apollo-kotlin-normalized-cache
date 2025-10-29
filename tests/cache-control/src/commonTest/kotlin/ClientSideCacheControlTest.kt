@@ -7,6 +7,8 @@ import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
 import com.apollographql.cache.normalized.api.CacheHeaders
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.MaxAge
@@ -103,7 +105,8 @@ class ClientSideCacheControlTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
-            cacheResolver = CacheControlCacheResolver(GlobalMaxAgeProvider(maxAge.seconds)),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = CacheControlCacheResolver(GlobalMaxAgeProvider(maxAge.seconds), DefaultCacheResolver),
         )
         .serverUrl("unused")
         .build()
@@ -112,7 +115,7 @@ class ClientSideCacheControlTest {
     val query = ProgrammaticGetUserQuery()
     val data = ProgrammaticGetUserQuery.Data(ProgrammaticGetUserQuery.User("John", "john@doe.com", true))
 
-    val records = data.normalized(query).values
+    val records = data.normalized(query, DefaultCacheKeyGenerator).values
 
     client.apolloStore.accessCache {
       // store records in the past
@@ -150,7 +153,8 @@ class ClientSideCacheControlTest {
     val client = ApolloClient.Builder()
         .normalizedCache(
             normalizedCacheFactory = normalizedCacheFactory,
-            cacheResolver = CacheControlCacheResolver(maxAgeProvider),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = CacheControlCacheResolver(maxAgeProvider, DefaultCacheResolver),
         )
         .serverUrl("unused")
         .build()
@@ -203,7 +207,7 @@ class ClientSideCacheControlTest {
 
   private suspend fun mergeProgrammaticCompanyQueryResults(client: ApolloClient, secondsAgo: Int) {
     val data = ProgrammaticGetCompanyQuery.Data(ProgrammaticGetCompanyQuery.Company(id = "42"))
-    val records = data.normalized(ProgrammaticGetCompanyQuery()).values
+    val records = data.normalized(ProgrammaticGetCompanyQuery(), DefaultCacheKeyGenerator).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }
@@ -276,7 +280,7 @@ class ClientSideCacheControlTest {
 
   private suspend fun mergeDeclarativeCompanyQueryResults(client: ApolloClient, secondsAgo: Int = 0) {
     val data = DeclarativeGetCompanyQuery.Data(DeclarativeGetCompanyQuery.Company(__typename = "Company", id = "42"))
-    val records = data.normalized(DeclarativeGetCompanyQuery()).values
+    val records = data.normalized(DeclarativeGetCompanyQuery(), DefaultCacheKeyGenerator).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }
@@ -285,7 +289,7 @@ class ClientSideCacheControlTest {
   private suspend fun mergeUserQueryResults(client: ApolloClient, secondsAgo: Int = 0) {
     val data =
       DeclarativeGetUserQuery.Data(DeclarativeGetUserQuery.User(__typename = "User", name = "John", email = "john@doe.com", admin = true))
-    val records = data.normalized(DeclarativeGetUserQuery()).values
+    val records = data.normalized(DeclarativeGetUserQuery(), DefaultCacheKeyGenerator).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }
@@ -293,7 +297,7 @@ class ClientSideCacheControlTest {
 
   private suspend fun mergeProjectQueryResults(client: ApolloClient, secondsAgo: Int = 0) {
     val data = DeclarativeGetProjectQuery.Data(DeclarativeGetProjectQuery.Project(__typename = "Project", id = "42", name = "Stardust"))
-    val records = data.normalized(DeclarativeGetProjectQuery()).values
+    val records = data.normalized(DeclarativeGetProjectQuery(), DefaultCacheKeyGenerator).values
     client.apolloStore.accessCache {
       it.merge(records, receivedDate(currentTimeSeconds() - secondsAgo), DefaultRecordMerger)
     }

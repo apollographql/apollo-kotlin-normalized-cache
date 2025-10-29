@@ -9,6 +9,8 @@ import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
 import com.apollographql.cache.normalized.api.IdCacheKeyResolver
 import com.apollographql.cache.normalized.apolloStore
@@ -208,7 +210,8 @@ class StoreTest {
     storeAllFriends()
     assertFriendIsCached("1000", "Luke Skywalker")
 
-    val newCacheManager = CacheManager(MemoryCacheFactory())
+    val newCacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
     val newClient = apolloClient.newBuilder().cacheManager(newCacheManager).build()
 
     assertFriendIsNotCached("1000", newClient)

@@ -5,6 +5,8 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.allRecords
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -17,6 +19,7 @@ import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
 import okio.use
+import test.cache.Cache
 import test.fragment.RepositoryFragment
 import test.fragment.RepositoryFragmentImpl
 import kotlin.test.Test
@@ -24,13 +27,16 @@ import kotlin.test.assertEquals
 
 class ReachableCacheKeysTest {
   @Test
-  fun getReachableCacheKeysMemory() = getReachableCacheKeys(CacheManager(MemoryCacheFactory()))
+  fun getReachableCacheKeysMemory() =
+    getReachableCacheKeys(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun getReachableCacheKeysSql() = getReachableCacheKeys(CacheManager(SqlNormalizedCacheFactory()))
+  fun getReachableCacheKeysSql() =
+    getReachableCacheKeys(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   @Test
-  fun getReachableCacheKeysChained() = getReachableCacheKeys(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory())))
+  fun getReachableCacheKeysChained() =
+    getReachableCacheKeys(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
 
   private fun getReachableCacheKeys(cacheManager: CacheManager) = runTest {
     val mockServer = MockServer()

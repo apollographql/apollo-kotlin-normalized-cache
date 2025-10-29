@@ -22,6 +22,8 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.DefaultFetchPolicyInterceptor
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.isFromCache
@@ -60,7 +62,7 @@ class FetchPolicyTest {
   private lateinit var cacheManager: CacheManager
 
   private suspend fun setUp() {
-    cacheManager = CacheManager(MemoryCacheFactory())
+    cacheManager = CacheManager(MemoryCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager = cacheManager).build()
   }
@@ -545,11 +547,11 @@ class FetchPolicyTest {
               CharacterNameByIdQuery.Data(
                   CharacterNameByIdQuery.Character(
                       __typename = "Human",
-                      name = "Luke"
-                  )
-              )
+                      name = "Luke",
+                  ),
+              ),
           )
-        }
+        },
     )
 
     apolloClient.query(operation2)
@@ -569,11 +571,11 @@ class FetchPolicyTest {
               HeroNameQuery.Data(
                   HeroNameQuery.Hero(
                       __typename = "Human",
-                      name = "Leila"
-                  )
-              )
+                      name = "Leila",
+                  ),
+              ),
           )
-        }
+        },
     )
 
     /**
@@ -599,11 +601,11 @@ class FetchPolicyTest {
               HeroNameQuery.Data(
                   HeroNameQuery.Hero(
                       __typename = "Wookie",
-                      name = "Chewbacca"
-                  )
-              )
+                      name = "Chewbacca",
+                  ),
+              ),
           )
-        }
+        },
     )
     cacheManager.publish(setOf(CacheKey.QUERY_ROOT.fieldKey("hero")))
 

@@ -31,7 +31,8 @@ class DeclarativeCacheTest {
 
   @Test
   fun typePolicyIsWorking() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory())
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
     // Write a book at the "promo" path
     val promoOperation = GetPromoBookQuery()
@@ -52,7 +53,7 @@ class DeclarativeCacheTest {
   @Test
   fun typePolicyWithAbstractTypes() = runTest {
     val cacheManager =
-      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies))
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
     val type2Data = GetType2Query.Data(GetType2Query.Type2(__typename = "Type2", type2Field = "type1Field", interface2KeyField = "42"))
     cacheManager.writeOperation(GetType2Query(), type2Data)
@@ -94,7 +95,8 @@ class DeclarativeCacheTest {
 
   @Test
   fun fallbackIdIsWorking() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory())
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
     // Write a library at the "promo" path
     val promoOperation = GetPromoLibraryQuery()
@@ -114,7 +116,8 @@ class DeclarativeCacheTest {
 
   @Test
   fun fieldPolicyIsWorking() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory())
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
 
     val bookQuery1 = GetPromoBookQuery()
     val bookData1 = GetPromoBookQuery.Data(GetPromoBookQuery.PromoBook(title = "Promo", isbn = "42", __typename = "Book"))
@@ -145,7 +148,8 @@ class DeclarativeCacheTest {
 
   @Test
   fun fieldPolicyWithLists() = runTest {
-    val cacheManager = CacheManager(MemoryCacheFactory())
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
     cacheManager.writeOperation(GetPromoBookQuery(), GetPromoBookQuery.Data(GetPromoBookQuery.PromoBook(title = "Promo", isbn = "42", __typename = "Book")))
     cacheManager.writeOperation(GetOtherBookQuery(), GetOtherBookQuery.Data(GetOtherBookQuery.OtherBook(isbn = "43", title = "Other Book", __typename = "Book")))
 
@@ -170,10 +174,11 @@ class DeclarativeCacheTest {
           }
         }
 
-        return FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE).resolveField(context)
+        return FieldPolicyCacheResolver(Cache.fieldPolicies, keyScope = CacheKey.Scope.TYPE).resolveField(context)
       }
     }
-    val cacheManager = CacheManager(MemoryCacheFactory(), cacheResolver = cacheResolver)
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = cacheResolver)
 
     val promoOperation = GetPromoBookQuery()
     cacheManager.writeOperation(promoOperation, GetPromoBookQuery.Data(GetPromoBookQuery.PromoBook(title = "Title1", isbn = "1", __typename = "Book")))

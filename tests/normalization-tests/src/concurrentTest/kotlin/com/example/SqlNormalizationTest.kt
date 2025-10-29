@@ -4,6 +4,8 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.allRecords
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.normalizedCache
@@ -22,7 +24,7 @@ class SqlNormalizationTest {
     val mockserver = MockServer()
     val apolloClient = ApolloClient.Builder()
         .serverUrl(mockserver.url())
-        .normalizedCache(SqlNormalizedCacheFactory())
+        .normalizedCache(SqlNormalizedCacheFactory(), cacheKeyGenerator = DefaultCacheKeyGenerator, cacheResolver = DefaultCacheResolver)
         .build()
 
     apolloClient.apolloStore.clearAll()

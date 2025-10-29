@@ -16,11 +16,12 @@ import com.apollographql.cache.normalized.api.FieldRecordMerger
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.MetadataGeneratorContext
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
-import pagination.offsetBasedWithPageAndInput.cache.Cache
 import pagination.offsetBasedWithPageAndInput.UsersQuery
+import pagination.offsetBasedWithPageAndInput.cache.Cache
 import pagination.offsetBasedWithPageAndInput.type.buildUser
 import pagination.offsetBasedWithPageAndInput.type.buildUserPage
 import kotlin.math.max
@@ -47,13 +48,14 @@ class OffsetBasedWithPageAndInputPaginationTest {
   private fun test(cacheFactory: NormalizedCacheFactory) = runTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies, keyScope = CacheKey.Scope.TYPE),
         metadataGenerator = OffsetPaginationMetadataGenerator("UserPage"),
-        cacheResolver = FieldPolicyCacheResolver(keyScope = CacheKey.Scope.TYPE),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies, keyScope = CacheKey.Scope.TYPE),
         recordMerger = FieldRecordMerger(OffsetPaginationFieldMerger()),
         fieldKeyGenerator = UsersFieldKeyGenerator,
-        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields)
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
 
-    )
+        )
     cacheManager.clearAll()
 
     // First page

@@ -26,11 +26,6 @@ public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFact
 }
 
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFactory_androidKt {
-	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
-	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
-	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;Ljava/lang/String;Landroidx/sqlite/db/SupportSQLiteOpenHelper$Factory;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
-	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;Ljava/lang/String;Landroidx/sqlite/db/SupportSQLiteOpenHelper$Factory;Lkotlin/jvm/functions/Function1;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
-	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;Ljava/lang/String;Landroidx/sqlite/db/SupportSQLiteOpenHelper$Factory;Lkotlin/jvm/functions/Function1;Z)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Landroid/content/Context;Ljava/lang/String;Landroidx/sqlite/db/SupportSQLiteOpenHelper$Factory;Lkotlin/jvm/functions/Function1;ZLjava/lang/Long;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static synthetic fun SqlNormalizedCacheFactory$default (Landroid/content/Context;Ljava/lang/String;Landroidx/sqlite/db/SupportSQLiteOpenHelper$Factory;Lkotlin/jvm/functions/Function1;ZLjava/lang/Long;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;

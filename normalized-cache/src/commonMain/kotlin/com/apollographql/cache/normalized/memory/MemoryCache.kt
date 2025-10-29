@@ -12,7 +12,6 @@ import com.apollographql.cache.normalized.api.withDates
 import com.apollographql.cache.normalized.internal.withReentrantLock
 import com.apollographql.cache.normalized.memory.internal.LruCache
 import kotlinx.coroutines.sync.Mutex
-import kotlin.jvm.JvmOverloads
 import kotlin.reflect.KClass
 
 /**
@@ -150,7 +149,7 @@ class MemoryCache(
   }
 }
 
-class MemoryCacheFactory @JvmOverloads constructor(
+class MemoryCacheFactory(
     private val maxSizeBytes: Int = Int.MAX_VALUE,
     private val expireAfterMillis: Long = -1,
 ) : NormalizedCacheFactory() {
