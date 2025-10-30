@@ -10,6 +10,7 @@ import com.apollographql.apollo.ast.parseAsGQLDocument
 import com.apollographql.apollo.ast.validateAsSchema
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 
 class GetFieldPoliciesTest {
   @Test
@@ -38,23 +39,75 @@ class GetFieldPoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+            ),
         ).getOrThrow()
 
     val expected = mapOf(
         "Query" to FieldPolicies(
             fieldPolicies = mapOf(
                 "user" to FieldPolicies.FieldPolicy(
-                    keyArgs = listOf("id")
+                    keyArgs = listOf("id"),
                 ),
                 "animal" to FieldPolicies.FieldPolicy(
-                    keyArgs = listOf("kingdom", "species")
-                )
-            )
-        )
+                    keyArgs = listOf("kingdom", "species"),
+                ),
+            ),
+        ),
     )
 
     assertEquals(expected, schema.getFieldPolicies())
+  }
+
+  @Test
+  fun unknownField() {
+    // language=GraphQL
+    val schema = """
+      type Query {
+        user(id: ID!): User
+      }
+      
+      type User @typePolicy(keyFields: "id") {
+        id: ID!
+      }
+      
+      extend type Query
+      @fieldPolicy(forField: "unknownField", keyArgs: "id")
+    """.trimIndent()
+        .parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+            ),
+        ).getOrThrow()
+
+    assertFails("null: (1, 1): Apollo: unknown field 'Query.unknownField' in @fieldPolicy") { schema.getFieldPolicies() }
+  }
+
+  @Test
+  fun unknownArgument() {
+    // language=GraphQL
+    val schema = """
+      type Query {
+        user(id: ID!): User
+      }
+      
+      type User @typePolicy(keyFields: "id") {
+        id: ID!
+      }
+      
+      extend type Query
+      @fieldPolicy(forField: "user", keyArgs: "id unknownArg")
+    """.trimIndent()
+        .parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+            ),
+        ).getOrThrow()
+
+    assertFails("null: (1, 1): Apollo: unknown argument 'Query.user(unknownArg:)' in @fieldPolicy") { schema.getFieldPolicies() }
   }
 }
