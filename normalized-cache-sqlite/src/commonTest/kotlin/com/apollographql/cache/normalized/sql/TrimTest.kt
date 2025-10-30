@@ -3,6 +3,8 @@ package com.apollographql.cache.normalized.sql
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.withDates
@@ -14,7 +16,7 @@ import kotlin.test.assertNull
 class TrimTest {
   @Test
   fun trimTest() = runTest {
-    val cacheManager = CacheManager(SqlNormalizedCacheFactory()).also { it.clearAll() }
+    val cacheManager = CacheManager(SqlNormalizedCacheFactory(), DefaultCacheKeyGenerator, DefaultCacheResolver).also { it.clearAll() }
 
     val largeString = "".padStart(1024, '?')
 
