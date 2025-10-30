@@ -8,8 +8,10 @@ import com.apollographql.apollo.api.CompiledSelection
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.MapJsonWriter
+import com.apollographql.apollo.exception.apolloExceptionHandler
 
 /**
  * Encapsulates GraphQL data as a Map with inlined errors.
@@ -28,22 +30,37 @@ fun <D : Executable.Data> D.withErrors(
   val writer = MapJsonWriter()
   executable.adapter().toJson(writer, customScalarAdapters, this)
   @Suppress("UNCHECKED_CAST")
-  return (writer.root() as Map<String, ApolloJsonElement>).withErrors(errors)
+  return (writer.root() as Map<String, ApolloJsonElement>).withErrors(errors, operationName = (executable as? Operation)?.name()
+      ?: "Not an operation"
+  )
 }
 
 /**
  * Returns this data with the given [errors] inlined.
  */
-private fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): DataWithErrors {
+private fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?, operationName: String): DataWithErrors {
   if (errors == null || errors.isEmpty()) return this
   var dataWithErrors = this
   for (error in errors) {
-    val path = error.path
-    if (path == null) continue
-    dataWithErrors = dataWithErrors.withValueAt(path, error)
+    val path = error.path ?: continue
+    dataWithErrors = try {
+      dataWithErrors.withValueAt(path, error)
+    } catch (e: Exception) {
+      // Could not inline error, log and ignore
+      apolloExceptionHandler(CannotInlineErrorException(errorPath = path, errorMessage = error.message, operationName = operationName, cause = e))
+      dataWithErrors
+    }
   }
   return dataWithErrors
 }
+
+class CannotInlineErrorException(
+    val errorPath: List<Any>,
+    val errorMessage: String,
+    val operationName: String,
+    override val cause: Exception,
+) : RuntimeException("Could not inline error at path $errorPath with message \"$errorMessage\" for operation '$operationName'", cause)
+
 
 @Suppress("UNCHECKED_CAST")
 private fun Map<String, ApolloJsonElement>.withValueAt(path: List<Any>, value: Any?): DataWithErrors {
