@@ -7,7 +7,7 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -41,7 +41,7 @@ class OtherCacheTest {
 
   private suspend fun setUp() {
     cacheManager =
-      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(keyScope = CacheKey.Scope.SERVICE), cacheResolver = IdCacheKeyResolver(keyScope = CacheKey.Scope.SERVICE))
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(keyScope = CacheKey.Scope.SERVICE), cacheResolver = IdCacheResolver(keyScope = CacheKey.Scope.SERVICE))
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
   }

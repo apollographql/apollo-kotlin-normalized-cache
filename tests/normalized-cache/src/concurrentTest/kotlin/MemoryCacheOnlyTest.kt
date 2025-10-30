@@ -6,7 +6,7 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
@@ -26,7 +26,7 @@ class MemoryCacheOnlyTest {
   @Test
   fun memoryCacheOnlyDoesNotStoreInSqlCache() = runTest {
     val cacheManager =
-      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver()).also { it.clearAll() }
+      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver()).also { it.clearAll() }
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUserQuery()
     apolloClient.enqueueTestResponse(query, GetUserQuery.Data(GetUserQuery.User(__typename = "User", "John", "a@a.com")))
@@ -39,12 +39,12 @@ class MemoryCacheOnlyTest {
   @Test
   fun memoryCacheOnlyDoesNotReadFromSqlCache() = runTest {
     val cacheManager =
-      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver()).also { it.clearAll() }
+      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver()).also { it.clearAll() }
     val query = GetUserQuery()
     cacheManager.writeOperation(query, GetUserQuery.Data(GetUserQuery.User(__typename = "User", "John", "a@a.com")))
 
     val store2 =
-      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver())
+      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver())
     val apolloClient = ApolloClient.Builder().serverUrl("unused").cacheManager(store2).build()
     // The record in is in the SQL cache, but we request not to access it
     assertIs<CacheMissException>(

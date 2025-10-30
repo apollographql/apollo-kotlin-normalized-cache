@@ -16,7 +16,7 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
@@ -177,8 +177,8 @@ class CachePartialResultTest {
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
                 cacheKeyGenerator = IdCacheKeyGenerator(),
-                cacheResolver = IdCacheKeyResolver()
-            )
+                cacheResolver = IdCacheResolver(),
+            ),
         )
         .build()
         .use { apolloClient ->
@@ -451,8 +451,8 @@ class CachePartialResultTest {
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
                 cacheKeyGenerator = IdCacheKeyGenerator(),
-                cacheResolver = IdCacheKeyResolver()
-            )
+                cacheResolver = IdCacheResolver(),
+            ),
         )
         .build()
         .use { apolloClient ->
@@ -515,8 +515,8 @@ class CachePartialResultTest {
             CacheManager(
                 normalizedCacheFactory = MemoryCacheFactory(),
                 cacheKeyGenerator = IdCacheKeyGenerator(),
-                cacheResolver = IdCacheKeyResolver()
-            )
+                cacheResolver = IdCacheResolver(),
+            ),
         )
         .build()
         .use { apolloClient ->

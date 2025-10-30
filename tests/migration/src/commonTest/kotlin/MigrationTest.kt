@@ -9,7 +9,7 @@ import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordValue
 import com.apollographql.cache.normalized.cacheManager
@@ -95,7 +95,7 @@ class MigrationTest {
 
     // Open the legacy store which empties it. Add/read some data to make sure it works.
     val cacheManager =
-      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory(name = name)), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver())
+      CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory(name = name)), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver())
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .cacheManager(cacheManager)
@@ -142,7 +142,7 @@ class MigrationTest {
 
     // Create a modern store and migrate the legacy data
     val cacheManager =
-      CacheManager(SqlNormalizedCacheFactory(name = "modern.db"), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver()).also { it.clearAll() }
+      CacheManager(SqlNormalizedCacheFactory(name = "modern.db"), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver()).also { it.clearAll() }
     cacheManager.migrateFrom(legacyStore)
 
     // Read the data back

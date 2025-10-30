@@ -3,7 +3,7 @@ package test
 import app.cash.turbine.test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.optimisticUpdates
@@ -51,7 +51,7 @@ class OptimisticDataTest {
     val server = MockServer()
     val apolloClient = ApolloClient.Builder()
         .serverUrl(server.url())
-        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheKeyResolver(), enableOptimisticUpdates = true)
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver(), enableOptimisticUpdates = true)
         .build()
 
     server.enqueueString("""

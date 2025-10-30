@@ -6,7 +6,7 @@ import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -24,7 +24,7 @@ class IdCacheKeyGeneratorTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = MemoryCacheFactory(),
         cacheKeyGenerator = IdCacheKeyGenerator(),
-        cacheResolver = IdCacheKeyResolver(),
+        cacheResolver = IdCacheResolver(),
     )
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUser2Query("42")
@@ -40,7 +40,7 @@ class IdCacheKeyGeneratorTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = MemoryCacheFactory(),
         cacheKeyGenerator = IdCacheKeyGenerator("userId"),
-        cacheResolver = IdCacheKeyResolver(idFields = listOf("userId")),
+        cacheResolver = IdCacheResolver(listOf("userId")),
     )
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query = GetUserByIdQuery("42")
@@ -56,7 +56,7 @@ class IdCacheKeyGeneratorTest {
     val cacheManager = CacheManager(
         normalizedCacheFactory = MemoryCacheFactory(),
         cacheKeyGenerator = IdCacheKeyGenerator("id"),
-        cacheResolver = IdCacheKeyResolver(idListFields = listOf("ids", "userIds")),
+        cacheResolver = IdCacheResolver(listOf("ids", "userIds")),
     )
     val apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
     val query1 = GetUsersQuery(listOf("42", "43"))

@@ -15,7 +15,7 @@ import com.apollographql.apollo.api.Query
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.IdCacheKeyResolver
+import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -40,7 +40,7 @@ class BasicTest {
     cacheManager = CacheManager(
         normalizedCacheFactory = MemoryCacheFactory(),
         cacheKeyGenerator = IdCacheKeyGenerator(),
-        cacheResolver = IdCacheKeyResolver(),
+        cacheResolver = IdCacheResolver(),
     )
     mockServer = MockServer()
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).cacheManager(cacheManager).build()
