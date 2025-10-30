@@ -406,7 +406,8 @@ fun IdCacheResolver(
 ): CacheResolver = KeyArgumentsCacheResolver(
     keyArgumentsProvider = object : KeyArgumentsProvider {
       override fun getKeyArguments(parentType: String, field: CompiledField): List<String> {
-        return field.arguments.firstOrNull { it.definition.name in idArguments }?.definition?.name?.let { listOf(it) } ?: emptyList()
+        return idArguments.firstOrNull { argName -> field.arguments.any { it.definition.name == argName } }?.let { listOf(it) }
+            ?: emptyList()
       }
     },
     keyScope = keyScope,
