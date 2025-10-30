@@ -154,7 +154,7 @@ fun ResolverContext.getFieldKey(): String {
  *
  * Note: this relies on the default format of the field keys as per [DefaultFieldKeyGenerator].
  */
-fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
+private fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
   val keyPrefix = "${this.field.name}("
   val filteredParent = this.parent.filterKeys { it.startsWith(keyPrefix) && it.contains("\"$keyArg\":") }
   val items: Map<Any?, Any?> = filteredParent.map { (k, v) ->
