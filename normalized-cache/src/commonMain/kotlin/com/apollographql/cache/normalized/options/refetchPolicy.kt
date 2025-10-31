@@ -22,7 +22,7 @@ internal val <T> MutableExecutionOptions<T>.refetchPolicyInterceptor
  * Sets the [FetchPolicy] used when watching queries and a cache change has been published
  */
 fun <T> MutableExecutionOptions<T>.refetchPolicyInterceptor(interceptor: ApolloInterceptor) = addExecutionContext(
-    RefetchPolicyContext(interceptor)
+    RefetchPolicyContext(interceptor),
 )
 
 /**
@@ -41,11 +41,8 @@ fun <T> MutableExecutionOptions<T>.refetchPolicy(fetchPolicy: FetchPolicy): T {
     FetchPolicy.CacheOnly -> refetchOnlyIfCached(true)
     FetchPolicy.NetworkOnly -> refetchNoCache(true)
     FetchPolicy.CacheFirst -> this as T
-    @Suppress("DEPRECATION")
     FetchPolicy.CacheAndNetwork,
       -> {
-      // CacheAndNetwork is deprecated but should still work
-      @Suppress("DEPRECATION")
       refetchPolicyInterceptor(CacheAndNetworkInterceptor)
     }
   }
