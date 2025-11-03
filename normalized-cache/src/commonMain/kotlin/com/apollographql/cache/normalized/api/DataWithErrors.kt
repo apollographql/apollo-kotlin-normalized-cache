@@ -34,26 +34,25 @@ fun <D : Executable.Data> D.withErrors(
 /**
  * Returns this data with the given [errors] inlined.
  */
-private fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): DataWithErrors {
+internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): DataWithErrors {
   if (errors == null || errors.isEmpty()) return this
   var dataWithErrors = this
   for (error in errors) {
-    val path = error.path
-    if (path == null) continue
-    dataWithErrors = dataWithErrors.withValueAt(path, error)
+    val path = error.path ?: continue
+    dataWithErrors = dataWithErrors.withErrorAt(path, error)
   }
   return dataWithErrors
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun Map<String, ApolloJsonElement>.withValueAt(path: List<Any>, value: Any?): DataWithErrors {
+private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: Error): DataWithErrors {
   var node: Any? = this.toMutableMap()
   val root = node
   for ((i, key) in path.withIndex()) {
     if (key is String) {
       node as MutableMap<String, Any?>
       if (i == path.lastIndex) {
-        node[key] = value
+        node[key] = error
       } else {
         when (val v = node[key]) {
           is Map<*, *> -> {
@@ -64,7 +63,10 @@ private fun Map<String, ApolloJsonElement>.withValueAt(path: List<Any>, value: A
             node[key] = v.toMutableList()
           }
 
-          else -> break
+          else -> {
+            node[key] = error
+            break
+          }
         }
       }
       node = node[key]!!
@@ -72,7 +74,7 @@ private fun Map<String, ApolloJsonElement>.withValueAt(path: List<Any>, value: A
       key as Int
       node as MutableList<Any?>
       if (i == path.lastIndex) {
-        node[key] = value
+        node[key] = error
       } else {
         when (val v = node[key]) {
           is Map<*, *> -> {
@@ -83,7 +85,10 @@ private fun Map<String, ApolloJsonElement>.withValueAt(path: List<Any>, value: A
             node[key] = v.toMutableList()
           }
 
-          else -> break
+          else -> {
+            node[key] = error
+            break
+          }
         }
       }
       node = node[key]!!
