@@ -10,6 +10,7 @@ import com.apollographql.apollo.api.json.readAny
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import okio.Buffer
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class WithErrorsTest {
   @Test
@@ -139,6 +140,55 @@ class WithErrorsTest {
             .build(),
         actual = dataWithErrors["foo"] as Error,
     )
+  }
+
+  @Test
+  fun wrongPathDoesntCrash() {
+    val dataJson =
+      // language=JSON
+      """
+      {
+        "hero": {
+          "name": "R2-D2"
+        },
+        "someList": [
+          {
+            "id": "1"
+          },
+          {
+            "id": "2"
+          }
+        ]
+      }
+      """.trimIndent()
+    val data = BufferedSourceJsonReader(Buffer().writeUtf8(dataJson)).readAny() as Map<String, ApolloJsonElement>
+
+    val errorsJson =
+      // language=JSON
+      """
+      [
+        {
+          "message": "Name for character with ID 1002 could not be fetched.",
+          "locations": [{"line": 6,"column": 7}],
+          "path": ["hero", 1, "name"]
+        },
+        {
+          "message": "ID for character at index 3 could not be fetched.",
+          "locations": [{"line": 10,"column": 5}],
+          "path": ["someList", 3, "id"]
+        },
+        {
+          "message": "ID for character at index 1 could not be fetched.",
+          "locations": [{"line": 10,"column": 5}],
+          "path": ["someList", "1", "id"]
+        }
+      ]
+      """.trimIndent()
+    val errors = BufferedSourceJsonReader(Buffer().writeUtf8(errorsJson)).readErrors()
+
+    val dataWithErrors = data.withErrors(errors)
+    // No error is added because the path is wrong
+    assertEquals(data, dataWithErrors)
   }
 }
 
