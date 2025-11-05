@@ -107,8 +107,8 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
 /**
  * An interceptor that emits the response from the cache first, and then emits the response(s) from the network.
  *
- * Warning: this can emit multiple successful responses, which is not allowed by [ApolloCall.execute] and will
- * crash. Use only with [ApolloCall.toFlow] or [ApolloCall.watch].
+ * Warning: this can emit multiple successful responses, therefore [ApolloCall.execute] should not be used with this fetch policy.
+ * Use only with [ApolloCall.toFlow] or [ApolloCall.watch].
  *
  */
 val CacheAndNetworkInterceptor = object : ApolloInterceptor {
