@@ -49,57 +49,65 @@ private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: E
   var node: Any? = this.toMutableMap()
   val root = node as DataWithErrors
   for ((i, key) in path.withIndex()) {
-    if (key is String) {
-      node as? MutableMap<String, Any?> ?: return root // Wrong info in path: give up
-      if (!node.containsKey(key)) {
+    when (key) {
+      is String -> {
+        node as? MutableMap<String, Any?> ?: return root // Wrong info in path: give up
+        if (!node.containsKey(key)) {
+          // Wrong info in path: give up
+          return root
+        }
+        if (i == path.lastIndex) {
+          node[key] = error
+        } else {
+          when (val v = node[key]) {
+            is Map<*, *> -> {
+              node[key] = v.toMutableMap()
+            }
+
+            is List<*> -> {
+              node[key] = v.toMutableList()
+            }
+
+            else -> {
+              node[key] = error
+              break
+            }
+          }
+        }
+        node = node[key]!!
+      }
+
+      is Int -> {
+        node as? MutableList<Any?> ?: return root // Wrong info in path: give up
+        if (key !in node.indices) {
+          // Wrong info in path: give up
+          return root
+        }
+        if (i == path.lastIndex) {
+          node[key] = error
+        } else {
+          when (val v = node[key]) {
+            is Map<*, *> -> {
+              node[key] = v.toMutableMap()
+            }
+
+            is List<*> -> {
+              node[key] = v.toMutableList()
+            }
+
+            else -> {
+              node[key] = error
+              break
+            }
+          }
+        }
+        node = node[key]!!
+      }
+
+      else -> {
         // Wrong info in path: give up
         return root
       }
-      if (i == path.lastIndex) {
-        node[key] = error
-      } else {
-        when (val v = node[key]) {
-          is Map<*, *> -> {
-            node[key] = v.toMutableMap()
-          }
-
-          is List<*> -> {
-            node[key] = v.toMutableList()
-          }
-
-          else -> {
-            node[key] = error
-            break
-          }
-        }
-      }
-      node = node[key]!!
-    } else {
-      key as Int
-      node as? MutableList<Any?> ?: return root // Wrong info in path: give up
-      if (key !in node.indices) {
-        // Wrong info in path: give up
-        return root
-      }
-      if (i == path.lastIndex) {
-        node[key] = error
-      } else {
-        when (val v = node[key]) {
-          is Map<*, *> -> {
-            node[key] = v.toMutableMap()
-          }
-
-          is List<*> -> {
-            node[key] = v.toMutableList()
-          }
-
-          else -> {
-            node[key] = error
-            break
-          }
-        }
-      }
-      node = node[key]!!
     }
   }
   return root
