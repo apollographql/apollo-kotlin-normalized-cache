@@ -48,60 +48,60 @@ internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): Da
 private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: Error): DataWithErrors {
   var node: Any? = this.toMutableMap()
   val root = node as DataWithErrors
-  for ((i, key) in path.withIndex()) {
-    when (key) {
+  for ((i, pathElement) in path.withIndex()) {
+    when (pathElement) {
       is String -> {
         node as? MutableMap<String, Any?> ?: return root // Wrong info in path: give up
-        if (!node.containsKey(key)) {
+        if (!node.containsKey(pathElement)) {
           // Wrong info in path: give up
           return root
         }
         if (i == path.lastIndex) {
-          node[key] = error
+          node[pathElement] = error
         } else {
-          when (val v = node[key]) {
+          when (val v = node[pathElement]) {
             is Map<*, *> -> {
-              node[key] = v.toMutableMap()
+              node[pathElement] = v.toMutableMap()
             }
 
             is List<*> -> {
-              node[key] = v.toMutableList()
+              node[pathElement] = v.toMutableList()
             }
 
             else -> {
-              node[key] = error
+              node[pathElement] = error
               break
             }
           }
         }
-        node = node[key]!!
+        node = node[pathElement]!!
       }
 
       is Int -> {
         node as? MutableList<Any?> ?: return root // Wrong info in path: give up
-        if (key !in node.indices) {
+        if (pathElement !in node.indices) {
           // Wrong info in path: give up
           return root
         }
         if (i == path.lastIndex) {
-          node[key] = error
+          node[pathElement] = error
         } else {
-          when (val v = node[key]) {
+          when (val v = node[pathElement]) {
             is Map<*, *> -> {
-              node[key] = v.toMutableMap()
+              node[pathElement] = v.toMutableMap()
             }
 
             is List<*> -> {
-              node[key] = v.toMutableList()
+              node[pathElement] = v.toMutableList()
             }
 
             else -> {
-              node[key] = error
+              node[pathElement] = error
               break
             }
           }
         }
-        node = node[key]!!
+        node = node[pathElement]!!
       }
 
       else -> {
