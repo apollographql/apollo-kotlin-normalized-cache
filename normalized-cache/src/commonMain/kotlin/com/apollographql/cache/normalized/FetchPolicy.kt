@@ -1,5 +1,7 @@
 package com.apollographql.cache.normalized
 
+import com.apollographql.apollo.ApolloCall
+
 enum class FetchPolicy {
   /**
    * Emit the response from the cache first, and if there was a cache miss, emit the response(s) from the network.
@@ -25,7 +27,9 @@ enum class FetchPolicy {
 
   /**
    * Emit the response from the cache first, and then emit the response(s) from the network.
+   *
+   * Warning: this can emit multiple successful responses, therefore [ApolloCall.execute] should not be used with this fetch policy.
+   * Use only with [ApolloCall.toFlow] or [ApolloCall.watch].
    */
-  @Deprecated("This is equivalent of executing with CacheOnly and then with NetworkOnly")
   CacheAndNetwork,
 }

@@ -1,5 +1,6 @@
 package com.apollographql.cache.normalized
 
+import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Operation
@@ -42,11 +43,12 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
             request = request
                 .newBuilder()
                 .fetchFromCache(true)
-                .build()
+                .build(),
         ).single()
             .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
-        emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
-            .build()
+        emit(
+            cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
+                .build(),
         )
         if (cacheResponse.exception == null) {
           return@flow
@@ -70,7 +72,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
       var networkException: ApolloException? = null
 
       val networkResponses = chain.proceed(
-          request = request
+          request = request,
       ).onEach { response ->
         if (response.exception != null && networkException == null) {
           networkException = response.exception
@@ -94,7 +96,7 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
           request = request
               .newBuilder()
               .fetchFromCache(true)
-              .build()
+              .build(),
       ).single()
           .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
       emit(cacheResponse)
@@ -104,8 +106,11 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
 
 /**
  * An interceptor that emits the response from the cache first, and then emits the response(s) from the network.
+ *
+ * Warning: this can emit multiple successful responses, therefore [ApolloCall.execute] should not be used with this fetch policy.
+ * Use only with [ApolloCall.toFlow] or [ApolloCall.watch].
+ *
  */
-@Deprecated("This is equivalent of executing with onlyIfCached(true) followed by noCache(true)")
 val CacheAndNetworkInterceptor = object : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     return flow {
@@ -113,7 +118,7 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
           request = request
               .newBuilder()
               .fetchFromCache(true)
-              .build()
+              .build(),
       ).single()
           .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
 
@@ -171,11 +176,13 @@ private fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(
     when {
       cacheMissException != null -> {
         newBuilder()
-            .exception(cacheMissException.apply {
-              if (cachedErrorException != null) {
-                addSuppressed(cachedErrorException)
-              }
-            })
+            .exception(
+                cacheMissException.apply {
+                  if (cachedErrorException != null) {
+                    addSuppressed(cachedErrorException)
+                  }
+                },
+            )
             .data(null)
             .errors(null)
             .build()
@@ -224,9 +231,9 @@ internal object FetchPolicyRouterInterceptor : ApolloInterceptor {
                         it.cacheInfo!!.newBuilder()
                             .cacheMissException(exceptions.filterIsInstance<CacheMissException>().firstOrNull())
                             .networkException(exceptions.firstOrNull { it !is CacheMissException })
-                            .build()
+                            .build(),
                     )
-                    .build()
+                    .build(),
             )
             hasEmitted = true
           }
@@ -248,9 +255,9 @@ internal object FetchPolicyRouterInterceptor : ApolloInterceptor {
         emit(
             ApolloResponse.Builder(request.operation, request.requestUuid)
                 .exception(exception)
-                .build()
+                .build(),
 
-        )
+            )
       }
     }
   }
