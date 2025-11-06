@@ -52,10 +52,6 @@ private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: E
     when (pathElement) {
       is String -> {
         node as? MutableMap<String, Any?> ?: return root // Wrong info in path: give up
-        if (!node.containsKey(pathElement)) {
-          // Wrong info in path: give up
-          return root
-        }
         if (i == path.lastIndex) {
           node[pathElement] = error
         } else {
