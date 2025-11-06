@@ -9,6 +9,8 @@ import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.jsonReader
 import com.apollographql.apollo.api.variables
+import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.CacheInfo
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.CacheManager.ReadResult
@@ -31,6 +33,7 @@ import com.apollographql.cache.normalized.api.rootKey
 import com.apollographql.cache.normalized.api.withErrors
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
+import com.apollographql.cache.normalized.cacheMissException
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import kotlinx.coroutines.channels.BufferOverflow
@@ -68,7 +71,7 @@ internal class DefaultCacheManager(
        * as a refetchPolicy. If that ever becomes an issue again, please make sure to write a test about it.
        */
       extraBufferCapacity = 64,
-      onBufferOverflow = BufferOverflow.SUSPEND
+      onBufferOverflow = BufferOverflow.SUSPEND,
   )
 
   override val changedKeys = changedKeysEvents.asSharedFlow()
@@ -164,7 +167,27 @@ internal class DefaultCacheManager(
       val jsonReader = mapOf("data" to it).jsonReader()
       jsonReader.beginObject()
       jsonReader.nextName()
-      val data = operation.adapter().fromJson(jsonReader, falseVariablesCustomScalarAdapter)
+      val data = runCatching {
+        operation.adapter().fromJson(jsonReader, falseVariablesCustomScalarAdapter)
+      }.getOrElse { e ->
+        // Could not parse the data from the cache - can happen after a schema breaking change. Treat it as a cache miss.
+        apolloExceptionHandler(Exception("Could not parse cached data", e))
+        return ApolloResponse.Builder(operation, uuid4())
+            .errors(
+                listOf(
+                    Error.Builder("Could not parse cached data")
+                        .cacheMissException(CacheMissException(e.message ?: "Could not parse cached data"))
+                        .build(),
+                ),
+            )
+            .cacheInfo(
+                CacheInfo.Builder()
+                    .fromCache(true)
+                    .cacheHit(false)
+                    .build(),
+            )
+            .build()
+      }
       jsonReader.endObject()
       data
     }
@@ -272,7 +295,7 @@ internal class DefaultCacheManager(
       Record(
           key = record.key,
           fields = record.fields,
-          mutationId = mutationId
+          mutationId = mutationId,
       )
     }
 
@@ -301,7 +324,7 @@ internal class DefaultCacheManager(
       Record(
           key = record.key,
           fields = record.fields,
-          mutationId = mutationId
+          mutationId = mutationId,
       )
     }
     return cache.addOptimisticUpdates(records)
