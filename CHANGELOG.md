@@ -2,10 +2,18 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-alpha.8
+_2025-11-06_
+
 - Database files are now stored in the `cache` directory by default on Android (#164)
+  Note: if a cache in the previous location exists, it will be used, ensuring data is not lost when upgrading to this version.
 - `FieldPolicyCacheResolver` now uses the `fieldPolicies` passed to its constructor instead of the information from `CompiledField`. This allows to better isolate the main Apollo Kotlin project from the cache project. (#250)
   If your code was calling `FieldPolicyCacheResolver()` directly, update it to pass `Cache.fieldPolicies` to the constructor.
 - Rename `IdCacheKeyResolver` to `IdCacheResolver`, and keep the list ids and single id arguments in the same list. (#250)
+- Introduce `KeyArgumentsCacheResolver` to programmatically provide key arguments (to use when `@fieldPolicy` is not suitable or desired) (#250)
+- Un-deprecate `FetchPolicy.CacheAndNetwork` (#253)
+  See https://github.com/apollographql/apollo-kotlin/pull/6772 for more context.
+- Treat parse errors from the cache as cache misses (#255)
 
 # v1.0.0-alpha.7
 _2025-10-14_
