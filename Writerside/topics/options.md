@@ -22,6 +22,13 @@ The response is fetched from the network. If no valid response cannot be found, 
 
 A response is fetched from the network first. If no valid response cannot be found, the cache is queried.
 
+### `CacheAndNetwork`
+
+A response is fetched from the cache and then from the network.
+
+Warning: this can emit multiple successful responses, therefore [ApolloCall.execute()](https://www.apollographql.com/docs/kotlin/kdoc/apollo-runtime/com.apollographql.apollo/-apollo-call/execute.html) should not be used with this policy.
+Use only with [ApolloCall.toFlow()](https://www.apollographql.com/docs/kotlin/kdoc/apollo-runtime/com.apollographql.apollo/-apollo-call/index.html#-2144194671%2FFunctions%2F981543781) or [ApolloCall.watch()](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/watch.html?query=fun%20%3CD%20:%20Query.Data%3E%20ApolloCall%3CD%3E.watch():%20Flow%3CApolloResponse%3CD%3E%3E).
+
 ## `serverErrorsAsCacheMisses`
 
 Sets whether GraphQL errors in the cache should be treated as cache misses. When true (the default), if any field is an Error in the cache, the returned response will have a null data and a non-null exception of type `ApolloGraphQLException`.
