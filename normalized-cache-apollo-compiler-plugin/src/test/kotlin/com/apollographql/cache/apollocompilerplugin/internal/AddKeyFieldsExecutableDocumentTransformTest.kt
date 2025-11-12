@@ -314,6 +314,37 @@ class AddKeyFieldsExecutableDocumentTransformTest {
 
     checkTransformThrows(schemaText, operationText, expectedMessage = "e: null: (4, 5): Apollo: Field 'id: name' in User conflicts with key fields")
   }
+
+  @Test
+  fun invalidField() {
+    // language=GraphQL
+    val schemaText = """
+      type Query {
+        a: String
+      }
+      
+      type Mutation {
+        b: String
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val operationText = """
+      query BadQuery {
+        b
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected = """
+      query BadQuery {
+        b
+      }
+    """.trimIndent()
+
+    checkTransform(schemaText, operationText, expected)
+  }
+
 }
 
 
