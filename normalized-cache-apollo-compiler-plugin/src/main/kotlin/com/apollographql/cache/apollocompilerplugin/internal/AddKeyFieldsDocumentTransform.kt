@@ -159,7 +159,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
       keyFields: Map<String, List<String>>,
       parentType: String,
   ): GQLField {
-    val typeDefinition = definitionFromScope(schema, parentType)!!
+    val typeDefinition = definitionFromScope(schema, parentType) ?: return this
     val newSelectionSet = selections.withRequiredFields(
         schema = schema,
         keyFields = keyFields,
