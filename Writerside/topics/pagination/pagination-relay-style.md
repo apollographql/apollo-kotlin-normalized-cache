@@ -72,4 +72,10 @@ val client = ApolloClient.Builder()
 
 Query `UsersConnection()` to fetch new pages and update the cache, and watch it to observe the full list.
 
-An example of doing this is available [here](https://github.com/apollographql/apollo-kotlin-samples/tree/main/normalized-cache/pagination/pagination-support).
+## Caveats
+
+For the cache to be able to merge pages correctly, the `node` field of the `XyzEdge` types must return an object with a unique identifier, i.e. it must have its key fields configured with `@typePolicy`.
+
+## Sample
+
+A sample project using this type of pagination is available [here](https://github.com/apollographql/apollo-kotlin-samples/tree/main/normalized-cache/pagination/pagination-support).
