@@ -129,6 +129,7 @@ apollo {
 
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
       argument("com.apollographql.cache.packageName", packageName.get())
+      argument("com.apollographql.cache.issueSeverities", mapOf("EdgeNodeTypeWithoutKeyFields" to "ignore"))
     }
   }
 }
