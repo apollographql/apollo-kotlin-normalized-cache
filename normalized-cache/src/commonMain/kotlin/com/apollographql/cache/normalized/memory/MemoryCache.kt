@@ -28,11 +28,10 @@ class MemoryCache(
     private val maxSizeBytes: Int = Int.MAX_VALUE,
     private val expireAfterMillis: Long = -1,
 ) : NormalizedCache {
-  // A lock is only needed if there is a nextCache
-  private val mutex = nextCache?.let { Mutex() }
+  private val mutex = Mutex()
 
   private suspend fun <T> withLock(block: suspend () -> T): T {
-    return mutex?.withReentrantLock { block() } ?: block()
+    return mutex.withReentrantLock { block() }
   }
 
   private val lruCache = LruCache<CacheKey, Record>(maxSize = maxSizeBytes, expireAfterMillis = expireAfterMillis) { key, record ->
@@ -105,28 +104,34 @@ class MemoryCache(
     }
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
     val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
-    val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
-    val recordsToInsert = mutableListOf<Record>()
-    val changedKeys = records.flatMap { record ->
-      val existingRecord = existingRecords[record.key]
-      if (existingRecord == null) {
-        val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
-        recordsToInsert.add(record)
-        lruCache[record.key] = record
-        record.fieldKeys()
-      } else {
-        val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
-        val mergedRecordWithDates = mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
-        recordsToInsert.add(mergedRecordWithDates)
-        lruCache[record.key] = mergedRecordWithDates
-        changedKeys
-      }
-    }.toSet()
-    withLock {
-      // Skip merging in the next cache as we already did it here
-      nextCache?.merge(recordsToInsert, cacheHeaders.newBuilder().addHeader(ApolloCacheHeaders.SKIP_MERGE, "true").build(), recordMerger)
+    return withLock {
+      val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
+      val recordsToInsert = mutableListOf<Record>()
+      val changedKeys = records.flatMap { record ->
+        val existingRecord = existingRecords[record.key]
+        if (existingRecord == null) {
+          val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+          recordsToInsert.add(record)
+          lruCache[record.key] = record
+          record.fieldKeys()
+        } else {
+          val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
+          val mergedRecordWithDates = mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+          recordsToInsert.add(mergedRecordWithDates)
+          lruCache[record.key] = mergedRecordWithDates
+          changedKeys
+        }
+      }.toSet()
+      nextCache?.merge(
+          records = recordsToInsert,
+          cacheHeaders = cacheHeaders.newBuilder()
+              // Skip merging in the next cache as we already did it here
+              .addHeader(ApolloCacheHeaders.SKIP_MERGE, "true")
+              .build(),
+          recordMerger = recordMerger,
+      )
+      changedKeys
     }
-    return changedKeys
   }
 
   override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
