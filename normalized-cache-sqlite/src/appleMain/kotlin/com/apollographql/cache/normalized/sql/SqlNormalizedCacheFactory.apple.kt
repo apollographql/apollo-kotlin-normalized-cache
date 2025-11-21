@@ -17,7 +17,7 @@ import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir))
+): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir), name)
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
 

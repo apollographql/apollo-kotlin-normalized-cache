@@ -15,12 +15,15 @@ import com.apollographql.cache.normalized.sql.internal.RecordDatabase
  * - on MacOS, it will use "Application Support/databases/name"
  * - on the JVM, it will use "System.getProperty("user.home")/.apollo"
  * - on JS/Wasm, this argument is unused
+ *
  * Default: "apollo.db"
  */
 expect fun SqlNormalizedCacheFactory(name: String? = "apollo.db"): NormalizedCacheFactory
 
-fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory = object : NormalizedCacheFactory() {
+fun SqlNormalizedCacheFactory(driver: SqlDriver): NormalizedCacheFactory = SqlNormalizedCacheFactory(driver, name = "apollo.db")
+
+fun SqlNormalizedCacheFactory(driver: SqlDriver, name: String?): NormalizedCacheFactory = object : NormalizedCacheFactory() {
   override fun create(): NormalizedCache {
-    return SqlNormalizedCache(RecordDatabase(driver))
+    return SqlNormalizedCache(RecordDatabase(driver, name))
   }
 }

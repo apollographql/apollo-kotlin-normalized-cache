@@ -28,4 +28,6 @@ interface ReadOnlyNormalizedCache {
    * This is an optional operation that can be implemented by the caches for debug purposes, otherwise it defaults to `-1`, meaning unknown size.
    */
   fun sizeOfRecord(record: Record): Int = -1
+
+  suspend fun close() {}
 }

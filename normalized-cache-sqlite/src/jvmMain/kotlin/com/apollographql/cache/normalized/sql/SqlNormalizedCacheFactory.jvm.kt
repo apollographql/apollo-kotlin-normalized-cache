@@ -12,8 +12,8 @@ import java.util.Properties
  */
 fun SqlNormalizedCacheFactory(
     url: String,
-    properties: Properties = Properties(),
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(url, properties))
+    properties: Properties,
+): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(url, properties), name = null)
 
 /**
  * @param name the name of the database or null for an in-memory database
@@ -24,7 +24,7 @@ fun SqlNormalizedCacheFactory(
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(name.toUrl(baseDir), Properties()))
+): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(name.toUrl(baseDir), Properties()), name = name)
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
 

@@ -15,6 +15,6 @@ import com.apollographql.cache.normalized.api.NormalizedCacheFactory
  * See [the SQLDelight documentation](https://sqldelight.github.io/sqldelight/2.1.0/js_sqlite/sqljs_worker/).
  */
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory {
-  return SqlNormalizedCacheFactory(createDefaultWebWorkerDriver())
+  return SqlNormalizedCacheFactory(createDefaultWebWorkerDriver(), name = null)
 }
 
