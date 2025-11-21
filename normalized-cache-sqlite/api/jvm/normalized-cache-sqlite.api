@@ -1,5 +1,6 @@
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCache : com/apollographql/cache/normalized/api/NormalizedCache {
 	public fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -13,6 +14,7 @@ public final class com/apollographql/cache/normalized/sql/SqlNormalizedCache : c
 
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFactoryKt {
 	public static final fun SqlNormalizedCacheFactory (Lapp/cash/sqldelight/db/SqlDriver;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
+	public static final fun SqlNormalizedCacheFactory (Lapp/cash/sqldelight/db/SqlDriver;Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 }
 
 public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFactory_jvmKt {
@@ -20,7 +22,6 @@ public final class com/apollographql/cache/normalized/sql/SqlNormalizedCacheFact
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static final fun SqlNormalizedCacheFactory (Ljava/lang/String;Ljava/util/Properties;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 	public static synthetic fun SqlNormalizedCacheFactory$default (Ljava/lang/String;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
-	public static synthetic fun SqlNormalizedCacheFactory$default (Ljava/lang/String;Ljava/util/Properties;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;
 }
 
 public final class com/apollographql/cache/normalized/sql/VersionKt {

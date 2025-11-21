@@ -48,7 +48,7 @@ fun SqlNormalizedCacheFactory(
     }
   }
   return SqlNormalizedCacheFactory(
-      AndroidSqliteDriver(
+      driver = AndroidSqliteDriver(
           schema = synchronousSchema,
           context = context.applicationContext,
           name = filePath,
@@ -62,6 +62,7 @@ fun SqlNormalizedCacheFactory(
           useNoBackupDirectory = useNoBackupDirectory,
           windowSizeBytes = windowSizeBytes,
       ),
+      name = filePath,
   )
 }
 

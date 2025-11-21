@@ -15,7 +15,9 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.sql.internal.RecordDatabase
+import com.apollographql.cache.normalized.testing.Platform
 import com.apollographql.cache.normalized.testing.fieldKey
+import com.apollographql.cache.normalized.testing.platform
 import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -30,20 +32,24 @@ class SqlNormalizedCacheTest {
     cache.clearAll()
   }
 
+  suspend fun tearDown() {
+    cache.close()
+  }
+
   @Test
-  fun testRecordCreation() = runTest(before = { setUp() }) {
+  fun testRecordCreation() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(STANDARD_KEY)
     assertNotNull(cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE))
   }
 
   @Test
-  fun testRecordCreation_root() = runTest(before = { setUp() }) {
+  fun testRecordCreation_root() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(QUERY_ROOT_KEY)
     assertNotNull(cache.loadRecord(QUERY_ROOT_KEY, CacheHeaders.NONE))
   }
 
   @Test
-  fun testRecordSelection() = runTest(before = { setUp() }) {
+  fun testRecordSelection() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(STANDARD_KEY)
     val record = cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE)
     assertNotNull(record)
@@ -51,7 +57,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testMultipleRecordSelection() = runTest(before = { setUp() }) {
+  fun testMultipleRecordSelection() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(STANDARD_KEY)
     createRecord(QUERY_ROOT_KEY)
     val selectionKeys = setOf(STANDARD_KEY, QUERY_ROOT_KEY)
@@ -61,7 +67,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testRecordSelection_root() = runTest(before = { setUp() }) {
+  fun testRecordSelection_root() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(QUERY_ROOT_KEY)
     val record = requireNotNull(cache.loadRecord(QUERY_ROOT_KEY, CacheHeaders.NONE))
     assertNotNull(record)
@@ -69,13 +75,13 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testRecordSelection_recordNotPresent() = runTest(before = { setUp() }) {
+  fun testRecordSelection_recordNotPresent() = runTest(before = { setUp() }, after = { tearDown() }) {
     val record = cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE)
     assertNull(record)
   }
 
   @Test
-  fun testRecordMerge() = runTest(before = { setUp() }) {
+  fun testRecordMerge() = runTest(before = { setUp() }, after = { tearDown() }) {
     cache.merge(
         record = Record(
             key = STANDARD_KEY,
@@ -94,7 +100,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testRecordDelete() = runTest(before = { setUp() }) {
+  fun testRecordDelete() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(STANDARD_KEY)
     cache.merge(
         record = Record(
@@ -113,7 +119,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testClearAll() = runTest(before = { setUp() }) {
+  fun testClearAll() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(QUERY_ROOT_KEY)
     createRecord(STANDARD_KEY)
     cache.clearAll()
@@ -122,7 +128,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testHeader_noCache() = runTest(before = { setUp() }) {
+  fun testHeader_noCache() = runTest(before = { setUp() }, after = { tearDown() }) {
     cache.merge(
         record = Record(
             key = STANDARD_KEY,
@@ -136,7 +142,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testRecordMerge_noOldRecord() = runTest(before = { setUp() }) {
+  fun testRecordMerge_noOldRecord() = runTest(before = { setUp() }, after = { tearDown() }) {
     val changedKeys = cache.merge(
         record = Record(
             key = STANDARD_KEY,
@@ -156,7 +162,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testRecordMerge_withOldRecord() = runTest(before = { setUp() }) {
+  fun testRecordMerge_withOldRecord() = runTest(before = { setUp() }, after = { tearDown() }) {
     createRecord(STANDARD_KEY)
     cache.merge(
         record = Record(
@@ -176,8 +182,8 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun exceptionCallsExceptionHandler() = runTest(before = { setUp() }) {
-    val badCache = SqlNormalizedCache(RecordDatabase(BadDriver))
+  fun exceptionCallsExceptionHandler() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val badCache = SqlNormalizedCache(RecordDatabase(BadDriver, null))
     var throwable: Throwable? = null
     apolloExceptionHandler = {
       throwable = it
@@ -204,7 +210,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testCascadeDeleteWithSelfReference() = runTest(before = { setUp() }) {
+  fun testCascadeDeleteWithSelfReference() = runTest(before = { setUp() }, after = { tearDown() }) {
     // Creating a self-referencing record
     cache.merge(
         record = Record(
@@ -226,7 +232,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testCascadeDeleteWithCyclicReferences() = runTest(before = { setUp() }) {
+  fun testCascadeDeleteWithCyclicReferences() = runTest(before = { setUp() }, after = { tearDown() }) {
     // Creating two records that reference each other
     cache.merge(
         record = Record(
@@ -286,6 +292,62 @@ class SqlNormalizedCacheTest {
     val normalizedCache = SqlNormalizedCacheFactory().create().apply { clearAll() }
     val sizeOfRecord = normalizedCache.sizeOfRecord(record)
     assertEquals(157, sizeOfRecord)
+  }
+
+  @Test
+  fun cannotReuseNameWithoutClose() = runTest {
+    if (platform() == Platform.Js || platform() == Platform.WasmJs) {
+      // Wasm and JS don't have file names
+      return@runTest
+    }
+
+    var exception: Throwable? = null
+    apolloExceptionHandler = { exception = it }
+    val cache1 = SqlNormalizedCacheFactory().create()
+    cache1.clearAll()
+
+    val cache2 = SqlNormalizedCacheFactory().create()
+    cache2.clearAll()
+    assertEquals("The file apollo.db is already bound to another SqlNormalizedCache. Call SqlNormalizedCache.close() to release it.", exception?.cause?.message)
+
+    cache1.close()
+  }
+
+  @Test
+  fun canUseDifferentNames() = runTest {
+    if (platform() == Platform.Js || platform() == Platform.WasmJs) {
+      // Wasm and JS don't have file names
+      return@runTest
+    }
+
+    var exception: Throwable? = null
+    apolloExceptionHandler = { exception = it }
+    val cache1 = SqlNormalizedCacheFactory("a.db").create()
+    cache1.clearAll()
+
+    val cache2 = SqlNormalizedCacheFactory("b.db").create()
+    cache2.clearAll()
+    assertNull(exception)
+  }
+
+  @Test
+  fun canReuseNameAfterClose() = runTest {
+    if (platform() == Platform.Js || platform() == Platform.WasmJs) {
+      // Wasm and JS don't have file names
+      return@runTest
+    }
+
+    var exception: Throwable? = null
+    apolloExceptionHandler = { exception = it }
+    val cache1 = SqlNormalizedCacheFactory().create()
+    cache1.clearAll()
+    cache1.close()
+
+    val cache2 = SqlNormalizedCacheFactory().create()
+    cache2.clearAll()
+    assertNull(exception)
+
+    cache2.close()
   }
 
   private val BadDriver = object : SqlDriver {

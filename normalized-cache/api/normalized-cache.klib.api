@@ -75,6 +75,7 @@ abstract interface com.apollographql.cache.normalized.api/ReadOnlyNormalizedCach
     abstract suspend fun loadRecord(com.apollographql.cache.normalized.api/CacheKey, com.apollographql.cache.normalized.api/CacheHeaders): com.apollographql.cache.normalized.api/Record? // com.apollographql.cache.normalized.api/ReadOnlyNormalizedCache.loadRecord|loadRecord(com.apollographql.cache.normalized.api.CacheKey;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
     abstract suspend fun loadRecords(kotlin.collections/Collection<com.apollographql.cache.normalized.api/CacheKey>, com.apollographql.cache.normalized.api/CacheHeaders): kotlin.collections/Collection<com.apollographql.cache.normalized.api/Record> // com.apollographql.cache.normalized.api/ReadOnlyNormalizedCache.loadRecords|loadRecords(kotlin.collections.Collection<com.apollographql.cache.normalized.api.CacheKey>;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
     open fun sizeOfRecord(com.apollographql.cache.normalized.api/Record): kotlin/Int // com.apollographql.cache.normalized.api/ReadOnlyNormalizedCache.sizeOfRecord|sizeOfRecord(com.apollographql.cache.normalized.api.Record){}[0]
+    open suspend fun close() // com.apollographql.cache.normalized.api/ReadOnlyNormalizedCache.close|close(){}[0]
 }
 
 abstract interface com.apollographql.cache.normalized.api/RecordMerger { // com.apollographql.cache.normalized.api/RecordMerger|null[0]

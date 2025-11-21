@@ -11,7 +11,10 @@ import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-internal class RecordDatabase(private val driver: SqlDriver) {
+internal class RecordDatabase(
+    private val driver: SqlDriver,
+    private val name: String?,
+) {
   private val recordQueries: RecordQueries = SqlRecordDatabase(driver).recordQueries
 
   private val mutex = Mutex()
@@ -21,6 +24,7 @@ internal class RecordDatabase(private val driver: SqlDriver) {
     if (isInitialized) return
     mutex.withLock {
       if (isInitialized) return@withLock
+      if (name != null) bind(name)
       maybeCreateOrMigrateSchema(driver)
       checkSchema(driver)
 
@@ -65,9 +69,13 @@ internal class RecordDatabase(private val driver: SqlDriver) {
   }
 
   suspend fun databaseSize(): Long {
-    return executeQuery(driver, "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();", {
-      it.getLong(0)!!
-    }).awaitAsOne()
+    return executeQuery(
+        driver = driver,
+        sql = "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size();",
+        mapper = {
+          it.getLong(0)!!
+        },
+    ).awaitAsOne()
   }
 
   suspend fun count(): Long {
@@ -84,5 +92,27 @@ internal class RecordDatabase(private val driver: SqlDriver) {
 
   suspend fun changes(): Long {
     return recordQueries.changes().awaitAsOne()
+  }
+
+  suspend fun close() {
+    if (name != null) release(name)
+  }
+
+  companion object {
+    private val mutex = Mutex()
+    private val boundNames = mutableSetOf<String>()
+
+    suspend fun bind(name: String) {
+      mutex.withLock {
+        check(!boundNames.contains(name)) { "The file $name is already bound to another SqlNormalizedCache. Call SqlNormalizedCache.close() to release it." }
+        boundNames.add(name)
+      }
+    }
+
+    suspend fun release(name: String) {
+      mutex.withLock {
+        boundNames.remove(name)
+      }
+    }
   }
 }

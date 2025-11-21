@@ -190,4 +190,8 @@ class SqlNormalizedCache internal constructor(
       return -1
     }
   }
+
+  override suspend fun close() {
+    recordDatabase.close()
+  }
 }
