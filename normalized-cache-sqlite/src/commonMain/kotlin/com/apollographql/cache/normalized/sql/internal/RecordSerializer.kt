@@ -62,17 +62,17 @@ internal object RecordSerializer {
 
       in Byte.MIN_VALUE..Byte.MAX_VALUE -> {
         writeByte(INT_BYTE)
-        writeByte(value.toInt())
+        writeByte(value)
       }
 
       in Short.MIN_VALUE..Short.MAX_VALUE -> {
         writeByte(INT_SHORT)
-        writeShort(value.toInt())
+        writeShort(value)
       }
 
       else -> {
         writeByte(INT_INT)
-        writeInt(value.toInt())
+        writeInt(value)
       }
     }
   }
@@ -111,7 +111,7 @@ internal object RecordSerializer {
 
       else -> {
         writeByte(LONG_LONG)
-        writeLong(value.toLong())
+        writeLong(value)
       }
     }
   }
@@ -146,17 +146,16 @@ internal object RecordSerializer {
         }
       }
 
-      is Int -> {
-        _writeInt(value)
-      }
-
-      is Long -> {
-        _writeLong(value)
-      }
-
-      is Double -> {
-        writeByte(DOUBLE)
-        writeLong(value.toBits())
+      is Number -> {
+        // Using `is` on numbers always return true in JS, so we use the class instead
+        when (value::class) {
+          Int::class -> _writeInt(value as Int)
+          Long::class -> _writeLong(value as Long)
+          else -> {
+            writeByte(DOUBLE)
+            writeLong((value as Double).toBits())
+          }
+        }
       }
 
       is JsonNumber -> {
