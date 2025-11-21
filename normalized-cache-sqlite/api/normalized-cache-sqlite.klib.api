@@ -87,6 +87,7 @@ final class com.apollographql.cache.normalized.sql.internal.record/SelectRecords
 }
 
 final class com.apollographql.cache.normalized.sql/SqlNormalizedCache : com.apollographql.cache.normalized.api/NormalizedCache { // com.apollographql.cache.normalized.sql/SqlNormalizedCache|null[0]
+    final fun sizeOfRecord(com.apollographql.cache.normalized.api/Record): kotlin/Int // com.apollographql.cache.normalized.sql/SqlNormalizedCache.sizeOfRecord|sizeOfRecord(com.apollographql.cache.normalized.api.Record){}[0]
     final suspend fun clearAll() // com.apollographql.cache.normalized.sql/SqlNormalizedCache.clearAll|clearAll(){}[0]
     final suspend fun dump(): kotlin.collections/Map<kotlin.reflect/KClass<*>, kotlin.collections/Map<com.apollographql.cache.normalized.api/CacheKey, com.apollographql.cache.normalized.api/Record>> // com.apollographql.cache.normalized.sql/SqlNormalizedCache.dump|dump(){}[0]
     final suspend fun loadRecord(com.apollographql.cache.normalized.api/CacheKey, com.apollographql.cache.normalized.api/CacheHeaders): com.apollographql.cache.normalized.api/Record? // com.apollographql.cache.normalized.sql/SqlNormalizedCache.loadRecord|loadRecord(com.apollographql.cache.normalized.api.CacheKey;com.apollographql.cache.normalized.api.CacheHeaders){}[0]

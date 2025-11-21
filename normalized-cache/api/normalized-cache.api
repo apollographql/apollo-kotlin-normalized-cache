@@ -611,6 +611,7 @@ public final class com/apollographql/cache/normalized/api/NormalizedCache$Compan
 }
 
 public final class com/apollographql/cache/normalized/api/NormalizedCache$DefaultImpls {
+	public static fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/Record;)I
 	public static fun trim (Lcom/apollographql/cache/normalized/api/NormalizedCache;JFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun trim$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;JFLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -624,12 +625,17 @@ public abstract interface class com/apollographql/cache/normalized/api/ReadOnlyN
 	public abstract fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/Record;)I
+}
+
+public final class com/apollographql/cache/normalized/api/ReadOnlyNormalizedCache$DefaultImpls {
+	public static fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;Lcom/apollographql/cache/normalized/api/Record;)I
 }
 
 public final class com/apollographql/cache/normalized/api/Record : java/util/Map, kotlin/jvm/internal/markers/KMappedMarker {
 	public static final field Companion Lcom/apollographql/cache/normalized/api/Record$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/UUID;Ljava/util/Map;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/UUID;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/UUID;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
 	public synthetic fun compute (Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;
 	public fun compute (Ljava/lang/String;Ljava/util/function/BiFunction;)Ljava/lang/Object;
@@ -683,6 +689,7 @@ public final class com/apollographql/cache/normalized/api/RecordKt {
 	public static final fun expirationDate (Lcom/apollographql/cache/normalized/api/Record;Ljava/lang/String;)Ljava/lang/Long;
 	public static final fun receivedDate (Lcom/apollographql/cache/normalized/api/Record;Ljava/lang/String;)Ljava/lang/Long;
 	public static final fun withDates (Lcom/apollographql/cache/normalized/api/Record;Ljava/lang/String;Ljava/lang/String;)Lcom/apollographql/cache/normalized/api/Record;
+	public static final fun withSizeInBytes (Lcom/apollographql/cache/normalized/api/Record;I)Lcom/apollographql/cache/normalized/api/Record;
 }
 
 public abstract interface class com/apollographql/cache/normalized/api/RecordMerger {
@@ -756,6 +763,7 @@ public final class com/apollographql/cache/normalized/memory/MemoryCache : com/a
 	public fun merge (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun remove (Ljava/util/Collection;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun remove-7OwBRqc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/Record;)I
 	public fun trim (JFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

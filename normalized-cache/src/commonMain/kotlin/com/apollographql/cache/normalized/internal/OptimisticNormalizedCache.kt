@@ -104,6 +104,10 @@ internal class OptimisticNormalizedCache(private val wrapped: NormalizedCache) :
     return mapOf(this::class to recordJournals.mapValues { (_, journal) -> journal.current }) + wrapped.dump()
   }
 
+  override fun sizeOfRecord(record: Record): Int {
+    return wrapped.sizeOfRecord(record)
+  }
+
   private fun Record?.mergeJournalRecord(key: CacheKey): Record? {
     val journal = recordJournals[key]
     return if (journal != null) {

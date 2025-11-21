@@ -2,7 +2,6 @@ package com.apollographql.cache.normalized.api
 
 import com.apollographql.apollo.annotations.ApolloInternal
 import com.apollographql.apollo.api.json.ApolloJsonElement
-import com.apollographql.cache.normalized.internal.RecordWeigher.calculateBytes
 import com.benasher44.uuid.Uuid
 
 /**
@@ -18,13 +17,13 @@ class Record(
      * Arbitrary metadata that can be attached to each field.
      */
     val metadata: Map<String, Map<String, ApolloJsonElement>> = emptyMap(),
+
+    /**
+     * Size of the record in bytes. This is an optional field that can be set by the cache implementation for debug purposes, otherwise it
+     * defaults to `-1`, meaning unknown size.
+     */
+    val sizeInBytes: Int = -1,
 ) : Map<String, Any?> by fields {
-
-  val sizeInBytes: Int
-    get() {
-      return calculateBytes(this)
-    }
-
   /**
    * Returns a merge result record and a set of field keys which have changed, or were added.
    * A field key incorporates any GraphQL arguments in addition to the field name.
@@ -98,10 +97,20 @@ fun Record.withDates(receivedDate: String?, expirationDate: String?): Record {
   )
 }
 
+@ApolloInternal
+fun Record.withSizeInBytes(sizeInBytes: Int): Record {
+  return Record(
+      key = key,
+      fields = fields,
+      mutationId = mutationId,
+      metadata = metadata,
+      sizeInBytes = sizeInBytes,
+  )
+}
+
 fun Record.receivedDate(field: String) = metadata[field]?.get(ApolloCacheHeaders.RECEIVED_DATE) as? Long
 
 fun Record.expirationDate(field: String) = metadata[field]?.get(ApolloCacheHeaders.EXPIRATION_DATE) as? Long
-
 
 /**
  * A typealias for a type-unsafe Kotlin representation of a Record value. This typealias is

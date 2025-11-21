@@ -1,5 +1,6 @@
 package com.apollographql.cache.normalized
 
+import com.apollographql.apollo.api.json.JsonNumber
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
@@ -7,6 +8,7 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.memory.MemoryCache
+import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -218,6 +220,17 @@ class MemoryCacheTest {
     }
   }
 
+  private fun assertEquals(expected: Record?, actual: Record?) {
+    assertTrue((expected == null) == (actual == null))
+    if (expected == null || actual == null) {
+      return
+    }
+    assertEquals(expected.key, actual.key)
+    assertEquals(expected.fields, actual.fields)
+    assertEquals(expected.mutationId, actual.mutationId)
+    assertEquals(expected.metadata, actual.metadata)
+  }
+
 
   @Test
   fun testRemove_cascadeFalse() = runTest {
@@ -293,5 +306,34 @@ class MemoryCacheTest {
             "field2" to "stringValueB$id"
         )
     )
+  }
+
+  @Test
+  fun testRecordWeigher() {
+    val expectedDouble = 1.23
+    val expectedLongValue = Long.MAX_VALUE
+    val expectedStringValue = "StringValue"
+    val expectedBooleanValue = true
+    val expectedNumberValue = JsonNumber("10")
+    val expectedCacheKey = CacheKey("foo")
+    val expectedCacheKeyList = listOf(CacheKey("bar"), CacheKey("baz"))
+    val expectedScalarList = listOf("scalarOne", "scalarTwo")
+    val record = Record(
+        key = CacheKey("root"),
+        fields = mapOf(
+            "double" to expectedDouble,
+            "string" to expectedStringValue,
+            "boolean" to expectedBooleanValue,
+            "long" to expectedLongValue,
+            "number" to expectedNumberValue,
+            "cacheReference" to expectedCacheKey,
+            "scalarList" to expectedScalarList,
+            "referenceList" to expectedCacheKeyList,
+        ),
+    )
+
+    val normalizedCache = MemoryCacheFactory().create()
+    val sizeOfRecord = normalizedCache.sizeOfRecord(record)
+    assertEquals(262, sizeOfRecord)
   }
 }

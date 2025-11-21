@@ -6,6 +6,7 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
+import com.apollographql.apollo.api.json.JsonNumber
 import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
@@ -256,6 +257,35 @@ class SqlNormalizedCacheTest {
     assertTrue(result)
     assertNull(cache.loadRecord(CacheKey("key1"), CacheHeaders.NONE))
     assertNull(cache.loadRecord(CacheKey("key2"), CacheHeaders.NONE))
+  }
+
+  @Test
+  fun testSizeOfRecord() = runTest {
+    val expectedDouble = 1.23
+    val expectedLongValue = Long.MAX_VALUE
+    val expectedStringValue = "StringValue"
+    val expectedBooleanValue = true
+    val expectedNumberValue = JsonNumber("10")
+    val expectedCacheKey = CacheKey("foo")
+    val expectedCacheKeyList = listOf(CacheKey("bar"), CacheKey("baz"))
+    val expectedScalarList = listOf("scalarOne", "scalarTwo")
+    val record = Record(
+        key = CacheKey("root"),
+        fields = mapOf(
+            "double" to expectedDouble,
+            "string" to expectedStringValue,
+            "boolean" to expectedBooleanValue,
+            "long" to expectedLongValue,
+            "number" to expectedNumberValue,
+            "cacheReference" to expectedCacheKey,
+            "scalarList" to expectedScalarList,
+            "referenceList" to expectedCacheKeyList,
+        ),
+    )
+
+    val normalizedCache = SqlNormalizedCacheFactory().create().apply { clearAll() }
+    val sizeOfRecord = normalizedCache.sizeOfRecord(record)
+    assertEquals(157, sizeOfRecord)
   }
 
   private val BadDriver = object : SqlDriver {
