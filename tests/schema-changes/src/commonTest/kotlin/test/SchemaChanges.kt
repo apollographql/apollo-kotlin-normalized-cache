@@ -4,6 +4,7 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.json.jsonReader
 import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
@@ -77,6 +78,9 @@ class SchemaChangesTest {
             apolloClient.query(schemav1.GetUserQuery())
                 .fetchPolicy(FetchPolicy.NetworkOnly)
                 .execute()
+
+            // Suppress default exception handler which confuses Apple tests
+            apolloExceptionHandler = {}
 
             // Read v2 schema data from the cache
             val cacheResponse = apolloClient.query(schemav2.GetUserQuery())

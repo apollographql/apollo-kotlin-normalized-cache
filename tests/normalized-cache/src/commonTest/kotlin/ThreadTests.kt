@@ -81,6 +81,10 @@ class ThreadTests {
       }
       return delegate.dump()
     }
+
+    override fun sizeOfRecord(record: Record): Int {
+      return delegate.sizeOfRecord(record)
+    }
   }
 
   class MyMemoryCacheFactory(val mainThreadId: String) : NormalizedCacheFactory() {

@@ -22,4 +22,10 @@ interface ReadOnlyNormalizedCache {
   suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record>
 
   suspend fun dump(): Map<@JvmSuppressWildcards KClass<*>, Map<CacheKey, Record>>
+
+  /**
+   * Returns the size in bytes of a [Record].
+   * This is an optional operation that can be implemented by the caches for debug purposes, otherwise it defaults to `-1`, meaning unknown size.
+   */
+  fun sizeOfRecord(record: Record): Int = -1
 }

@@ -9,7 +9,9 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.api.RecordMergerContext
 import com.apollographql.cache.normalized.api.withDates
+import com.apollographql.cache.normalized.api.withSizeInBytes
 import com.apollographql.cache.normalized.sql.internal.RecordDatabase
+import com.apollographql.cache.normalized.sql.internal.RecordSerializer
 import com.apollographql.cache.normalized.sql.internal.parametersMax
 import kotlin.reflect.KClass
 
@@ -80,7 +82,15 @@ class SqlNormalizedCache internal constructor(
 
   override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
     recordDatabase.init()
-    return mapOf(this::class to recordDatabase.selectAllRecords().associateBy { it.key })
+    return mapOf(
+        this::class to (recordDatabase.selectAllRecords().associateBy { it.key })
+            .mapValues { (_, record) -> record.withSizeInBytes(sizeOfRecord(record)) },
+    )
+  }
+
+  override fun sizeOfRecord(record: Record): Int {
+    val keySize = record.key.key.length
+    return keySize + RecordSerializer.serialize(record).size
   }
 
   private suspend fun getReferencedKeysRecursively(

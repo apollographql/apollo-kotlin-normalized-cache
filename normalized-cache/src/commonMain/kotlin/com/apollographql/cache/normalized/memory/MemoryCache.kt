@@ -9,8 +9,10 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.api.RecordMergerContext
 import com.apollographql.cache.normalized.api.withDates
+import com.apollographql.cache.normalized.api.withSizeInBytes
 import com.apollographql.cache.normalized.internal.withReentrantLock
 import com.apollographql.cache.normalized.memory.internal.LruCache
+import com.apollographql.cache.normalized.memory.internal.RecordWeigher
 import kotlinx.coroutines.sync.Mutex
 import kotlin.reflect.KClass
 
@@ -35,7 +37,7 @@ class MemoryCache(
   }
 
   private val lruCache = LruCache<CacheKey, Record>(maxSize = maxSizeBytes, expireAfterMillis = expireAfterMillis) { key, record ->
-    key.key.length + record.sizeInBytes
+    key.key.length + sizeOfRecord(record)
   }
 
   internal suspend fun getSize(): Int = withLock { lruCache.weight() }
@@ -136,9 +138,13 @@ class MemoryCache(
 
   override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
     return withLock {
-      mapOf(this::class to lruCache.asMap().mapValues { (_, record) -> record }) +
+      mapOf(this::class to lruCache.asMap().mapValues { (_, record) -> record.withSizeInBytes(sizeOfRecord(record)) }) +
           nextCache?.dump().orEmpty()
     }
+  }
+
+  override fun sizeOfRecord(record: Record): Int {
+    return RecordWeigher.calculateBytes(record)
   }
 
   internal fun clearCurrentCache() {
