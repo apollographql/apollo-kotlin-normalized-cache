@@ -89,6 +89,7 @@ final class com.apollographql.cache.normalized.sql.internal.record/SelectRecords
 final class com.apollographql.cache.normalized.sql/SqlNormalizedCache : com.apollographql.cache.normalized.api/NormalizedCache { // com.apollographql.cache.normalized.sql/SqlNormalizedCache|null[0]
     final fun sizeOfRecord(com.apollographql.cache.normalized.api/Record): kotlin/Int // com.apollographql.cache.normalized.sql/SqlNormalizedCache.sizeOfRecord|sizeOfRecord(com.apollographql.cache.normalized.api.Record){}[0]
     final suspend fun clearAll() // com.apollographql.cache.normalized.sql/SqlNormalizedCache.clearAll|clearAll(){}[0]
+    final suspend fun close() // com.apollographql.cache.normalized.sql/SqlNormalizedCache.close|close(){}[0]
     final suspend fun dump(): kotlin.collections/Map<kotlin.reflect/KClass<*>, kotlin.collections/Map<com.apollographql.cache.normalized.api/CacheKey, com.apollographql.cache.normalized.api/Record>> // com.apollographql.cache.normalized.sql/SqlNormalizedCache.dump|dump(){}[0]
     final suspend fun loadRecord(com.apollographql.cache.normalized.api/CacheKey, com.apollographql.cache.normalized.api/CacheHeaders): com.apollographql.cache.normalized.api/Record? // com.apollographql.cache.normalized.sql/SqlNormalizedCache.loadRecord|loadRecord(com.apollographql.cache.normalized.api.CacheKey;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
     final suspend fun loadRecords(kotlin.collections/Collection<com.apollographql.cache.normalized.api/CacheKey>, com.apollographql.cache.normalized.api/CacheHeaders): kotlin.collections/Collection<com.apollographql.cache.normalized.api/Record> // com.apollographql.cache.normalized.sql/SqlNormalizedCache.loadRecords|loadRecords(kotlin.collections.Collection<com.apollographql.cache.normalized.api.CacheKey>;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
@@ -103,6 +104,7 @@ final val com.apollographql.cache.normalized.sql/VERSION // com.apollographql.ca
     final fun <get-VERSION>(): kotlin/String // com.apollographql.cache.normalized.sql/VERSION.<get-VERSION>|<get-VERSION>(){}[0]
 
 final fun com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory(app.cash.sqldelight.db/SqlDriver): com.apollographql.cache.normalized.api/NormalizedCacheFactory // com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory|SqlNormalizedCacheFactory(app.cash.sqldelight.db.SqlDriver){}[0]
+final fun com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory(app.cash.sqldelight.db/SqlDriver, kotlin/String?): com.apollographql.cache.normalized.api/NormalizedCacheFactory // com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory|SqlNormalizedCacheFactory(app.cash.sqldelight.db.SqlDriver;kotlin.String?){}[0]
 final fun com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory(kotlin/String? = ...): com.apollographql.cache.normalized.api/NormalizedCacheFactory // com.apollographql.cache.normalized.sql/SqlNormalizedCacheFactory|SqlNormalizedCacheFactory(kotlin.String?){}[0]
 
 // Targets: [apple]
