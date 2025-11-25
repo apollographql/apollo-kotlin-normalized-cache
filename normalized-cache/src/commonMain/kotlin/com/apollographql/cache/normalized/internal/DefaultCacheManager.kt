@@ -93,8 +93,11 @@ internal class DefaultCacheManager(
     changedKeysEvents.emit(keys)
   }
 
-  override suspend fun clearAll(): Boolean {
+  override suspend fun clearAll(publish: Boolean): Boolean {
     cache.clearAll()
+    if (publish) {
+      publish(CacheManager.ALL_KEYS)
+    }
     return true
   }
 
@@ -240,9 +243,16 @@ internal class DefaultCacheManager(
       errors: List<Error>?,
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
+      publish: Boolean,
   ): Set<String> {
     val dataWithErrors = data.withErrors(operation, errors, customScalarAdapters)
-    return writeOperation(operation, dataWithErrors, customScalarAdapters, cacheHeaders)
+    return writeOperation(
+        operation = operation,
+        dataWithErrors = dataWithErrors,
+        customScalarAdapters = customScalarAdapters,
+        cacheHeaders = cacheHeaders,
+        publish = publish,
+    )
   }
 
   override suspend fun <D : Operation.Data> writeOperation(
@@ -250,6 +260,7 @@ internal class DefaultCacheManager(
       dataWithErrors: DataWithErrors,
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
+      publish: Boolean,
   ): Set<String> {
     val records = normalize(
         executable = operation,
@@ -257,7 +268,7 @@ internal class DefaultCacheManager(
         rootKey = operation.rootKey(),
         customScalarAdapters = customScalarAdapters,
     ).values.toSet()
-    return cache.merge(records, cacheHeaders, recordMerger)
+    return cache.merge(records, cacheHeaders, recordMerger).also { if (publish) publish(it) }
   }
 
   override suspend fun <D : Fragment.Data> writeFragment(
@@ -266,6 +277,7 @@ internal class DefaultCacheManager(
       data: D,
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
+      publish: Boolean,
   ): Set<String> {
     val dataWithErrors = data.withErrors(fragment, null, customScalarAdapters)
     val records = normalize(
@@ -274,7 +286,7 @@ internal class DefaultCacheManager(
         rootKey = cacheKey,
         customScalarAdapters = customScalarAdapters,
     ).values
-    return cache.merge(records, cacheHeaders, recordMerger)
+    return cache.merge(records, cacheHeaders, recordMerger).also { if (publish) publish(it) }
   }
 
   override suspend fun <D : Operation.Data> writeOptimisticUpdates(
@@ -282,6 +294,7 @@ internal class DefaultCacheManager(
       data: D,
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters,
+      publish: Boolean,
   ): Set<String> {
     val cache = cache as? OptimisticNormalizedCache
         ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
@@ -302,7 +315,7 @@ internal class DefaultCacheManager(
     /**
      * TODO: should we forward the cache headers to the optimistic store?
      */
-    return cache.addOptimisticUpdates(records)
+    return cache.addOptimisticUpdates(records).also { if (publish) publish(it) }
   }
 
   override suspend fun <D : Fragment.Data> writeOptimisticUpdates(
@@ -311,6 +324,7 @@ internal class DefaultCacheManager(
       data: D,
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters,
+      publish: Boolean,
   ): Set<String> {
     val cache = cache as? OptimisticNormalizedCache
         ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
@@ -327,15 +341,16 @@ internal class DefaultCacheManager(
           mutationId = mutationId,
       )
     }
-    return cache.addOptimisticUpdates(records)
+    return cache.addOptimisticUpdates(records).also { if (publish) publish(it) }
   }
 
   override suspend fun rollbackOptimisticUpdates(
       mutationId: Uuid,
+      publish: Boolean,
   ): Set<String> {
     val cache = cache as? OptimisticNormalizedCache
         ?: error("Optimistic updates are not enabled. Enable them by passing `enableOptimisticUpdates = true` to the CacheManager constructor or normalizedCache() extension.")
-    return cache.removeOptimisticUpdates(mutationId)
+    return cache.removeOptimisticUpdates(mutationId).also { if (publish) publish(it) }
   }
 
   override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
