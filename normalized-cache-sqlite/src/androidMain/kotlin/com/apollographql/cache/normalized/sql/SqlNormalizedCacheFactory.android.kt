@@ -5,13 +5,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import app.cash.sqldelight.async.coroutines.synchronous
-import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory =
-  SqlNormalizedCacheFactory(createDriver(name))
+  SqlNormalizedCacheFactory(context = ApolloInitializer.context, name = name)
 
 /**
  * @param name Name of the database file in the cache directory, or an absolute path to a file, or null for an in-memory database
@@ -20,7 +19,8 @@ actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory =
  * @param configure Optional callback, called when the database connection is being configured, to enable features such as
  * write-ahead logging or foreign key support. It should not modify the database except to configure it.
  * @param useNoBackupDirectory Sets whether to use a no backup directory or not.
- * @param windowSizeBytes Size of cursor window in bytes, per [android.database.CursorWindow] (Android 28+ only), or null to use the default.
+ * @param windowSizeBytes Size of cursor window in bytes, per [android.database.CursorWindow] (Android 28+ only). Defaults to 4 MiB - pass
+ * `null` to use the system default (2 MiB [as of Android 28](https://android.googlesource.com/platform/frameworks/base/+/pie-release/core/res/res/values/config.xml#1902)).
  */
 fun SqlNormalizedCacheFactory(
     context: Context,
@@ -28,7 +28,7 @@ fun SqlNormalizedCacheFactory(
     factory: SupportSQLiteOpenHelper.Factory = FrameworkSQLiteOpenHelperFactory(),
     configure: ((SupportSQLiteDatabase) -> Unit)? = null,
     useNoBackupDirectory: Boolean = false,
-    windowSizeBytes: Long? = null,
+    windowSizeBytes: Long? = 4 * 1024 * 1024,
 ): NormalizedCacheFactory {
   val synchronousSchema = SqlRecordDatabase.Schema.synchronous()
   val filePath = when {
@@ -65,13 +65,3 @@ fun SqlNormalizedCacheFactory(
       name = filePath,
   )
 }
-
-private fun createDriver(name: String?): SqlDriver {
-  return AndroidSqliteDriver(
-      schema = SqlRecordDatabase.Schema.synchronous(),
-      context = ApolloInitializer.context,
-      name = name,
-      factory = FrameworkSQLiteOpenHelperFactory(),
-  )
-}
-
