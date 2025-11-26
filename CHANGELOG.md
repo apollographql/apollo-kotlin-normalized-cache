@@ -2,6 +2,17 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.0
+_2025-11-26_
+
+- Add a publish argument to `CacheManager`/`ApolloStore` write operations (#265)
+- Add `ReadOnlyNormalizedCache.sizeOfRecord` (#118)
+- Disallow the same db file name to be used multiple times at the same time (#139)
+- Use a mutex in `MemoryCache` even when there is no `nextCache` (#259)
+- Default to a 4 MiB cursor window size (#268)
+- Add some pagination validation (#261)
+- Don't crash when encountering unknown fields (#258)
+
 # v1.0.0-alpha.8
 _2025-11-06_
 
