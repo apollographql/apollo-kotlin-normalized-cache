@@ -126,13 +126,13 @@ Previously, write methods had 2 flavors:
 - a `suspend` one that accepts a `publish` parameter to control whether changes should be published to watchers
 - a non-suspend one (e.g. `writeOperationSync`) that doesn't publish changes
 
-Now only the suspend ones exist and don't publish. Manually call `publish()` to notify watchers of changes.
+Now only the suspend ones exist and don't publish by default. Either pass `publish = true` or manually call `publish()` to notify watchers of changes.
 
 ```kotlin
 // Replace
 store.writeOperation(operation, data)
 // With
-store.writeOperation(operation, data).also { store.publish(it) }
+store.writeOperation(operation, data, publish = true)
 ```
 
 ### Passing `CustomScalarAdapters` to `ApolloStore` methods
