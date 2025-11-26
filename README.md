@@ -36,6 +36,6 @@ The Kdoc API reference can be found at:<br/>
 
 ## ⚠️ Disclaimer
 
-During the alpha phase, the API is still subject to change, although we will try to make changes in non-breaking ways.
+During the beta phase, the API is still subject to change, although we will try to make changes in non-breaking ways.
 
 For now it is recommended to experiment with this library in non-critical projects/modules, or behind a feature flag.
