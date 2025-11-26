@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  * these operations **must not** run on the main thread. You can enclose them in a [kotlinx.coroutines.withContext] block with a
  * `Dispatchers.IO` context to ensure that they run on a background thread.
  *
- * Note that changes are not automatically published - call [publish] to notify any watchers.
+ * Note that changes are not automatically published - pass `publish = true` or call [publish] to notify any watchers.
  */
 class ApolloStore(
     val cacheManager: CacheManager,
@@ -94,11 +94,12 @@ class ApolloStore(
   /**
    * Writes an operation to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
    * @param data the operation data to write
    * @param errors the operation errors to write
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -110,22 +111,24 @@ class ApolloStore(
       data: D,
       errors: List<Error>? = null,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String> = cacheManager.writeOperation(
       operation = operation,
       data = data,
       errors = errors,
+      publish = publish,
       cacheHeaders = cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
 
   /**
-   * Writes a fragment to the store.
+   * Writes an operation to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
-   * @param fragment the fragment to write
-   * @param cacheKey the root where to write the fragment data to
-   * @param data the fragment data to write
+   * @param operation the operation to write
+   * @param dataWithErrors the operation data to write as a [DataWithErrors] object
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -136,9 +139,11 @@ class ApolloStore(
       operation: Operation<D>,
       dataWithErrors: DataWithErrors,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String> = cacheManager.writeOperation(
       operation = operation,
       dataWithErrors = dataWithErrors,
+      publish = publish,
       cacheHeaders = cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
@@ -146,11 +151,12 @@ class ApolloStore(
   /**
    * Writes a fragment to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
    * @param fragment the fragment to write
    * @param cacheKey the root where to write the fragment data to
    * @param data the fragment data to write
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -162,10 +168,12 @@ class ApolloStore(
       cacheKey: CacheKey,
       data: D,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String> = cacheManager.writeFragment(
       fragment = fragment,
       cacheKey = cacheKey,
       data = data,
+      publish = publish,
       cacheHeaders = cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
@@ -176,11 +184,12 @@ class ApolloStore(
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
    * @param data the operation data to write
    * @param mutationId a unique identifier for this optimistic update
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -191,10 +200,12 @@ class ApolloStore(
       operation: Operation<D>,
       data: D,
       mutationId: Uuid,
+      publish: Boolean = false,
   ): Set<String> = cacheManager.writeOptimisticUpdates(
       operation = operation,
       data = data,
       mutationId = mutationId,
+      publish = publish,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -204,12 +215,13 @@ class ApolloStore(
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
    * @param fragment the fragment to write
    * @param cacheKey the root where to write the fragment data to
    * @param data the fragment data to write
    * @param mutationId a unique identifier for this optimistic update
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -221,11 +233,13 @@ class ApolloStore(
       cacheKey: CacheKey,
       data: D,
       mutationId: Uuid,
+      publish: Boolean = false,
   ): Set<String> = cacheManager.writeOptimisticUpdates(
       fragment = fragment,
       cacheKey = cacheKey,
       data = data,
       mutationId = mutationId,
+      publish = publish,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -235,27 +249,35 @@ class ApolloStore(
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
    *
    * @param mutationId the unique identifier of the optimistic update to rollback
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
    *
    * @see CacheManager.rollbackOptimisticUpdates
    */
-  suspend fun rollbackOptimisticUpdates(mutationId: Uuid): Set<String> = cacheManager.rollbackOptimisticUpdates(mutationId)
+  suspend fun rollbackOptimisticUpdates(
+      mutationId: Uuid,
+      publish: Boolean = false,
+  ): Set<String> = cacheManager.rollbackOptimisticUpdates(
+      mutationId = mutationId,
+      publish = publish,
+  )
 
   /**
    * Clears all records.
    *
-   * Call [publish] with [ALL_KEYS] to notify any watchers.
+   * Pass [publish] = true or call [ApolloStore.publish] with [ALL_KEYS] to notify any watchers.
    *
+   * @param publish whether to notify watchers of the changes
    * @return `true` if all records were successfully removed, `false` otherwise
    *
    * @see CacheManager.clearAll
    */
-  suspend fun clearAll(): Boolean = cacheManager.clearAll()
+  suspend fun clearAll(publish: Boolean = false): Boolean = cacheManager.clearAll(publish = publish)
 
   /**
    * Removes a record by its key.
@@ -357,18 +379,26 @@ class ApolloStore(
  *
  * This is a synchronous operation that might block if the underlying cache is doing IO.
  *
- * Call [publish] with the returned keys to notify any watchers.
+ * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
  *
  * @param operation the operation of the data to remove.
  * @param data the data to remove.
+ * @param publish whether to notify watchers of the changes.
  * @return the set of field keys that have been removed.
  */
 suspend fun <D : Operation.Data> ApolloStore.removeOperation(
     operation: Operation<D>,
     data: D,
     cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+    publish: Boolean = false,
 ): Set<String> {
-  return removeData(operation, operation.rootKey(), data, cacheHeaders)
+  return removeData(
+      executable = operation,
+      cacheKey = operation.rootKey(),
+      data = data,
+      cacheHeaders = cacheHeaders,
+      publish = publish,
+  )
 }
 
 /**
@@ -376,11 +406,12 @@ suspend fun <D : Operation.Data> ApolloStore.removeOperation(
  *
  * This is a synchronous operation that might block if the underlying cache is doing IO.
  *
- * Call [publish] with the returned keys to notify any watchers.
+ * Pass [publish] = true or call [ApolloStore.publish] with the returned keys to notify any watchers.
  *
  * @param fragment the fragment of the data to remove.
- * @param data the data to remove.
  * @param cacheKey the root where to remove the fragment data from.
+ * @param data the data to remove.
+ * @param publish whether to notify watchers of the changes.
  * @return the set of field keys that have been removed.
  */
 suspend fun <D : Fragment.Data> ApolloStore.removeFragment(
@@ -388,8 +419,15 @@ suspend fun <D : Fragment.Data> ApolloStore.removeFragment(
     cacheKey: CacheKey,
     data: D,
     cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+    publish: Boolean = false,
 ): Set<String> {
-  return removeData(fragment, cacheKey, data, cacheHeaders)
+  return removeData(
+      executable = fragment,
+      cacheKey = cacheKey,
+      data = data,
+      cacheHeaders = cacheHeaders,
+      publish = publish,
+  )
 }
 
 private suspend fun <D : Executable.Data> ApolloStore.removeData(
@@ -397,6 +435,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     cacheKey: CacheKey,
     data: D,
     cacheHeaders: CacheHeaders,
+    publish: Boolean,
 ): Set<String> {
   val dataWithErrors = data.withErrors(executable, null)
   val normalizationRecords = normalize(
@@ -421,5 +460,5 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
         recordMerger = DefaultRecordMerger
     )
   }
-  return normalizationRecords.values.flatMap { it.fieldKeys() }.toSet()
+  return normalizationRecords.values.flatMap { it.fieldKeys() }.toSet().also { if (publish) publish(it) }
 }

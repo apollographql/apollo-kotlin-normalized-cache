@@ -38,7 +38,7 @@ import kotlin.reflect.KClass
  * these operations **must not** run on the main thread. You can enclose them in a [kotlinx.coroutines.withContext] block with a
  * `Dispatchers.IO` context to ensure that they run on a background thread.
  *
- * Note that changes are not automatically published - call [publish] to notify any watchers.
+ * Note that changes are not automatically published - pass `publish = true` or call [publish] to notify any watchers.
  */
 interface CacheManager {
   /**
@@ -99,11 +99,12 @@ interface CacheManager {
   /**
    * Writes an operation to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
    * @param data the operation data to write
    * @param errors the operation errors to write
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -114,15 +115,17 @@ interface CacheManager {
       errors: List<Error>? = null,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
    * Writes an operation to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
    * @param dataWithErrors the operation data to write as a [DataWithErrors] object
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -132,16 +135,18 @@ interface CacheManager {
       dataWithErrors: DataWithErrors,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
    * Writes a fragment to the store.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param fragment the fragment to write
    * @param cacheKey the root where to write the fragment data to
    * @param data the fragment data to write
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -152,6 +157,7 @@ interface CacheManager {
       data: D,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
@@ -160,11 +166,12 @@ interface CacheManager {
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param operation the operation to write
    * @param data the operation data to write
    * @param mutationId a unique identifier for this optimistic update
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -174,6 +181,7 @@ interface CacheManager {
       data: D,
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
@@ -182,12 +190,13 @@ interface CacheManager {
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param fragment the fragment to write
    * @param cacheKey the root where to write the fragment data to
    * @param data the fragment data to write
    * @param mutationId a unique identifier for this optimistic update
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
@@ -198,6 +207,7 @@ interface CacheManager {
       data: D,
       mutationId: Uuid,
       customScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Empty,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
@@ -206,25 +216,28 @@ interface CacheManager {
    * Optimistic updates must be enabled to use this method. To do so, pass `enableOptimisticUpdates = true` to the `CacheManager` constructor
    * or [normalizedCache] extension.
    *
-   * Call [publish] with the returned keys to notify any watchers.
+   * Pass [publish] = true or call [CacheManager.publish] with the returned keys to notify any watchers.
    *
    * @param mutationId the unique identifier of the optimistic update to rollback
+   * @param publish whether to notify watchers of the changes
    * @return the changed field keys
    *
    * @see publish
    */
   suspend fun rollbackOptimisticUpdates(
       mutationId: Uuid,
+      publish: Boolean = false,
   ): Set<String>
 
   /**
    * Clears all records.
    *
-   * Call [publish] with [ALL_KEYS] to notify any watchers.
+   * Pass [publish] = true or call `publish` with [ALL_KEYS] to notify any watchers.
    *
+   * @param publish whether to notify watchers of the changes
    * @return `true` if all records were successfully removed, `false` otherwise
    */
-  suspend fun clearAll(): Boolean
+  suspend fun clearAll(publish: Boolean = false): Boolean
 
   /**
    * Removes a record by its key.

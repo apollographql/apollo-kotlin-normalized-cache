@@ -178,12 +178,10 @@ class WatcherTest {
             "Droid",
             "2001",
             "Artoo"
-        )
+        ),
     )
 
-    cacheManager.writeOperation(operation, data).also {
-      cacheManager.publish(it)
-    }
+    cacheManager.writeOperation(operation, data, publish = true)
 
     assertEquals(channel.awaitElement()?.hero?.name, "Artoo")
 
