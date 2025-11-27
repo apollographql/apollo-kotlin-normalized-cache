@@ -9,6 +9,7 @@ listOf(pluginManagement.repositories, dependencyResolutionManagement.repositorie
     maven("https://storage.googleapis.com/gradleup/m2") {
       content {
         includeGroup("com.gradleup.librarian")
+        includeGroup("com.gradleup.nmcp")
       }
     }
   }
