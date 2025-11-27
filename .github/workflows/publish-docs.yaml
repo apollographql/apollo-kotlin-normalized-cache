@@ -27,7 +27,7 @@ jobs:
       - name: Prepare static content
         run: |
           export JAVA_HOME=$JAVA_HOME_21_X64
-          ./gradlew dokkatooGeneratePublicationHtml
+          ./gradlew dokkaGeneratePublicationHtml
           mkdir -p build/static
           cp -rf build/dokka/html build/static/kdoc
           unzip artifacts/webHelpDOC2-all.zip -d build/static
