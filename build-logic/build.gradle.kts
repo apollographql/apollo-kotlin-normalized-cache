@@ -20,7 +20,6 @@ dependencies {
   compileOnly(libs.dgp)
   implementation(libs.kotlin.plugin)
   implementation(libs.librarian)
-  implementation(libs.nmcp)
   implementation(libs.atomicfu.plugin)
   implementation(libs.sqldelight.plugin)
   implementation(libs.android.plugin)

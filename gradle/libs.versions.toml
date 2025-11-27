@@ -6,8 +6,7 @@ okio = "3.9.0"
 atomicfu = "0.26.0" # Must be the same version as the one used by apollo-testing-support or native compilation will fail
 sqldelight = "2.1.0"
 androidx-sqlite = "2.6.1"
-librarian = "0.2.1"
-nmcp = "1.3.0"
+librarian = "0.2.2-SNAPSHOT-2cde396ec5d739d8857aa98f99885ba62ca1769a"
 kotlinx-coroutines = "1.10.2"
 copyWebpackPlugin = "9.1.0"
 sqlJs = "1.8.0"
@@ -48,7 +47,6 @@ kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version = "2.2.0" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-plugin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 librarian = { module = "com.gradleup.librarian:librarian-gradle-plugin", version.ref = "librarian"}
-nmcp = { module = "com.gradleup.nmcp:com.gradleup.nmcp.gradle.plugin", version.ref = "nmcp" }
 android-plugin =  { module = "com.android.tools.build:gradle", version.ref = "android-plugin"}
 sqldelight-plugin = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight"}
 
