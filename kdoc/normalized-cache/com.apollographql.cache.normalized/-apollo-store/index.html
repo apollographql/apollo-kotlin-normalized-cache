@@ -1,22 +1,22 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>ApolloStore</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
@@ -24,40 +24,72 @@
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
-<a class="library-name--link" href="../../../index.html">
-                            apollo-kotlin-normalized-cache
-                    </a>            </div>
-            <div class="library-version">
-<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized/-apollo-store/index.html&quot;}">1.0.0-beta.1-SNAPSHOT</dokka-template-command>            </div>
-        </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":normalized-cache/commonMain">common</button>
-        </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    apollo-kotlin-normalized-cache
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized/-apollo-store/index.html&quot;}">1.0.0-beta.1-SNAPSHOT</dokka-template-command>        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":normalized-cache/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":normalized-cache/commonMain" data-filter=":normalized-cache/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    apollo-kotlin-normalized-cache
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
 <div class="main-content" data-page-type="classlike" id="content" pageids="normalized-cache::com.apollographql.cache.normalized/ApolloStore///PointingToDeclaration//-1172623753">
   <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized</a><span class="delimiter">/</span><span class="current">ApolloStore</span></div>
   <div class="cover ">
@@ -68,9 +100,9 @@
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
-        <h2 class="">Constructors</h2>
+        <h2 class="tableheader">Constructors</h2>
         <div class="table"><a data-name="-1527638262%2FConstructors%2F-1172623753" anchor-label="ApolloStore" id="-1527638262%2FConstructors%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-apollo-store.html"><span>Apollo</span><wbr><span><span>Store</span></span></a></div>
@@ -87,9 +119,9 @@
         </div>
       </div>
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
+        <h2 class="tableheader">Properties</h2>
         <div class="table"><a data-name="1487100426%2FProperties%2F-1172623753" anchor-label="cacheManager" id="1487100426%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="cache-manager.html"><span>cache</span><wbr><span><span>Manager</span></span></a></div>
@@ -104,7 +136,7 @@
             </div>
           </div>
 <a data-name="-81386179%2FProperties%2F-1172623753" anchor-label="changedKeys" id="-81386179%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="changed-keys.html"><span>changed</span><wbr><span><span>Keys</span></span></a></div>
@@ -113,13 +145,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="changed-keys.html">changedKeys</a><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Exposes the record field keys that have changed. This is collected internally to notify watchers.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="changed-keys.html">changedKeys</a><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Exposes the record field keys that have changed. This is collected internally to notify watchers.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-680334412%2FProperties%2F-1172623753" anchor-label="customScalarAdapters" id="-680334412%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="custom-scalar-adapters.html"><span>custom</span><wbr><span>Scalar</span><wbr><span><span>Adapters</span></span></a></div>
@@ -136,9 +168,9 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
+        <h2 class="tableheader">Functions</h2>
         <div class="table"><a data-name="2073313671%2FFunctions%2F-1172623753" anchor-label="accessCache" id="2073313671%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="access-cache.html"><span>access</span><wbr><span><span>Cache</span></span></a></div>
@@ -153,7 +185,7 @@
             </div>
           </div>
 <a data-name="-868136602%2FFunctions%2F-1172623753" anchor-label="clearAll" id="-868136602%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="clear-all.html"><span>clear</span><wbr><span><span>All</span></span></a></div>
@@ -162,13 +194,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="clear-all.html"><span class="token function">clearAll</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Clears all records.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="clear-all.html"><span class="token function">clearAll</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Clears all records.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1040715206%2FFunctions%2F-1172623753" anchor-label="dispose" id="1040715206%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="dispose.html"><span><span>dispose</span></span></a></div>
@@ -183,7 +215,7 @@
             </div>
           </div>
 <a data-name="-1683912191%2FFunctions%2F-1172623753" anchor-label="dump" id="-1683912191%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="dump.html"><span><span>dump</span></span></a></div>
@@ -192,13 +224,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="dump.html"><span class="token function">dump</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Dumps the content of the store for debugging purposes.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="dump.html"><span class="token function">dump</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.reflect/-k-class/index.html">KClass</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Dumps the content of the store for debugging purposes.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1928831947%2FFunctions%2F-1172623753" anchor-label="garbageCollect" id="1928831947%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../garbage-collect.html"><span>garbage</span><wbr><span><span>Collect</span></span></a></div>
@@ -207,13 +239,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../garbage-collect.html"><span class="token function">garbageCollect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-max-age-provider/index.html">MaxAgeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">maxStale<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>Duration.ZERO</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-garbage-collect-result/index.html">GarbageCollectResult</a></div><div class="brief "><p class="paragraph">Perform garbage collection on the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../garbage-collect.html"><span class="token function">garbageCollect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-max-age-provider/index.html">MaxAgeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">maxStale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>Duration.ZERO</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-garbage-collect-result/index.html">GarbageCollectResult</a></div><div class="brief "><p class="paragraph">Perform garbage collection on the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-530062441%2FFunctions%2F-1172623753" anchor-label="normalize" id="-530062441%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="normalize.html"><span><span>normalize</span></span></a></div>
@@ -222,13 +254,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="normalize.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Executable.Data///PointingToDeclaration/">Executable.Data</span><span class="token operator">&gt; </span><a href="normalize.html"><span class="token function">normalize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">executable<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Executable///PointingToDeclaration/">Executable</span><span class="token operator">&lt;</span><a href="normalize.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">dataWithErrors<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">, </span></span><span class="parameter ">rootKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator"> = </span>CacheKey.QUERY_ROOT</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Normalizes executable data to a map of <a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a> keyed by <a href="../../com.apollographql.cache.normalized.api/-record/key.html">Record.key</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="normalize.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Executable.Data///PointingToDeclaration/">Executable.Data</span><span class="token operator">&gt; </span><a href="normalize.html"><span class="token function">normalize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">executable<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Executable///PointingToDeclaration/">Executable</span><span class="token operator">&lt;</span><a href="normalize.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">dataWithErrors<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">, </span></span><span class="parameter ">rootKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator"> = </span>CacheKey.QUERY_ROOT</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Normalizes executable data to a map of <a href="../../com.apollographql.cache.normalized.api/-record/index.html">Record</a> keyed by <a href="../../com.apollographql.cache.normalized.api/-record/key.html">Record.key</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="531016238%2FFunctions%2F-1172623753" anchor-label="publish" id="531016238%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="publish.html"><span><span>publish</span></span></a></div>
@@ -237,13 +269,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="publish.html"><span class="token function">publish</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">keys<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Publishes a set of keys of record fields that have changed. This will notify watchers and any subscribers of <a href="changed-keys.html">changedKeys</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="publish.html"><span class="token function">publish</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">keys<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Publishes a set of keys of record fields that have changed. This will notify watchers and any subscribers of <a href="changed-keys.html">changedKeys</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-915105438%2FFunctions%2F-1172623753" anchor-label="readFragment" id="-915105438%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="read-fragment.html"><span>read</span><wbr><span><span>Fragment</span></span></a></div>
@@ -258,7 +290,7 @@
             </div>
           </div>
 <a data-name="-984951373%2FFunctions%2F-1172623753" anchor-label="readOperation" id="-984951373%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="read-operation.html"><span>read</span><wbr><span><span>Operation</span></span></a></div>
@@ -273,7 +305,7 @@
             </div>
           </div>
 <a data-name="-1351099158%2FFunctions%2F-1172623753" anchor-label="remove" id="-1351099158%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="remove.html"><span><span>remove</span></span></a></div>
@@ -282,13 +314,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove.html"><span class="token function">remove</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">cascade<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Removes a record by its key.</p></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove.html"><span class="token function">remove</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cacheKeys<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cascade<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Removes a list of records by their keys. This is an optimized version of <a href="remove.html">remove</a> for caches that can batch operations.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove.html"><span class="token function">remove</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">cascade<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Removes a record by its key.</p></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="remove.html"><span class="token function">remove</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cacheKeys<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cascade<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Removes a list of records by their keys. This is an optimized version of <a href="remove.html">remove</a> for caches that can batch operations.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-606553047%2FFunctions%2F-1172623753" anchor-label="removeDanglingReferences" id="-606553047%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../remove-dangling-references.html"><span>remove</span><wbr><span>Dangling</span><wbr><span><span>References</span></span></a></div>
@@ -303,7 +335,7 @@
             </div>
           </div>
 <a data-name="1383990417%2FFunctions%2F-1172623753" anchor-label="removeFragment" id="1383990417%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../remove-fragment.html"><span>remove</span><wbr><span><span>Fragment</span></span></a></div>
@@ -312,13 +344,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../remove-fragment.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-fragment.html"><span class="token function">removeFragment</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="../remove-fragment.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="../remove-fragment.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Removes a fragment from the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../remove-fragment.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-fragment.html"><span class="token function">removeFragment</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="../remove-fragment.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="../remove-fragment.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Removes a fragment from the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="978878215%2FFunctions%2F-1172623753" anchor-label="removeOperation" id="978878215%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../remove-operation.html"><span>remove</span><wbr><span><span>Operation</span></span></a></div>
@@ -327,13 +359,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../remove-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-operation.html"><span class="token function">removeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="../remove-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="../remove-operation.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Removes an operation from the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../remove-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-operation.html"><span class="token function">removeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="../remove-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="../remove-operation.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Removes an operation from the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-462416614%2FFunctions%2F-1172623753" anchor-label="removeStaleFields" id="-462416614%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../remove-stale-fields.html"><span>remove</span><wbr><span>Stale</span><wbr><span><span>Fields</span></span></a></div>
@@ -342,13 +374,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-stale-fields.html"><span class="token function">removeStaleFields</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-max-age-provider/index.html">MaxAgeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">maxStale<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>Duration.ZERO</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-removed-fields-and-records/index.html">RemovedFieldsAndRecords</a></div><div class="brief "><p class="paragraph">Remove all stale fields in the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-stale-fields.html"><span class="token function">removeStaleFields</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-max-age-provider/index.html">MaxAgeProvider</a><span class="token punctuation">, </span></span><span class="parameter ">maxStale<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>Duration.ZERO</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-removed-fields-and-records/index.html">RemovedFieldsAndRecords</a></div><div class="brief "><p class="paragraph">Remove all stale fields in the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-2009889361%2FFunctions%2F-1172623753" anchor-label="removeUnreachableRecords" id="-2009889361%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../remove-unreachable-records.html"><span>remove</span><wbr><span>Unreachable</span><wbr><span><span>Records</span></span></a></div>
@@ -357,13 +389,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-unreachable-records.html"><span class="token function">removeUnreachableRecords</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Remove all unreachable records in the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html">ApolloStore</a><span class="token punctuation">.</span><a href="../remove-unreachable-records.html"><span class="token function">removeUnreachableRecords</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Remove all unreachable records in the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1363344829%2FFunctions%2F-1172623753" anchor-label="rollbackOptimisticUpdates" id="1363344829%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="rollback-optimistic-updates.html"><span>rollback</span><wbr><span>Optimistic</span><wbr><span><span>Updates</span></span></a></div>
@@ -372,13 +404,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="rollback-optimistic-updates.html"><span class="token function">rollbackOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Rollbacks optimistic updates.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="rollback-optimistic-updates.html"><span class="token function">rollbackOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Rollbacks optimistic updates.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1562684810%2FFunctions%2F-1172623753" anchor-label="trim" id="1562684810%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="trim.html"><span><span>trim</span></span></a></div>
@@ -387,13 +419,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="trim.html"><span class="token function">trim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxSizeBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">trimFactor<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">0.1f</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief "><p class="paragraph">Trims the store if its size exceeds <a href="trim.html">maxSizeBytes</a>. The amount of data to remove is determined by <a href="trim.html">trimFactor</a>. The oldest records are removed according to their updated date.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="trim.html"><span class="token function">trim</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxSizeBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">trimFactor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">0.1f</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div><div class="brief "><p class="paragraph">Trims the store if its size exceeds <a href="trim.html">maxSizeBytes</a>. The amount of data to remove is determined by <a href="trim.html">trimFactor</a>. The oldest records are removed according to their updated date.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-899763768%2FFunctions%2F-1172623753" anchor-label="writeFragment" id="-899763768%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="write-fragment.html"><span>write</span><wbr><span><span>Fragment</span></span></a></div>
@@ -402,13 +434,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-fragment.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="write-fragment.html"><span class="token function">writeFragment</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="write-fragment.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-fragment.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes a fragment to the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-fragment.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="write-fragment.html"><span class="token function">writeFragment</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="write-fragment.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-fragment.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes a fragment to the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-279044173%2FFunctions%2F-1172623753" anchor-label="writeOperation" id="-279044173%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="write-operation.html"><span>write</span><wbr><span><span>Operation</span></span></a></div>
@@ -417,13 +449,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-operation.html"><span class="token function">writeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">dataWithErrors<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-operation.html"><span class="token function">writeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-operation.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">errors<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="com.apollographql.apollo.api/Error///PointingToDeclaration/">Error</span><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes an operation to the store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-operation.html"><span class="token function">writeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">dataWithErrors<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-operation.html"><span class="token function">writeOperation</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-operation.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-operation.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">errors<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><span data-unresolved-link="com.apollographql.apollo.api/Error///PointingToDeclaration/">Error</span><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">cacheHeaders<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-headers/index.html">CacheHeaders</a><span class="token operator"> = </span>CacheHeaders.NONE<span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes an operation to the store.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-1860795333%2FFunctions%2F-1172623753" anchor-label="writeOptimisticUpdates" id="-1860795333%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="write-optimistic-updates.html"><span>write</span><wbr><span>Optimistic</span><wbr><span><span>Updates</span></span></a></div>
@@ -432,7 +464,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-optimistic-updates.html"><span class="token function">writeOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-optimistic-updates.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes an operation to the optimistic store.</p></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="write-optimistic-updates.html"><span class="token function">writeOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-optimistic-updates.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes a fragment to the optimistic store.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Operation.Data///PointingToDeclaration/">Operation.Data</span><span class="token operator">&gt; </span><a href="write-optimistic-updates.html"><span class="token function">writeOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">operation<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Operation///PointingToDeclaration/">Operation</span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-optimistic-updates.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes an operation to the optimistic store.</p></div><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment.Data///PointingToDeclaration/">Fragment.Data</span><span class="token operator">&gt; </span><a href="write-optimistic-updates.html"><span class="token function">writeOptimisticUpdates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fragment<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Fragment///PointingToDeclaration/">Fragment</span><span class="token operator">&lt;</span><a href="write-optimistic-updates.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKey<span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">data<span class="token operator">: </span><a href="write-optimistic-updates.html">D</a><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token punctuation">, </span></span><span class="parameter ">publish<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Writes a fragment to the optimistic store.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -442,12 +474,22 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2025 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
-

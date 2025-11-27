@@ -1,22 +1,22 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>Record</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
@@ -24,53 +24,85 @@
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
-<a class="library-name--link" href="../../../index.html">
-                            apollo-kotlin-normalized-cache
-                    </a>            </div>
-            <div class="library-version">
-<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.api/-record/index.html&quot;}">1.0.0-beta.1-SNAPSHOT</dokka-template-command>            </div>
-        </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":normalized-cache/commonMain">common</button>
-        </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    apollo-kotlin-normalized-cache
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.api/-record/index.html&quot;}">1.0.0-beta.1-SNAPSHOT</dokka-template-command>        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":normalized-cache/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":normalized-cache/commonMain" data-filter=":normalized-cache/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    apollo-kotlin-normalized-cache
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
 <div class="main-content" data-page-type="classlike" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.api/Record///PointingToDeclaration//-1172623753">
   <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized.api</a><span class="delimiter">/</span><span class="current">Record</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Record</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Record</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>key<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>fields<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>metadata<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>-1</span></span><span class="token punctuation">)</span> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt; </span></div><p class="paragraph">A normalized entry that corresponds to a response object. Object fields are stored if they are a GraphQL Scalars. If a field is a GraphQL Object a <a href="../-cache-key/index.html">CacheKey</a> will be stored instead.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Record</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>key<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>fields<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>metadata<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>-1</span></span><span class="token punctuation">)</span> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt; </span></div><p class="paragraph">A normalized entry that corresponds to a response object. Object fields are stored if they are a GraphQL Scalars. If a field is a GraphQL Object a <a href="../-cache-key/index.html">CacheKey</a> will be stored instead.</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
-        <h2 class="">Constructors</h2>
+        <h2 class="tableheader">Constructors</h2>
         <div class="table"><a data-name="-299692092%2FConstructors%2F-1172623753" anchor-label="Record" id="-299692092%2FConstructors%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-record.html"><span><span>Record</span></span></a></div>
@@ -79,7 +111,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">fields<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">metadata<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>-1</span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span></span><span class="parameter ">fields<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">mutationId<span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">metadata<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span><span class="token operator"> = </span>emptyMap()<span class="token punctuation">, </span></span><span class="parameter ">sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>-1</span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -87,9 +119,9 @@
         </div>
       </div>
       <div data-togglable="TYPE">
-        <h2 class="">Types</h2>
+        <h2 class="tableheader">Types</h2>
         <div class="table"><a data-name="-1838108829%2FClasslikes%2F-1172623753" anchor-label="Companion" id="-1838108829%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
@@ -106,9 +138,9 @@
         </div>
       </div>
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
+        <h2 class="tableheader">Properties</h2>
         <div class="table"><a data-name="43098407%2FProperties%2F-1172623753" anchor-label="entries" id="43098407%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="index.html#43098407%2FProperties%2F-1172623753"><span><span>entries</span></span></a></div>
@@ -117,13 +149,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#43098407%2FProperties%2F-1172623753">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/-entry/index.html">Map.Entry</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#43098407%2FProperties%2F-1172623753">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/-entry/index.html">Map.Entry</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1330835749%2FProperties%2F-1172623753" anchor-label="fields" id="1330835749%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="fields.html"><span><span>fields</span></span></a></div>
@@ -132,13 +164,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="fields.html">fields</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="fields.html">fields</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="../-record-value/index.html">RecordValue</a><span class="token operator">?</span><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="484232157%2FProperties%2F-1172623753" anchor-label="key" id="484232157%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="key.html"><span><span>key</span></span></a></div>
@@ -153,7 +185,7 @@
             </div>
           </div>
 <a data-name="-915758449%2FProperties%2F-1172623753" anchor-label="keys" id="-915758449%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="index.html#-915758449%2FProperties%2F-1172623753"><span><span>keys</span></span></a></div>
@@ -162,13 +194,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#-915758449%2FProperties%2F-1172623753">keys</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#-915758449%2FProperties%2F-1172623753">keys</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="494160175%2FProperties%2F-1172623753" anchor-label="metadata" id="494160175%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="metadata.html"><span><span>metadata</span></span></a></div>
@@ -177,13 +209,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="metadata.html">metadata</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Arbitrary metadata that can be attached to each field.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="metadata.html">metadata</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><span data-unresolved-link="com.apollographql.apollo.api.json/ApolloJsonElement///PointingToDeclaration/">ApolloJsonElement</span><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Arbitrary metadata that can be attached to each field.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1272905754%2FProperties%2F-1172623753" anchor-label="mutationId" id="1272905754%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="mutation-id.html"><span>mutation</span><wbr><span><span>Id</span></span></a></div>
@@ -192,13 +224,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="mutation-id.html">mutationId</a><span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span><span class="token operator"> = </span>null</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="mutation-id.html">mutationId</a><span class="token operator">: </span><span data-unresolved-link="com.benasher44.uuid/Uuid///PointingToDeclaration/">Uuid</span><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-157521630%2FProperties%2F-1172623753" anchor-label="size" id="-157521630%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="index.html#-157521630%2FProperties%2F-1172623753"><span><span>size</span></span></a></div>
@@ -207,13 +239,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#-157521630%2FProperties%2F-1172623753">size</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#-157521630%2FProperties%2F-1172623753">size</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-1212208393%2FProperties%2F-1172623753" anchor-label="sizeInBytes" id="-1212208393%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="size-in-bytes.html"><span>size</span><wbr><span>In</span><wbr><span><span>Bytes</span></span></a></div>
@@ -222,13 +254,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="size-in-bytes.html">sizeInBytes</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Size of the record in bytes. This is an optional field that can be set by the cache implementation for debug purposes, otherwise it defaults to <code class="lang-kotlin">-1</code>, meaning unknown size.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="size-in-bytes.html">sizeInBytes</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">Size of the record in bytes. This is an optional field that can be set by the cache implementation for debug purposes, otherwise it defaults to <code class="lang-kotlin">-1</code>, meaning unknown size.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1310951841%2FProperties%2F-1172623753" anchor-label="values" id="1310951841%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="index.html#1310951841%2FProperties%2F-1172623753"><span><span>values</span></span></a></div>
@@ -237,7 +269,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#1310951841%2FProperties%2F-1172623753">values</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="index.html#1310951841%2FProperties%2F-1172623753">values</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -245,39 +277,39 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="182506349%2FFunctions%2F-1172623753" anchor-label="containsKey" id="182506349%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="189495335%2FFunctions%2F-1172623753" anchor-label="containsKey" id="189495335%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#182506349%2FFunctions%2F-1172623753"><span>contains</span><wbr><span><span>Key</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="182506349%2FFunctions%2F-1172623753"></span>
+                  <div><a href="index.html#189495335%2FFunctions%2F-1172623753"><span>contains</span><wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="189495335%2FFunctions%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#182506349%2FFunctions%2F-1172623753"><span class="token function">containsKey</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#189495335%2FFunctions%2F-1172623753"><span class="token function">containsKey</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2000296189%2FFunctions%2F-1172623753" anchor-label="containsValue" id="2000296189%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+<a data-name="-337993863%2FFunctions%2F-1172623753" anchor-label="containsValue" id="-337993863%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#2000296189%2FFunctions%2F-1172623753"><span>contains</span><wbr><span><span>Value</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2000296189%2FFunctions%2F-1172623753"></span>
+                  <div><a href="index.html#-337993863%2FFunctions%2F-1172623753"><span>contains</span><wbr><span><span>Value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-337993863%2FFunctions%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#2000296189%2FFunctions%2F-1172623753"><span class="token function">containsValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-337993863%2FFunctions%2F-1172623753"><span class="token function">containsValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-1875567383%2FFunctions%2F-1172623753" anchor-label="expirationDate" id="-1875567383%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../expiration-date.html"><span>expiration</span><wbr><span><span>Date</span></span></a></div>
@@ -286,13 +318,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../expiration-date.html"><span class="token function">expirationDate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">field<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../expiration-date.html"><span class="token function">expirationDate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">field<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-610667570%2FFunctions%2F-1172623753" anchor-label="fieldKeys" id="-610667570%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="field-keys.html"><span>field</span><wbr><span><span>Keys</span></span></a></div>
@@ -301,28 +333,28 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="field-keys.html"><span class="token function">fieldKeys</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a set of all field keys. A field key incorporates any GraphQL arguments in addition to the field name.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="field-keys.html"><span class="token function">fieldKeys</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a set of all field keys. A field key incorporates any GraphQL arguments in addition to the field name.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1885167485%2FFunctions%2F-1172623753" anchor-label="get" id="-1885167485%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+<a data-name="1589144509%2FFunctions%2F-1172623753" anchor-label="get" id="1589144509%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-1885167485%2FFunctions%2F-1172623753"><span><span>get</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1885167485%2FFunctions%2F-1172623753"></span>
+                  <div><a href="index.html#1589144509%2FFunctions%2F-1172623753"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1589144509%2FFunctions%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="index.html#-1885167485%2FFunctions%2F-1172623753"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="index.html#1589144509%2FFunctions%2F-1172623753"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="296163678%2FFunctions%2F-1172623753" anchor-label="getReachableCacheKeys" id="296163678%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../../com.apollographql.cache.normalized/get-reachable-cache-keys.html"><span>get</span><wbr><span>Reachable</span><wbr><span>Cache</span><wbr><span><span>Keys</span></span></a></div>
@@ -331,13 +363,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="index.html">Record</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../../com.apollographql.cache.normalized/get-reachable-cache-keys.html"><span class="token function">getReachableCacheKeys</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="index.html">Record</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="../../com.apollographql.cache.normalized/get-reachable-cache-keys.html"><span class="token function">getReachableCacheKeys</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-1708477740%2FFunctions%2F-1172623753" anchor-label="isEmpty" id="-1708477740%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="index.html#-1708477740%2FFunctions%2F-1172623753"><span>is</span><wbr><span><span>Empty</span></span></a></div>
@@ -346,13 +378,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1708477740%2FFunctions%2F-1172623753"><span class="token function">isEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="index.html#-1708477740%2FFunctions%2F-1172623753"><span class="token function">isEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-842409771%2FFunctions%2F-1172623753" anchor-label="mergeWith" id="-842409771%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="merge-with.html"><span>merge</span><wbr><span><span>With</span></span></a></div>
@@ -361,13 +393,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="merge-with.html"><span class="token function">mergeWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newRecord<span class="token operator">: </span><a href="index.html">Record</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="index.html">Record</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a merge result record and a set of field keys which have changed, or were added. A field key incorporates any GraphQL arguments in addition to the field name.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="merge-with.html"><span class="token function">mergeWith</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newRecord<span class="token operator">: </span><a href="index.html">Record</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="index.html">Record</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-set/index.html">Set</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a merge result record and a set of field keys which have changed, or were added. A field key incorporates any GraphQL arguments in addition to the field name.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="-1478293224%2FFunctions%2F-1172623753" anchor-label="normalized" id="-1478293224%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../../com.apollographql.cache.normalized.internal/normalized.html"><span><span>normalized</span></span></a></div>
@@ -376,13 +408,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Executable.Data///PointingToDeclaration/">Executable.Data</span><span class="token operator">&gt; </span><a href="../-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">.</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html"><span class="token function">normalized</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">executable<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Executable///PointingToDeclaration/">Executable</span><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKeyGenerator<span class="token operator">: </span><a href="../-cache-key-generator/index.html">CacheKeyGenerator</a><span class="token punctuation">, </span></span><span class="parameter ">rootKey<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator"> = </span>CacheKey.QUERY_ROOT<span class="token punctuation">, </span></span><span class="parameter ">customScalarAdapters<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/CustomScalarAdapters///PointingToDeclaration/">CustomScalarAdapters</span><span class="token operator"> = </span>CustomScalarAdapters.Empty<span class="token punctuation">, </span></span><span class="parameter ">metadataGenerator<span class="token operator">: </span><a href="../-metadata-generator/index.html">MetadataGenerator</a><span class="token operator"> = </span>EmptyMetadataGenerator<span class="token punctuation">, </span></span><span class="parameter ">fieldKeyGenerator<span class="token operator">: </span><a href="../-field-key-generator/index.html">FieldKeyGenerator</a><span class="token operator"> = </span>DefaultFieldKeyGenerator<span class="token punctuation">, </span></span><span class="parameter ">embeddedFieldsProvider<span class="token operator">: </span><a href="../-embedded-fields-provider/index.html">EmbeddedFieldsProvider</a><span class="token operator"> = </span>EmptyEmbeddedFieldsProvider<span class="token punctuation">, </span></span><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../-max-age-provider/index.html">MaxAgeProvider</a><span class="token operator"> = </span>DefaultMaxAgeProvider</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="index.html">Record</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Normalizes this executable data to a map of <a href="index.html">Record</a> keyed by <a href="key.html">Record.key</a>.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html">D</a><span class="token operator"> : </span><span data-unresolved-link="com.apollographql.apollo.api/Executable.Data///PointingToDeclaration/">Executable.Data</span><span class="token operator">&gt; </span><a href="../-data-with-errors/index.html">DataWithErrors</a><span class="token punctuation">.</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html"><span class="token function">normalized</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">executable<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/Executable///PointingToDeclaration/">Executable</span><span class="token operator">&lt;</span><a href="../../com.apollographql.cache.normalized.internal/normalized.html">D</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">cacheKeyGenerator<span class="token operator">: </span><a href="../-cache-key-generator/index.html">CacheKeyGenerator</a><span class="token punctuation">, </span></span><span class="parameter ">rootKey<span class="token operator">: </span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator"> = </span>CacheKey.QUERY_ROOT<span class="token punctuation">, </span></span><span class="parameter ">customScalarAdapters<span class="token operator">: </span><span data-unresolved-link="com.apollographql.apollo.api/CustomScalarAdapters///PointingToDeclaration/">CustomScalarAdapters</span><span class="token operator"> = </span>CustomScalarAdapters.Empty<span class="token punctuation">, </span></span><span class="parameter ">metadataGenerator<span class="token operator">: </span><a href="../-metadata-generator/index.html">MetadataGenerator</a><span class="token operator"> = </span>EmptyMetadataGenerator<span class="token punctuation">, </span></span><span class="parameter ">fieldKeyGenerator<span class="token operator">: </span><a href="../-field-key-generator/index.html">FieldKeyGenerator</a><span class="token operator"> = </span>DefaultFieldKeyGenerator<span class="token punctuation">, </span></span><span class="parameter ">embeddedFieldsProvider<span class="token operator">: </span><a href="../-embedded-fields-provider/index.html">EmbeddedFieldsProvider</a><span class="token operator"> = </span>EmptyEmbeddedFieldsProvider<span class="token punctuation">, </span></span><span class="parameter ">maxAgeProvider<span class="token operator">: </span><a href="../-max-age-provider/index.html">MaxAgeProvider</a><span class="token operator"> = </span>DefaultMaxAgeProvider</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token punctuation">, </span><a href="index.html">Record</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Normalizes this executable data to a map of <a href="index.html">Record</a> keyed by <a href="key.html">Record.key</a>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1566378359%2FFunctions%2F-1172623753" anchor-label="receivedDate" id="1566378359%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../received-date.html"><span>received</span><wbr><span><span>Date</span></span></a></div>
@@ -391,13 +423,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../received-date.html"><span class="token function">receivedDate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">field<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../received-date.html"><span class="token function">receivedDate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">field<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="328884780%2FFunctions%2F-1172623753" anchor-label="referencedFields" id="328884780%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="referenced-fields.html"><span>referenced</span><wbr><span><span>Fields</span></span></a></div>
@@ -406,13 +438,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="referenced-fields.html"><span class="token function">referencedFields</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the list of referenced cache fields</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="referenced-fields.html"><span class="token function">referencedFields</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../-cache-key/index.html">CacheKey</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns the list of referenced cache fields</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1723493122%2FFunctions%2F-1172623753" anchor-label="withDates" id="1723493122%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../with-dates.html"><span>with</span><wbr><span><span>Dates</span></span></a></div>
@@ -421,13 +453,13 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../with-dates.html"><span class="token function">withDates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">receivedDate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">expirationDate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Record</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../with-dates.html"><span class="token function">withDates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">receivedDate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">expirationDate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Record</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
 <a data-name="1593741019%2FFunctions%2F-1172623753" anchor-label="withSizeInBytes" id="1593741019%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
-          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../with-size-in-bytes.html"><span>with</span><wbr><span>Size</span><wbr><span>In</span><wbr><span><span>Bytes</span></span></a></div>
@@ -436,7 +468,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../with-size-in-bytes.html"><span class="token function">withSizeInBytes</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Record</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Record</a><span class="token punctuation">.</span><a href="../with-size-in-bytes.html"><span class="token function">withSizeInBytes</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sizeInBytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Record</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -446,12 +478,22 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2025 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2025 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
-
