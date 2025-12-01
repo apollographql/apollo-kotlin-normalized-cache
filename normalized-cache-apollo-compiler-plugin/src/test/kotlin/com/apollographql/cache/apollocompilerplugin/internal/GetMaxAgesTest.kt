@@ -66,8 +66,8 @@ class GetMaxAgesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
         )
         .getOrThrow()
         .getMaxAges(
@@ -137,8 +137,8 @@ class GetMaxAgesTest {
           .validateAsSchema(
               SchemaValidationOptions(
                   addKotlinLabsDefinitions = true,
-                  foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-              )
+                  foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+              ),
           )
           .getOrThrow()
           .getMaxAges(

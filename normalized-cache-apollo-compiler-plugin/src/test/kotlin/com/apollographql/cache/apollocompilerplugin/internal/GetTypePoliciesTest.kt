@@ -59,12 +59,12 @@ class GetTypePoliciesTest {
         ).getOrThrow()
 
     val expected = mapOf(
-        "User" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
-        "Animal" to TypePolicy(keyFields = listOf("kingdom", "species"), embeddedFields = emptyList()),
-        "Lion" to TypePolicy(keyFields = listOf("kingdom", "species"), embeddedFields = emptyList()),
-        "HasId" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
-        "Circle" to TypePolicy(keyFields = listOf("id"), embeddedFields = emptyList()),
-        "Square" to TypePolicy(keyFields = listOf("radius"), embeddedFields = emptyList()),
+        "User" to TypePolicy(keyFields = listOf("id")),
+        "Animal" to TypePolicy(keyFields = listOf("kingdom", "species")),
+        "Lion" to TypePolicy(keyFields = listOf("kingdom", "species")),
+        "HasId" to TypePolicy(keyFields = listOf("id")),
+        "Circle" to TypePolicy(keyFields = listOf("id")),
+        "Square" to TypePolicy(keyFields = listOf("radius")),
     )
 
     assertEquals(expected, schema.getTypePolicies())
@@ -100,8 +100,8 @@ class GetTypePoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = listOf(cacheForeignSchema)
-            )
+                foreignSchemas = cacheForeignSchemas,
+            ),
         ).getOrThrow()
 
     assertFailsWith<SourceAwareException> {
@@ -142,8 +142,8 @@ class GetTypePoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = listOf(cacheForeignSchema)
-            )
+                foreignSchemas = cacheForeignSchemas,
+            ),
         ).getOrThrow()
 
     assertFailsWith<SourceAwareException> {

@@ -170,14 +170,14 @@ cache key (e.g. `usersConnection.edges.0`, `usersConnection.edges.1`) which will
 To remediate this, we can configure the cache to skip normalization for certain fields. When doing so, the value will be embedded directly into
 the record instead of being referenced.
 
-This is done with the `embeddedFields` argument of the `@typePolicy` directive:
+This is done with the `@embeddedField` directive:
 
 ```graphql
 # Embed the value of the `usersConnection` field in the record
-extend type Query @typePolicy(embeddedFields: "usersConnection")
+extend type Query @embeddedField(name: "usersConnection")
 
 # Embed the values of the `edges` field in the record
-extend type UserConnection @typePolicy(embeddedFields: "edges")
+extend type UserConnection @embeddedField(name: "edges")
 ```
 
 > This can also be done programmatically by configuring the cache with an [`EmbeddedFieldsProvider`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.api/-embedded-fields-provider/index.html?query=interface%20EmbeddedFieldsProvider) implementation.

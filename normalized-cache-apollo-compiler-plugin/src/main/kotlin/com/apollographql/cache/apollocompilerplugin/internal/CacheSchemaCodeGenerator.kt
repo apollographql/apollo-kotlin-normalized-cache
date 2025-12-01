@@ -4,7 +4,6 @@ package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.ast.GQLDocument
-import com.apollographql.apollo.ast.Schema
 import com.apollographql.apollo.ast.toSchema
 import com.apollographql.apollo.compiler.ApolloCompiler
 import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
@@ -50,8 +49,9 @@ internal class CacheSchemaCodeGenerator(
 ) : SchemaCodeGenerator {
   override fun generate(schema: GQLDocument, outputDirectory: File) {
     val validSchema = schema.toSchema()
+    val logger = environment.logger()
     if (environment.arguments.contains("packageName")) {
-      environment.logger().warning(
+      logger.warning(
           "The Cache compiler plugin 'packageName' argument is deprecated. Please use 'com.apollographql.cache.packageName' instead.",
       )
     }
@@ -68,8 +68,9 @@ internal class CacheSchemaCodeGenerator(
       }
     }
     val edgeNodeTypeWithoutKeyFieldsSeverity = issueSeverities?.get("EdgeNodeTypeWithoutKeyFields") ?: "error"
-    val issueLogger = IssueLogger(environment.logger())
+    val issueLogger = IssueLogger(logger)
 
+    val maxAges = validSchema.getMaxAges(logger)
     val typePolicies = validSchema.getTypePolicies()
     val fieldPolicies = validSchema.getFieldPolicies()
     val connectionTypes = validSchema.getConnectionTypes()
@@ -83,11 +84,11 @@ internal class CacheSchemaCodeGenerator(
       }
     }
 
-    val embeddedFields = validSchema.getEmbeddedFields(typePolicies, connectionTypes)
+    val embeddedFields = validSchema.getEmbeddedFields(logger, connectionTypes)
     val file = FileSpec.builder(packageName, "Cache")
         .addType(
             TypeSpec.objectBuilder("Cache")
-                .addProperty(maxAgeProperty(validSchema))
+                .addProperty(maxAgeProperty(maxAges))
                 .addProperty(typePoliciesProperty(typePolicies))
                 .addProperty(fieldPoliciesProperty(fieldPolicies))
                 .addProperty(embeddedFieldsProperty(embeddedFields))
@@ -130,8 +131,7 @@ internal class CacheSchemaCodeGenerator(
     }
   }
 
-  private fun maxAgeProperty(schema: Schema): PropertySpec {
-    val maxAges = schema.getMaxAges(environment.logger())
+  private fun maxAgeProperty(maxAges: Map<String, Int>): PropertySpec {
     val initializer = if (maxAges.isEmpty()) {
       CodeBlock.of("emptyMap()")
     } else {

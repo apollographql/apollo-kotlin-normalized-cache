@@ -8,6 +8,7 @@ import com.apollographql.apollo.ast.builtinForeignSchemas
 import com.apollographql.apollo.ast.internal.SchemaValidationOptions
 import com.apollographql.apollo.ast.parseAsGQLDocument
 import com.apollographql.apollo.ast.validateAsSchema
+import com.apollographql.apollo.compiler.ApolloCompiler
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -65,19 +66,27 @@ class GetEmbeddedFieldsTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
         )
         .getOrThrow()
-    val typePolicies = schema.getTypePolicies()
     val connectionTypes = schema.getConnectionTypes()
-    val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
+    val errors = mutableListOf<String>()
+    val embeddedFields = schema.getEmbeddedFields(
+        object : ApolloCompiler.Logger {
+          override fun warning(message: String) {
+            errors += message
+          }
+        },
+        connectionTypes,
+    )
     val expected = mapOf(
         "Query" to EmbeddedFields(listOf("users")),
         "User" to EmbeddedFields(listOf("name", "email")),
         "UserConnection" to EmbeddedFields(listOf("edges", "pageInfo")),
     )
     assertEquals(expected, embeddedFields)
+    assertEquals(emptyList(), errors)
   }
 
   @Test
@@ -95,19 +104,110 @@ class GetEmbeddedFieldsTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
         )
         .getOrThrow()
-    val typePolicies = schema.getTypePolicies()
     val connectionTypes = schema.getConnectionTypes()
-    val embeddedFields = schema.getEmbeddedFields(typePolicies, connectionTypes)
+    val errors = mutableListOf<String>()
+    val embeddedFields = schema.getEmbeddedFields(
+        object : ApolloCompiler.Logger {
+          override fun warning(message: String) {
+            errors += message
+          }
+        },
+        connectionTypes,
+    )
     val expected = mapOf(
         "Query" to EmbeddedFields(listOf("users")),
         "User" to EmbeddedFields(listOf("name", "email")),
         "UserConnection" to EmbeddedFields(listOf("edges", "pageInfo")),
     )
     assertEquals(expected, embeddedFields)
+    assertEquals(emptyList(), errors)
   }
 
+  @Test
+  fun embeddedDirective() {
+    // language=GraphQL
+    val schemaText = """
+      extend schema @link(url: "https://specs.apollo.dev/cache/v0.4", import: ["@embedded"])
+      
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        user: User
+      }
+      
+      type User {
+        id: ID!
+        name: String! @embedded
+      }
+    """.trimIndent()
+
+    val schema = schemaText.parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
+        )
+        .getOrThrow()
+    val connectionTypes = schema.getConnectionTypes()
+    val errors = mutableListOf<String>()
+    val embeddedFields = schema.getEmbeddedFields(
+        object : ApolloCompiler.Logger {
+          override fun warning(message: String) {
+            errors += message
+          }
+        },
+        connectionTypes,
+    )
+    val expected = mapOf(
+        "User" to EmbeddedFields(listOf("name")),
+    )
+    assertEquals(expected, embeddedFields)
+    assertEquals(emptyList(), errors)
+  }
+
+  @Test
+  fun embeddedFieldDirective() {
+    // language=GraphQL
+    val schemaText = baseSchemaText + """
+      extend schema @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3", import: ["@typePolicy"])
+      extend schema @link(url: "https://specs.apollo.dev/cache/v0.4", import: ["@embeddedField"])
+      
+      extend type Query @typePolicy(connectionFields: "users")
+      
+      extend type User @embeddedField(name: "name") @embeddedField(name: "email")
+    """.trimIndent()
+
+    val schema = schemaText.parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
+        )
+        .getOrThrow()
+    val connectionTypes = schema.getConnectionTypes()
+    val errors = mutableListOf<String>()
+    val embeddedFields = schema.getEmbeddedFields(
+        object : ApolloCompiler.Logger {
+          override fun warning(message: String) {
+            errors += message
+          }
+        },
+        connectionTypes,
+    )
+    val expected = mapOf(
+        "Query" to EmbeddedFields(listOf("users")),
+        "User" to EmbeddedFields(listOf("name", "email")),
+        "UserConnection" to EmbeddedFields(listOf("edges", "pageInfo")),
+    )
+    assertEquals(expected, embeddedFields)
+    assertEquals(emptyList(), errors)
+  }
 }
