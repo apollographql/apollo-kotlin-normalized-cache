@@ -9,7 +9,7 @@ import com.apollographql.apollo.ast.parseAsGQLDocument
 // language=GraphQL
 private val cacheDefinitions_0_3 = """
   ""${'"'}
-  Defines key fields for an object or interface.
+  Defines key fields and embedded fields for an object or interface.
   ""${'"'}
   directive @typePolicy(
       ""${'"'}
