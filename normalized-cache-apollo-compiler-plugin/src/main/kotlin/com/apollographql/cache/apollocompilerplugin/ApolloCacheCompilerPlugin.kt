@@ -8,14 +8,14 @@ import com.apollographql.apollo.compiler.ApolloCompilerPluginEnvironment
 import com.apollographql.apollo.compiler.ApolloCompilerRegistry
 import com.apollographql.cache.apollocompilerplugin.internal.AddKeyFieldsExecutableDocumentTransform
 import com.apollographql.cache.apollocompilerplugin.internal.CacheSchemaCodeGenerator
-import com.apollographql.cache.apollocompilerplugin.internal.cacheForeignSchema
+import com.apollographql.cache.apollocompilerplugin.internal.cacheForeignSchemas
 
 class ApolloCacheCompilerPlugin : ApolloCompilerPlugin {
   override fun beforeCompilationStep(
       environment: ApolloCompilerPluginEnvironment,
       registry: ApolloCompilerRegistry,
   ) {
-    registry.registerForeignSchemas(listOf(cacheForeignSchema))
+    registry.registerForeignSchemas(cacheForeignSchemas)
     registry.registerExecutableDocumentTransform("com.apollographql.cache.addKeyFields", transform = AddKeyFieldsExecutableDocumentTransform)
     registry.registerSchemaCodeGenerator(CacheSchemaCodeGenerator(environment))
   }

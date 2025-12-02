@@ -10,7 +10,6 @@ import com.apollographql.apollo.ast.SourceAwareException
 
 internal data class TypePolicy(
     val keyFields: List<String>,
-    val embeddedFields: List<String>,
 )
 
 /**
@@ -45,7 +44,7 @@ private fun Schema.validateAndComputeTypePolicy(
     else -> error("Unexpected $typeDefinition")
   }
 
-  val interfacesToTypePolicy = allInterfaces.associate { it to validateAndComputeTypePolicy(typeDefinitions[it]!!, typePolicyCache) }
+  val interfacesToTypePolicy = allInterfaces.associateWith { validateAndComputeTypePolicy(typeDefinitions[it]!!, typePolicyCache) }
       .filterValues { it != null }
   val interfaces = interfacesToTypePolicy.keys.toList()
   val interfacesTypePolicies = interfacesToTypePolicy.values.toList()
@@ -84,6 +83,5 @@ private fun Schema.validateAndComputeTypePolicy(
 private fun GQLDirective.toTypePolicy(): TypePolicy {
   return TypePolicy(
       keyFields = extractFields("keyFields"),
-      embeddedFields = extractFields("embeddedFields")
   )
 }

@@ -62,8 +62,8 @@ class GetConnectionTypesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
         )
         .getOrThrow()
         .getConnectionTypes()
@@ -87,8 +87,8 @@ class GetConnectionTypesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema
-            )
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
         )
         .getOrThrow()
         .getConnectionTypes()

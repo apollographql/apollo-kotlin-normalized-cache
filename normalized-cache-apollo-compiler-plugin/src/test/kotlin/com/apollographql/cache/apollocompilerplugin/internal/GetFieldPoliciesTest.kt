@@ -39,7 +39,7 @@ class GetFieldPoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
             ),
         ).getOrThrow()
 
@@ -78,7 +78,7 @@ class GetFieldPoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
             ),
         ).getOrThrow()
 
@@ -104,7 +104,7 @@ class GetFieldPoliciesTest {
         .validateAsSchema(
             SchemaValidationOptions(
                 addKotlinLabsDefinitions = true,
-                foreignSchemas = builtinForeignSchemas() + cacheForeignSchema,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
             ),
         ).getOrThrow()
 
