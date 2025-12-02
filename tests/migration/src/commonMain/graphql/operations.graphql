@@ -32,6 +32,14 @@ query RepositoryListQuery {
       id
       name
     }
+    owner {
+      id
+      name
+      repositories {
+        id
+        stars
+      }
+    }
   }
 }
 
