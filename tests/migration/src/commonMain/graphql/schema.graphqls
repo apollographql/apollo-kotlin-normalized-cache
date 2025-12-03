@@ -19,6 +19,7 @@ type Repository {
   id: ID!
   stars: Int!
   starGazers: [User!]!
+  owner: User!
 }
 
 type Project {

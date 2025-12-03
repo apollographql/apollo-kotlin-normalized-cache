@@ -53,7 +53,19 @@ private val REPOSITORY_LIST_RESPONSE = """
               "id": "1",
               "name": "Jane"
             }
+          ],
+          "owner": {
+            "__typename": "User",
+            "id": "2",
+            "name": "Owner",
+            "repositories": [
+              {
+                "__typename": "Repository",
+                "id": "0",
+                "stars": 10
+              }
           ]
+          }
         }
       ]
     }
@@ -69,9 +81,21 @@ private val REPOSITORY_LIST_DATA = RepositoryListQuery.Data(
                 RepositoryListQuery.StarGazer(id = "0", name = "John", __typename = "User"),
                 RepositoryListQuery.StarGazer(id = "1", name = "Jane", __typename = "User"),
             ),
-            __typename = "Repository"
-        )
-    )
+            __typename = "Repository",
+            owner = RepositoryListQuery.Owner(
+                id = "2",
+                name = "Owner",
+                __typename = "User",
+                repositories = listOf(
+                    RepositoryListQuery.Repository1(
+                        id = "0",
+                        stars = 10,
+                        __typename = "Repository",
+                    ),
+                ),
+            ),
+        ),
+    ),
 )
 
 class MigrationTest {
@@ -172,35 +196,36 @@ private suspend fun CacheManager.migrateFrom(legacyStore: LegacyApolloStore) {
 }
 
 private fun LegacyNormalizedCache.allRecordsSequence(): Sequence<LegacyRecord> {
-  suspend fun SequenceScope<LegacyRecord>.yieldRecordsRecursively(cache: LegacyNormalizedCache, cacheKeys: List<LegacyCacheKey>) {
-    for (cacheKeysChunk in cacheKeys.chunked(50)) {
-      val records = cache.loadRecords(cacheKeysChunk.map{it.key}, LegacyCacheHeaders.NONE)
+  val visited = mutableSetOf<String>()
+  suspend fun SequenceScope<LegacyRecord>.yieldRecordsRecursively(cacheKeys: Sequence<LegacyCacheKey>) {
+    val unvisitedCacheKeys = cacheKeys.filter { visited.add(it.key) }
+    for (cacheKeysChunk in unvisitedCacheKeys.chunked(50)) {
+      val records = loadRecords(cacheKeysChunk.map { it.key }, LegacyCacheHeaders.NONE)
       yieldAll(records)
-      val references = records.flatMap{it.references()}
-      yieldRecordsRecursively(cache, references)
+      val references = records.asSequence().flatMap { it.references() }
+      yieldRecordsRecursively(references)
     }
   }
   return sequence {
-    yieldRecordsRecursively(this@allRecordsSequence, listOf(LegacyCacheKey.rootKey()))
+    yieldRecordsRecursively(sequenceOf(LegacyCacheKey.rootKey()))
   }
 }
 
-private fun LegacyRecord.references(): List<LegacyCacheKey> {
-  fun LegacyRecordValue.references(): List<LegacyCacheKey> {
-    return when (this) {
-      is LegacyCacheKey -> listOf(this)
-      is List<*> -> this.flatMap { it.references() }
-      is Map<*, *> -> this.values.flatMap { it.references() }
-      else -> emptyList()
+private fun LegacyRecord.references(): Sequence<LegacyCacheKey> {
+  fun LegacyRecordValue.valueReferences(): Sequence<LegacyCacheKey> = sequence {
+    when (val value = this@valueReferences) {
+      is LegacyCacheKey -> yield(value)
+      is List<*> -> yieldAll(value.flatMap { it.valueReferences() })
+      is Map<*, *> -> yieldAll(value.values.flatMap { it.valueReferences() })
     }
   }
-  return fields.values.flatMap { it.references() }
+  return fields.values.asSequence().flatMap { it.valueReferences() }
 }
 
 private fun LegacyRecord.toRecord(): Record = Record(
     key = CacheKey(key),
     fields = fields.mapValues { (_, value) -> value.toRecordValue() },
-    mutationId = mutationId
+    mutationId = mutationId,
 )
 
 private fun LegacyRecordValue.toRecordValue(): RecordValue = when (this) {
