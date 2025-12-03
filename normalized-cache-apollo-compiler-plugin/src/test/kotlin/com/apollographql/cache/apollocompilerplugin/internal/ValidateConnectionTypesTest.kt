@@ -333,4 +333,164 @@ class ValidateConnectionTypesTest {
     val errors = schema.validateConnectionTypes(connectionTypes, typePolicies)
     assertTrue(errors.isEmpty())
   }
+
+  @Test
+  fun missingTypePolicyOnNodeUnionOfTypesImplementingInterfaces() {
+    // language=GraphQL
+    val baseSchemaText = """
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        users(first: Int = 10, after: String = null, last: Int = null, before: String = null): UserConnection
+      }
+      
+      type UserConnection {
+        pageInfo: PageInfo!
+        edges: [UserEdge!]!
+      }
+      
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+      }
+      
+      type UserEdge {
+        cursor: String!
+        node: UserUnion!
+      }
+      
+      union UserUnion = UserA | UserB
+      
+      interface Node {
+        id: ID!
+      }
+            
+      interface Node2 {
+        id: ID!
+      }
+      
+      interface Node3 {
+        id: ID!
+      }
+            
+      type UserA implements Node {
+        id: ID!
+        name: String!
+      }
+      
+      type UserB implements Node2 & Node3 {
+        id: ID!
+        name: String!
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val schemaText = baseSchemaText + """
+      extend schema
+      @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3")
+      @link(url: "https://specs.apollo.dev/cache/v0.3", import: ["@connection", "@typePolicy"])
+      
+      extend type UserConnection @connection
+      
+      extend interface Node @typePolicy(keyFields: "id")
+    """.trimIndent()
+
+    val schema = schemaText.parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
+        )
+        .getOrThrow()
+    val connectionTypes = schema.getConnectionTypes()
+    val typePolicies = schema.getTypePolicies()
+    val errors = schema.validateConnectionTypes(connectionTypes, typePolicies)
+
+    assertContentEquals(listOf("The type 'UserB' which is a possible type of 'UserEdge.node' must have key fields defined with @typePolicy"), errors)
+  }
+
+  @Test
+  fun typePolicyOnNodeUnionOfTypesImplementingInterfaces() {
+    // language=GraphQL
+    val baseSchemaText = """
+      schema {
+        query: Query
+      }
+      
+      type Query {
+        users(first: Int = 10, after: String = null, last: Int = null, before: String = null): UserConnection
+      }
+      
+      type UserConnection {
+        pageInfo: PageInfo!
+        edges: [UserEdge!]!
+      }
+      
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+      }
+      
+      type UserEdge {
+        cursor: String!
+        node: UserUnion!
+      }
+      
+      union UserUnion = UserA | UserB
+      
+      interface Node {
+        id: ID!
+      }
+            
+      interface Node2 {
+        id: ID!
+      }
+      
+      interface Node3 {
+        id: ID!
+      }
+            
+      type UserA implements Node {
+        id: ID!
+        name: String!
+      }
+      
+      type UserB implements Node2 & Node3 {
+        id: ID!
+        name: String!
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val schemaText = baseSchemaText + """
+      extend schema
+      @link(url: "https://specs.apollo.dev/kotlin_labs/v0.3")
+      @link(url: "https://specs.apollo.dev/cache/v0.3", import: ["@connection", "@typePolicy"])
+      
+      extend type UserConnection @connection
+      
+      extend interface Node @typePolicy(keyFields: "id")
+      extend interface Node3 @typePolicy(keyFields: "id")
+    """.trimIndent()
+
+    val schema = schemaText.parseAsGQLDocument().getOrThrow()
+        .validateAsSchema(
+            SchemaValidationOptions(
+                addKotlinLabsDefinitions = true,
+                foreignSchemas = builtinForeignSchemas() + cacheForeignSchemas,
+            ),
+        )
+        .getOrThrow()
+    val connectionTypes = schema.getConnectionTypes()
+    val typePolicies = schema.getTypePolicies()
+    val errors = schema.validateConnectionTypes(connectionTypes, typePolicies)
+    assertTrue(errors.isEmpty())
+  }
 }
