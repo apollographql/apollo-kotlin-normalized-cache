@@ -2,10 +2,12 @@
 
 ## Context: how it works today
 
-When normalizing responses currently only JSON objects are de-inlined and stored in their own records.
+When normalizing responses currently only JSON objects in positions corresponding to object/interface/union types are de-inlined and stored in their own records.
 The value of the field in the parent record is then a reference (CacheKey) to that child record.
 
-Other types of values (primitive types, nulls, errors, and arrays) are kept inline in their parent record or array.
+Other types of values (primitive types, nulls, errors, arrays, and JSON objects in positions corresponding to scalar types) are kept inline in their parent record or array.
+
+Note: there is also a `@embedded` directive that can be used to force keeping objects inline.
 
 For example, this response:
 
