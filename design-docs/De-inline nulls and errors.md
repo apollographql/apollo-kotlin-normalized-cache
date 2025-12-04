@@ -85,7 +85,7 @@ If later a query requests the user with id "2":
 
 - in the legacy cache, this would be resolved to `CacheKey(User:2)`, which doesn't exist in the cache, resulting in a cache miss.
   This is not desirable as the server returned value is `null`, and so that should be surfaced.
-- in the modern cache, we implemented a workaround where we look at existing list items in the record first before falling back to returning a cache key.
+- in the modern cache, we implemented [a workaround](https://github.com/apollographql/apollo-kotlin-normalized-cache/blob/e126738e92c80184e1f9645b60abced486f0cf5a/normalized-cache/src/commonMain/kotlin/com/apollographql/cache/normalized/api/CacheResolver.kt#L157) where we look at existing list items in the record first before falling back to returning a cache key.
 
 This works but is not ideal:
 
