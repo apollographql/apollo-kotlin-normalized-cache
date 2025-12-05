@@ -2,6 +2,7 @@ package com.apollographql.cache.normalized.api
 
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.json.ApolloJsonElement
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.api.FieldRecordMerger.FieldMerger
 
 /**
@@ -166,6 +167,10 @@ private object ConnectionFieldMerger : FieldMerger {
     } else if (incomingStartCursor == null && incomingEndCursor == null) {
       // Incoming is empty
       existing
+    } else if (incomingBeforeArgument == null && incomingAfterArgument == null) {
+      // Incoming is not a pagination query, or a first page query
+      // Handle this case by resetting the cache with this page
+      incoming
     } else {
       val existingValue = existing.value as Map<String, Any?>
       val existingEdges = existingValue["edges"] as? List<*>
@@ -221,13 +226,15 @@ private object ConnectionFieldMerger : FieldMerger {
         mergedHasNextPage = existingHasNextPage
       } else {
         // We received a list which is neither the previous nor the next page.
-        // Handle this case by resetting the cache with this page
-        mergedStartCursor = incomingStartCursor
-        mergedEndCursor = incomingEndCursor
-        mergedEdges = incomingEdges
-        mergedNodes = incomingNodes
-        mergedHasPreviousPage = incomingHasPreviousPage
-        mergedHasNextPage = incomingHasNextPage
+        // We can't do anything with that page: log and ignore it
+        apolloExceptionHandler(
+            Exception(
+                "Cannot merge incoming connection: received page is not adjacent to existing pages. " +
+                    "existingStartCursor=$existingStartCursor, existingEndCursor=$existingEndCursor, " +
+                    "incomingStartCursor=$incomingStartCursor, incomingEndCursor=$incomingEndCursor, incomingBeforeArgument=$incomingBeforeArgument, incomingAfterArgument=$incomingAfterArgument.",
+            ),
+        )
+        return existing
       }
 
       val mergedPageInfo: Map<String, ApolloJsonElement>? = if (existingPageInfo == null && incomingPageInfo == null) {
@@ -248,7 +255,7 @@ private object ConnectionFieldMerger : FieldMerger {
 
       FieldRecordMerger.FieldInfo(
           value = mergedValue,
-          metadata = existing.metadata + incoming.metadata + mapOf("startCursor" to mergedStartCursor, "endCursor" to mergedEndCursor)
+          metadata = existing.metadata + incoming.metadata + mapOf("startCursor" to mergedStartCursor, "endCursor" to mergedEndCursor),
       )
     }
   }
