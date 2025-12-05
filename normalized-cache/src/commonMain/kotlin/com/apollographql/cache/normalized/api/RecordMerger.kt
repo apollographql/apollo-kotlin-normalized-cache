@@ -2,6 +2,7 @@ package com.apollographql.cache.normalized.api
 
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.json.ApolloJsonElement
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.api.FieldRecordMerger.FieldMerger
 
 /**
@@ -225,7 +226,14 @@ private object ConnectionFieldMerger : FieldMerger {
         mergedHasNextPage = existingHasNextPage
       } else {
         // We received a list which is neither the previous nor the next page.
-        // We can't do anything with that page: ignore it
+        // We can't do anything with that page: log and ignore it
+        apolloExceptionHandler(
+            Exception(
+                "Cannot merge incoming connection: received page is not adjacent to existing pages. " +
+                    "existingStartCursor=$existingStartCursor, existingEndCursor=$existingEndCursor, " +
+                    "incomingStartCursor=$incomingStartCursor, incomingEndCursor=$incomingEndCursor, incomingBeforeArgument=$incomingBeforeArgument, incomingAfterArgument=$incomingAfterArgument.",
+            ),
+        )
         return existing
       }
 
@@ -247,7 +255,7 @@ private object ConnectionFieldMerger : FieldMerger {
 
       FieldRecordMerger.FieldInfo(
           value = mergedValue,
-          metadata = existing.metadata + incoming.metadata + mapOf("startCursor" to mergedStartCursor, "endCursor" to mergedEndCursor)
+          metadata = existing.metadata + incoming.metadata + mapOf("startCursor" to mergedStartCursor, "endCursor" to mergedEndCursor),
       )
     }
   }
