@@ -224,7 +224,7 @@ class ConnectionWithNodesPaginationTest {
     assertEquals(expectedData, dataFromStore)
     assertChainedCachesAreEqual(cacheManager)
 
-    // Non-contiguous page (should reset)
+    // Non-contiguous page (should be ignored)
     val query5 = UsersQuery(first = Optional.Present(2), after = Optional.Present("xx50"))
     val data5 = UsersQuery.Data {
       users = buildUserConnection {
@@ -244,7 +244,7 @@ class ConnectionWithNodesPaginationTest {
     }
     cacheManager.writeOperation(query5, data5)
     dataFromStore = cacheManager.readOperation(query1).data
-    assertEquals(data5, dataFromStore)
+    assertEquals(expectedData, dataFromStore)
     assertChainedCachesAreEqual(cacheManager)
 
     // Empty page (should keep previous result)
@@ -261,7 +261,30 @@ class ConnectionWithNodesPaginationTest {
     }
     cacheManager.writeOperation(query6, data6)
     dataFromStore = cacheManager.readOperation(query1).data
-    assertEquals(data5, dataFromStore)
+    assertEquals(expectedData, dataFromStore)
+    assertChainedCachesAreEqual(cacheManager)
+
+    // First page again (should reset)
+    val query7 = UsersQuery(first = Optional.Present(2))
+    val data7 = UsersQuery.Data {
+      users = buildUserConnection {
+        pageInfo = buildPageInfo {
+          startCursor = "xx42"
+          endCursor = "xx43"
+        }
+        nodes = listOf(
+            buildUser {
+              id = "42"
+            },
+            buildUser {
+              id = "43"
+            },
+        )
+      }
+    }
+    cacheManager.writeOperation(query7, data7)
+    dataFromStore = cacheManager.readOperation(query7).data
+    assertEquals(data7, dataFromStore)
     assertChainedCachesAreEqual(cacheManager)
   }
 }
