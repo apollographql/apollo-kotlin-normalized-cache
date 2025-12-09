@@ -2,6 +2,15 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.1
+_2025-12-09_
+
+- Pagination: incoming pages that cannot be merged with existing data are now ignored instead of replacing existing data. (#278)
+  Incoming pages that don't include a `before` or `after` argument are still interpreted as a 'reset' signal and will replace existing data.
+  This is a behavior change but hopefully not too disruptive and we believe this change makes more sense than the previous behavior.
+- Add support for `@embedded` directive. This should be used in favor of `@typePolicy(embeddedFields: "...")` going forward. (#273)
+- Fix sample code demonstrating how to migrate data from the legacy cache to the new library. (#274)
+
 # v1.0.0-beta.0
 _2025-11-26_
 
