@@ -42,6 +42,20 @@ import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 ```
 
+## Linked directives
+
+If you are using `@typePolicy` or `@fieldPolicy` directives, update your `extra.graphqls` file to link the new specification:
+
+```graphql
+# Replace
+extend schema
+@link(url: "https://specs.apollo.dev/kotlin_labs/v0.3", import: ["@typePolicy", "@fieldPolicy"])
+
+# With
+extend schema
+@link(url: "https://specs.apollo.dev/cache/v0.4", import: ["@typePolicy", "@fieldPolicy"])
+```
+
 ## Compiler plugin
 
 Configure the [compiler plugin](compiler-plugin.md) in your `build.gradle.kts` file:
