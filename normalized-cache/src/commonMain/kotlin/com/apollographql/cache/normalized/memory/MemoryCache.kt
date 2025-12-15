@@ -26,7 +26,7 @@ import kotlin.reflect.KClass
  * (there is no any sort of GC that runs in the background).
  */
 class MemoryCache(
-    private val nextCache: NormalizedCache? = null,
+    override val nextCache: NormalizedCache? = null,
     private val maxSizeBytes: Int = Int.MAX_VALUE,
     private val expireAfterMillis: Long = -1,
 ) : NormalizedCache {
@@ -39,8 +39,6 @@ class MemoryCache(
   private val lruCache = LruCache<CacheKey, Record>(maxSize = maxSizeBytes, expireAfterMillis = expireAfterMillis) { key, record ->
     key.key.length + sizeOfRecord(record)
   }
-
-  internal suspend fun getSize(): Int = withLock { lruCache.weight() }
 
   override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? = withLock {
     val record = lruCache[key]
@@ -145,6 +143,10 @@ class MemoryCache(
 
   override fun sizeOfRecord(record: Record): Int {
     return RecordWeigher.calculateBytes(record)
+  }
+
+  override suspend fun size(): Long {
+    return withLock { lruCache.weight() }.toLong()
   }
 
   internal fun clearCurrentCache() {

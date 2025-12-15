@@ -97,6 +97,7 @@ final class com.apollographql.cache.normalized.sql/SqlNormalizedCache : com.apol
     final suspend fun merge(kotlin.collections/Collection<com.apollographql.cache.normalized.api/Record>, com.apollographql.cache.normalized.api/CacheHeaders, com.apollographql.cache.normalized.api/RecordMerger): kotlin.collections/Set<kotlin/String> // com.apollographql.cache.normalized.sql/SqlNormalizedCache.merge|merge(kotlin.collections.Collection<com.apollographql.cache.normalized.api.Record>;com.apollographql.cache.normalized.api.CacheHeaders;com.apollographql.cache.normalized.api.RecordMerger){}[0]
     final suspend fun remove(com.apollographql.cache.normalized.api/CacheKey, kotlin/Boolean): kotlin/Boolean // com.apollographql.cache.normalized.sql/SqlNormalizedCache.remove|remove(com.apollographql.cache.normalized.api.CacheKey;kotlin.Boolean){}[0]
     final suspend fun remove(kotlin.collections/Collection<com.apollographql.cache.normalized.api/CacheKey>, kotlin/Boolean): kotlin/Int // com.apollographql.cache.normalized.sql/SqlNormalizedCache.remove|remove(kotlin.collections.Collection<com.apollographql.cache.normalized.api.CacheKey>;kotlin.Boolean){}[0]
+    final suspend fun size(): kotlin/Long // com.apollographql.cache.normalized.sql/SqlNormalizedCache.size|size(){}[0]
     final suspend fun trim(kotlin/Long, kotlin/Float): kotlin/Long // com.apollographql.cache.normalized.sql/SqlNormalizedCache.trim|trim(kotlin.Long;kotlin.Float){}[0]
 }
 
