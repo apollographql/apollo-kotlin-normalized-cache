@@ -93,6 +93,17 @@ class SqlNormalizedCache internal constructor(
     return keySize + RecordSerializer.serialize(record).size
   }
 
+  override suspend fun size(): Long {
+    return try {
+      recordDatabase.init()
+      recordDatabase.databaseSize()
+    } catch (e: Exception) {
+      // Unable to get the size of the database, it is possibly corrupted
+      apolloExceptionHandler(Exception("Unable to get the size of the database", e))
+      -1
+    }
+  }
+
   private suspend fun getReferencedKeysRecursively(
       keys: Collection<String>,
       visited: MutableSet<String> = mutableSetOf(),
@@ -174,8 +185,8 @@ class SqlNormalizedCache internal constructor(
 
   override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
     try {
-      recordDatabase.init()
-      val size = recordDatabase.databaseSize()
+      val size = size()
+      if (size == -1L) return -1
       return if (size >= maxSizeBytes) {
         val count = recordDatabase.count()
         recordDatabase.trimByUpdatedDate((count * trimFactor).toLong())

@@ -2,6 +2,7 @@ package pagination
 
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.CacheManager
@@ -328,6 +329,7 @@ class CursorBasedPaginationTest {
     assertChainedCachesAreEqual(cacheManager)
 
     // Non-contiguous page (should be ignored)
+    apolloExceptionHandler = {}
     val query5 = UsersQuery(first = Optional.Present(2), after = Optional.Present("xx50"))
     val data5 = UsersQuery.Data {
       users = buildUserConnection {

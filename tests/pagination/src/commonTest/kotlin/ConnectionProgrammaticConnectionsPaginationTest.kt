@@ -1,6 +1,7 @@
 package pagination
 
 import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.ConnectionEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.ConnectionFieldKeyGenerator
@@ -306,6 +307,7 @@ class ConnectionProgrammaticConnectionsPaginationTest {
     assertChainedCachesAreEqual(cacheManager)
 
     // Non-contiguous page (should be ignored)
+    apolloExceptionHandler = {}
     val query5 = UsersQuery(first = Optional.Present(2), after = Optional.Present("xx50"))
     val data5 = UsersQuery.Data {
       users = buildUserConnection {

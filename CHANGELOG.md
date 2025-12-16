@@ -2,6 +2,8 @@
 
 PUT_CHANGELOG_HERE
 
+- Add `ReadOnlyNormalizedCache.nextCache` and `ReadOnlyNormalizedCache.size()` (#280)
+
 # v1.0.0-beta.1
 _2025-12-09_
 

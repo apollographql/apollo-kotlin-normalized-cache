@@ -171,8 +171,8 @@ class MemoryCacheTest {
 
     primaryCache.clearAll()
 
-    assertEquals(0, primaryCache.getSize())
-    assertEquals(0, secondaryCache.getSize())
+    assertEquals(0, primaryCache.size())
+    assertEquals(0, secondaryCache.size())
   }
 
   @Test
