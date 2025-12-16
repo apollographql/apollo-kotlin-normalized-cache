@@ -2,7 +2,7 @@
 <html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
-    <title>sizeOfRecord</title>
+    <title>nextCache</title>
 <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
     <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
@@ -40,7 +40,7 @@
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
         <div class="library-version" id="library-version">
-<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.api/-read-only-normalized-cache/size-of-record.html&quot;}">1.0.0-beta.2-SNAPSHOT</dokka-template-command>        </div>
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.memory/-memory-cache/next-cache.html&quot;}">1.0.0-beta.2-SNAPSHOT</dokka-template-command>        </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
                 <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":normalized-cache/commonMain">common</button>
@@ -90,12 +90,12 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="member" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.api/ReadOnlyNormalizedCache/sizeOfRecord/#com.apollographql.cache.normalized.api.Record/PointingToDeclaration//-1172623753">
-  <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized.api</a><span class="delimiter">/</span><a href="index.html">ReadOnlyNormalizedCache</a><span class="delimiter">/</span><span class="current">sizeOfRecord</span></div>
+<div class="main-content" data-page-type="member" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.memory/MemoryCache/nextCache/#/PointingToDeclaration//-1172623753">
+  <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized.memory</a><span class="delimiter">/</span><a href="index.html">MemoryCache</a><span class="delimiter">/</span><span class="current">nextCache</span></div>
   <div class="cover ">
-    <h1 class="cover"><span>size</span><wbr><span>Of</span><wbr><span><span>Record</span></span></h1>
+    <h1 class="cover"><span>next</span><wbr><span><span>Cache</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="size-of-record.html"><span class="token function">sizeOfRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">record<span class="token operator">: </span><a href="../-record/index.html">Record</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><p class="paragraph">Returns the size in bytes of a <a href="../-record/index.html">Record</a>. This is an optional operation that can be implemented by caches for debug purposes, otherwise it defaults to <code class="lang-kotlin">-1</code>, meaning unknown size.</p></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="next-cache.html">nextCache</a><span class="token operator">: </span><a href="../../com.apollographql.cache.normalized.api/-normalized-cache/index.html">NormalizedCache</a><span class="token operator">?</span></div><p class="paragraph">Some cache implementations (e.g. <a href="../../../normalized-cache/com.apollographql.cache.normalized.internal/-optimistic-normalized-cache/index.html">com.apollographql.cache.normalized.internal.OptimisticNormalizedCache</a> and <a href="index.html">com.apollographql.cache.normalized.memory.MemoryCache</a>) support chaining caches. For those, this returns the next cache in the chain or <code class="lang-kotlin">null</code> if there is none. Implementations that don't support chaining return <code class="lang-kotlin">null</code>.</p></div></div>
 </div>
     <div class="footer">
         <div class="footer--container">
