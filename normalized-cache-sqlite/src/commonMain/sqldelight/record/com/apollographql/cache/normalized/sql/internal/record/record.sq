@@ -10,7 +10,7 @@ selectRecords:
 SELECT key, record FROM record WHERE key IN ?;
 
 selectAllRecords:
-SELECT key, record FROM record;
+SELECT key, record FROM record LIMIT :limit OFFSET :offset;
 
 insertOrUpdateRecord:
 INSERT INTO record (key, record, updated_date) VALUES (?, ?, ?);

@@ -13,6 +13,8 @@ import com.apollographql.cache.normalized.api.withSizeInBytes
 import com.apollographql.cache.normalized.internal.withReentrantLock
 import com.apollographql.cache.normalized.memory.internal.LruCache
 import com.apollographql.cache.normalized.memory.internal.RecordWeigher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlin.reflect.KClass
 
@@ -55,6 +57,10 @@ class MemoryCache(
       lruCache[record.key] = record
     }
     recordsByKey.values.filterNotNull() + nextCachedRecords
+  }
+
+  override suspend fun loadAllRecords(): Flow<Record> {
+    return lruCache.asMap().values.asFlow()
   }
 
   override suspend fun clearAll() {
