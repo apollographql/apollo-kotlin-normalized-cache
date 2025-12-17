@@ -5,6 +5,8 @@ type Query {
   user(category: Category!): User!
   someInt: Int
   someInt2: Int
+  foo: Int!
+  foo2: Int!
 }
 
 type User {

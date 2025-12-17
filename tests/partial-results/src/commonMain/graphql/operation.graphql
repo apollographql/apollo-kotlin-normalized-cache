@@ -140,3 +140,12 @@ query MeWithDepartmentInfoQuery {
     }
   }
 }
+
+query GetFoo {
+  foo @catch(to: NULL)
+}
+
+query GetFoo2 {
+  foo @catch(to: NULL)
+  foo2
+}

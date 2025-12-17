@@ -6,6 +6,18 @@
 // - Show declarations: true
 
 // Library unique name: <com.apollographql.cache:normalized-cache>
+final enum class com.apollographql.cache.normalized.options/OnError : kotlin/Enum<com.apollographql.cache.normalized.options/OnError> { // com.apollographql.cache.normalized.options/OnError|null[0]
+    enum entry HALT // com.apollographql.cache.normalized.options/OnError.HALT|null[0]
+    enum entry NULL // com.apollographql.cache.normalized.options/OnError.NULL|null[0]
+    enum entry PROPAGATE // com.apollographql.cache.normalized.options/OnError.PROPAGATE|null[0]
+
+    final val entries // com.apollographql.cache.normalized.options/OnError.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<com.apollographql.cache.normalized.options/OnError> // com.apollographql.cache.normalized.options/OnError.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): com.apollographql.cache.normalized.options/OnError // com.apollographql.cache.normalized.options/OnError.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<com.apollographql.cache.normalized.options/OnError> // com.apollographql.cache.normalized.options/OnError.values|values#static(){}[0]
+}
+
 final enum class com.apollographql.cache.normalized/FetchPolicy : kotlin/Enum<com.apollographql.cache.normalized/FetchPolicy> { // com.apollographql.cache.normalized/FetchPolicy|null[0]
     enum entry CacheAndNetwork // com.apollographql.cache.normalized/FetchPolicy.CacheAndNetwork|null[0]
     enum entry CacheFirst // com.apollographql.cache.normalized/FetchPolicy.CacheFirst|null[0]
@@ -621,6 +633,8 @@ final object com.apollographql.cache.normalized.api/ApolloCacheHeaders { // com.
         final fun <get-MAX_STALE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.MAX_STALE.<get-MAX_STALE>|<get-MAX_STALE>(){}[0]
     final const val MEMORY_CACHE_ONLY // com.apollographql.cache.normalized.api/ApolloCacheHeaders.MEMORY_CACHE_ONLY|{}MEMORY_CACHE_ONLY[0]
         final fun <get-MEMORY_CACHE_ONLY>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.MEMORY_CACHE_ONLY.<get-MEMORY_CACHE_ONLY>|<get-MEMORY_CACHE_ONLY>(){}[0]
+    final const val ON_ERROR // com.apollographql.cache.normalized.api/ApolloCacheHeaders.ON_ERROR|{}ON_ERROR[0]
+        final fun <get-ON_ERROR>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.ON_ERROR.<get-ON_ERROR>|<get-ON_ERROR>(){}[0]
     final const val RECEIVED_DATE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE|{}RECEIVED_DATE[0]
         final fun <get-RECEIVED_DATE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE.<get-RECEIVED_DATE>|<get-RECEIVED_DATE>(){}[0]
     final const val SKIP_MERGE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SKIP_MERGE|{}SKIP_MERGE[0]
@@ -700,6 +714,7 @@ final fun <#A: com.apollographql.apollo.api/Operation.Data> (com.apollographql.a
 final fun <#A: com.apollographql.apollo.api/Operation.Data> (com.apollographql.apollo.api/ApolloResponse<#A>).com.apollographql.cache.normalized/errorsAsException(): com.apollographql.apollo.api/ApolloResponse<#A> // com.apollographql.cache.normalized/errorsAsException|errorsAsException@com.apollographql.apollo.api.ApolloResponse<0:0>(){0§<com.apollographql.apollo.api.Operation.Data>}[0]
 final fun <#A: com.apollographql.apollo.api/Query.Data> (com.apollographql.apollo/ApolloCall<#A>).com.apollographql.cache.normalized/watch(#A?): kotlinx.coroutines.flow/Flow<com.apollographql.apollo.api/ApolloResponse<#A>> // com.apollographql.cache.normalized/watch|watch@com.apollographql.apollo.ApolloCall<0:0>(0:0?){0§<com.apollographql.apollo.api.Query.Data>}[0]
 final fun <#A: com.apollographql.apollo.api/Query.Data> (com.apollographql.apollo/ApolloCall<#A>).com.apollographql.cache.normalized/watch(): kotlinx.coroutines.flow/Flow<com.apollographql.apollo.api/ApolloResponse<#A>> // com.apollographql.cache.normalized/watch|watch@com.apollographql.apollo.ApolloCall<0:0>(){0§<com.apollographql.apollo.api.Query.Data>}[0]
+final fun <#A: kotlin/Any?> (com.apollographql.apollo.api/MutableExecutionOptions<#A>).com.apollographql.cache.normalized.options/onError(com.apollographql.cache.normalized.options/OnError): #A // com.apollographql.cache.normalized.options/onError|onError@com.apollographql.apollo.api.MutableExecutionOptions<0:0>(com.apollographql.cache.normalized.options.OnError){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (com.apollographql.apollo.api/MutableExecutionOptions<#A>).com.apollographql.cache.normalized.options/serverErrorsAsCacheMisses(kotlin/Boolean): #A // com.apollographql.cache.normalized.options/serverErrorsAsCacheMisses|serverErrorsAsCacheMisses@com.apollographql.apollo.api.MutableExecutionOptions<0:0>(kotlin.Boolean){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (com.apollographql.apollo.api/MutableExecutionOptions<#A>).com.apollographql.cache.normalized.options/throwOnCacheMiss(kotlin/Boolean): #A // com.apollographql.cache.normalized.options/throwOnCacheMiss|throwOnCacheMiss@com.apollographql.apollo.api.MutableExecutionOptions<0:0>(kotlin.Boolean){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> (com.apollographql.apollo.api/MutableExecutionOptions<#A>).com.apollographql.cache.normalized/addCacheHeader(kotlin/String, kotlin/String): #A // com.apollographql.cache.normalized/addCacheHeader|addCacheHeader@com.apollographql.apollo.api.MutableExecutionOptions<0:0>(kotlin.String;kotlin.String){0§<kotlin.Any?>}[0]

@@ -26,6 +26,7 @@ import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.optimisticData
+import com.apollographql.cache.normalized.options.onError
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.flow.Flow
@@ -203,13 +204,15 @@ internal class ApolloCacheInterceptor(
       request: ApolloRequest<D>,
       customScalarAdapters: CustomScalarAdapters,
   ): ApolloResponse<D> {
-    var cacheHeaders = request.cacheHeaders
-        .newBuilder()
-        .addHeader(ApolloCacheHeaders.CURRENT_DATE, (request.clock() / 1000).toString())
+    val cacheHeaders = request.cacheHeaders
+        .newBuilder().apply {
+          addHeader(ApolloCacheHeaders.CURRENT_DATE, (request.clock() / 1000).toString())
+          addHeader(ApolloCacheHeaders.ON_ERROR, request.onError.name)
+          if (request.memoryCacheOnly) {
+            addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true")
+          }
+        }
         .build()
-    if (request.memoryCacheOnly) {
-      cacheHeaders += CacheHeaders.Builder().addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true").build()
-    }
     val startMillis = currentTimeMillis()
     val response = cacheManager.readOperation(
         operation = request.operation,
@@ -223,7 +226,7 @@ internal class ApolloCacheInterceptor(
             response.cacheInfo!!.newBuilder()
                 .cacheStartMillis(startMillis)
                 .cacheEndMillis(currentTimeMillis())
-                .build()
+                .build(),
         )
         .isLast(true)
         .build()
@@ -244,7 +247,7 @@ internal class ApolloCacheInterceptor(
                   .networkStartMillis(startMillis)
                   .networkEndMillis(currentTimeMillis())
                   .networkException(networkResponse.exception)
-                  .build()
+                  .build(),
           ).build()
     }
   }
