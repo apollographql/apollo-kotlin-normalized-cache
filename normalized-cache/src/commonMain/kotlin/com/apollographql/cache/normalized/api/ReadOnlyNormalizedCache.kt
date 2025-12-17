@@ -1,25 +1,33 @@
 package com.apollographql.cache.normalized.api
 
+import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmSuppressWildcards
 import kotlin.reflect.KClass
 
 interface ReadOnlyNormalizedCache {
   /**
-   * @param key          The key of the record to read.
-   * @param cacheHeaders The cache headers associated with the request which generated this record.
-   * @return The [Record] for key. If not present return null.
+   * @param key the key of the record to read.
+   * @param cacheHeaders the cache headers associated with the request which generated this record.
+   * @return the [Record] for key. If not present return null.
    */
   suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record?
 
   /**
-   * Calls through to [NormalizedCache.loadRecord]. Implementations should override this
+   * Calls through to [loadRecord]. Implementations should override this
    * method if the underlying storage technology can offer an optimized manner to read multiple records.
    * There is no guarantee on the order of returned [Record]
    *
-   * @param keys         The set of [Record] keys to read.
-   * @param cacheHeaders The cache headers associated with the request which generated this record.
+   * @param keys the set of [Record] keys to read.
+   * @param cacheHeaders the cache headers associated with the request which generated this record.
    */
   suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record>
+
+  /**
+   * Returns a [Flow] emitting all records stored in this cache.
+   *
+   * Note: in case of chained caches, this does not return records from the next cache in the chain. See [nextCache].
+   */
+  suspend fun loadAllRecords(): Flow<Record>
 
   suspend fun dump(): Map<@JvmSuppressWildcards KClass<*>, Map<CacheKey, Record>>
 
@@ -33,7 +41,7 @@ interface ReadOnlyNormalizedCache {
    * Returns the total size in bytes of this cache.
    * This is an optional operation that can be implemented by caches for debug or observability purposes, otherwise it defaults to `-1`, meaning unknown size.
    *
-   * Note: in case of a chained cache, this size does not include the size of the next cache in the chain. See [nextCache].
+   * Note: in case of chained caches, this size does not include the size of the next cache in the chain. See [nextCache].
    */
   suspend fun size(): Long = -1L
 

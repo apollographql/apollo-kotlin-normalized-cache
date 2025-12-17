@@ -8,6 +8,8 @@ import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.sql.internal.record.RecordQueries
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -48,8 +50,21 @@ internal class RecordDatabase(
     return recordQueries.selectRecords(keys).awaitAsList().map { RecordSerializer.deserialize(it.key, it.record) }
   }
 
-  suspend fun selectAllRecords(): List<Record> {
-    return recordQueries.selectAllRecords().awaitAsList().map { RecordSerializer.deserialize(it.key, it.record) }
+  fun selectAllRecords(pageSize: Long = 100): Flow<Record> {
+    return flow {
+      var offset = 0L
+      while (true) {
+        val page = recordQueries.selectAllRecords(limit = pageSize, offset = offset).awaitAsList()
+            .map { RecordSerializer.deserialize(it.key, it.record) }
+        for (record in page) {
+          emit(record)
+        }
+        if (page.size < pageSize) {
+          break
+        }
+        offset += pageSize
+      }
+    }
   }
 
   suspend fun insertOrUpdateRecord(record: Record) {

@@ -13,6 +13,9 @@ import com.apollographql.cache.normalized.api.withSizeInBytes
 import com.apollographql.cache.normalized.sql.internal.RecordDatabase
 import com.apollographql.cache.normalized.sql.internal.RecordSerializer
 import com.apollographql.cache.normalized.sql.internal.parametersMax
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.toList
 import kotlin.reflect.KClass
 
 class SqlNormalizedCache internal constructor(
@@ -33,6 +36,17 @@ class SqlNormalizedCache internal constructor(
       // Unable to read the records from the database, it is possibly corrupted - treat this as a cache miss
       apolloExceptionHandler(Exception("Unable to read records from the database", e))
       emptyList()
+    }
+  }
+
+  override suspend fun loadAllRecords(): Flow<Record> {
+    return try {
+      recordDatabase.init()
+      recordDatabase.selectAllRecords()
+    } catch (e: Exception) {
+      // Unable to clear the records from the database, it is possibly corrupted
+      apolloExceptionHandler(Exception("Unable to read records from the database", e))
+      emptyFlow()
     }
   }
 
@@ -83,7 +97,7 @@ class SqlNormalizedCache internal constructor(
   override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
     recordDatabase.init()
     return mapOf(
-        this::class to (recordDatabase.selectAllRecords().associateBy { it.key })
+        this::class to (recordDatabase.selectAllRecords().toList().associateBy { it.key })
             .mapValues { (_, record) -> record.withSizeInBytes(sizeOfRecord(record)) },
     )
   }

@@ -18,6 +18,7 @@ import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.testing.Platform
 import com.apollographql.cache.normalized.testing.currentThreadId
 import com.apollographql.cache.normalized.testing.platform
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
 import normalizer.HeroNameQuery
 import kotlin.reflect.KClass
@@ -73,6 +74,13 @@ class ThreadTests {
         "Cache access on main thread"
       }
       return delegate.loadRecords(keys, cacheHeaders)
+    }
+
+    override suspend fun loadAllRecords(): Flow<Record> {
+      check(currentThreadId() != mainThreadId) {
+        "Cache access on main thread"
+      }
+      return delegate.loadAllRecords()
     }
 
     override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {

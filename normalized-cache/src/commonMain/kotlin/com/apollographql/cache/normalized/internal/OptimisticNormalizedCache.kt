@@ -7,11 +7,12 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.Record.Companion.changedKeys
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.benasher44.uuid.Uuid
+import kotlinx.coroutines.flow.Flow
 import kotlin.math.max
 import kotlin.reflect.KClass
 
 internal class OptimisticNormalizedCache(
-    override val nextCache: NormalizedCache
+    override val nextCache: NormalizedCache,
 ) : NormalizedCache {
   private val recordJournals = ConcurrentMap<CacheKey, RecordJournal>()
 
@@ -25,6 +26,10 @@ internal class OptimisticNormalizedCache(
     return keys.mapNotNull { key ->
       nonOptimisticRecords[key].mergeJournalRecord(key)
     }
+  }
+
+  override suspend fun loadAllRecords(): Flow<Record> {
+    return nextCache.loadAllRecords()
   }
 
   override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
