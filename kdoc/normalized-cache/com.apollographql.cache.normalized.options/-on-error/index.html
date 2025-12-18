@@ -2,8 +2,8 @@
 <html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
-    <title>Scope</title>
-<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../../";</script>
+    <title>OnError</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
     <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
       if (storage == null) {
@@ -19,28 +19,28 @@
       }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
-<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
-<link href="../../../../styles/style.css" rel="Stylesheet">
-<link href="../../../../styles/main.css" rel="Stylesheet">
-<link href="../../../../styles/prism.css" rel="Stylesheet">
-<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../../scripts/safe-local-storage_blocking.js"></script>
-<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
-<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
-<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
-<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script></head>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
 <div class="root">
     <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
-<a class="library-name--link" href="../../../../index.html" tabindex="1">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
                     apollo-kotlin-normalized-cache
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
         <div class="library-version" id="library-version">
-<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.api/-cache-key/-scope/index.html&quot;}">1.0.0-beta.2-SNAPSHOT</dokka-template-command>        </div>
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.options/-on-error/index.html&quot;}">1.0.0-beta.2-SNAPSHOT</dokka-template-command>        </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
                 <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":normalized-cache/commonMain">common</button>
@@ -90,43 +90,58 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.api/CacheKey.Scope///PointingToDeclaration//-1172623753">
-  <div class="breadcrumbs"><a href="../../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../../index.html">com.apollographql.cache.normalized.api</a><span class="delimiter">/</span><a href="../index.html">CacheKey</a><span class="delimiter">/</span><span class="current">Scope</span></div>
+<div class="main-content" data-page-type="classlike" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.options/OnError///PointingToDeclaration//-1172623753">
+  <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized.options</a><span class="delimiter">/</span><span class="current">OnError</span></div>
   <div class="cover ">
-    <h1 class="cover"><span><span>Scope</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="index.html">Scope</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="index.html">CacheKey.Scope</a><span class="token operator">&gt; </span></div></div></div>
+    <h1 class="cover"><span>On</span><wbr><span><span>Error</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="com.apollographql.apollo.annotations/ApolloExperimental///PointingToDeclaration/"><span class="token annotation builtin">ApolloExperimental</span></span></div></div><span class="token keyword">enum </span><a href="index.html">OnError</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="index.html">OnError</a><span class="token operator">&gt; </span></div><p class="paragraph">Defines how cached errors are surfaced.</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="ENTRY">Entries</button></div>
     <div class="tabs-section-body">
       <div data-togglable="ENTRY">
         <h2 class="tableheader">Entries</h2>
-        <div class="table"><a data-name="1899068794%2FClasslikes%2F-1172623753" anchor-label="TYPE" id="1899068794%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+        <div class="table"><a data-name="-1614748741%2FClasslikes%2F-1172623753" anchor-label="NULL" id="-1614748741%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
           <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="-t-y-p-e/index.html">TYPE</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1899068794%2FClasslikes%2F-1172623753"></span>
+                  <div><a href="-n-u-l-l/index.html">NULL</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1614748741%2FClasslikes%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><a href="-t-y-p-e/index.html">TYPE</a></div></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><a href="-n-u-l-l/index.html">NULL</a></div></div><div class="brief "><p class="paragraph">Errors are surfaced as <code class="lang-kotlin">null</code>.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1420684355%2FClasslikes%2F-1172623753" anchor-label="SERVICE" id="-1420684355%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+<a data-name="-473624579%2FClasslikes%2F-1172623753" anchor-label="PROPAGATE" id="-473624579%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
           <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="-s-e-r-v-i-c-e/index.html">SERVICE</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1420684355%2FClasslikes%2F-1172623753"></span>
+                  <div><a href="-p-r-o-p-a-g-a-t-e/index.html">PROPAGATE</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-473624579%2FClasslikes%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><a href="-s-e-r-v-i-c-e/index.html">SERVICE</a></div></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><a href="-p-r-o-p-a-g-a-t-e/index.html">PROPAGATE</a></div></div><div class="brief "><p class="paragraph">Errors are surfaced as <code class="lang-kotlin">null</code> if the position is nullable, otherwise they are propagated to the parent position.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-192699147%2FClasslikes%2F-1172623753" anchor-label="HALT" id="-192699147%2FClasslikes%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-h-a-l-t/index.html">HALT</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-192699147%2FClasslikes%2F-1172623753"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><div class="block"><a href="-h-a-l-t/index.html">HALT</a></div></div><div class="brief "><p class="paragraph">If there are any errors, the whole response is returned as <code class="lang-kotlin">null</code>.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -135,17 +150,17 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="864295002%2FProperties%2F-1172623753" anchor-label="entries" id="864295002%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+        <div class="table"><a data-name="-1968638450%2FProperties%2F-1172623753" anchor-label="entries" id="-1968638450%2FProperties%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="entries.html"><span><span>entries</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="864295002%2FProperties%2F-1172623753"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1968638450%2FProperties%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="entries.html">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.enums/-enum-entries/index.html">EnumEntries</a><span class="token operator">&lt;</span><a href="index.html">CacheKey.Scope</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a representation of an immutable list of all enum entries, in the order they're declared.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="entries.html">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.enums/-enum-entries/index.html">EnumEntries</a><span class="token operator">&lt;</span><a href="index.html">OnError</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a representation of an immutable list of all enum entries, in the order they're declared.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -154,13 +169,13 @@
           <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="../../../com.apollographql.cache.normalized.options/-on-error/-h-a-l-t/index.html#-372974862%2FProperties%2F-1172623753"><span><span>name</span></span></a></div>
+                  <div><a href="-h-a-l-t/index.html#-372974862%2FProperties%2F-1172623753"><span><span>name</span></span></a></div>
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-372974862%2FProperties%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../../com.apollographql.cache.normalized.options/-on-error/-h-a-l-t/index.html#-372974862%2FProperties%2F-1172623753">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="-h-a-l-t/index.html#-372974862%2FProperties%2F-1172623753">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -169,13 +184,13 @@
           <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="../../../com.apollographql.cache.normalized.options/-on-error/-h-a-l-t/index.html#-739389684%2FProperties%2F-1172623753"><span><span>ordinal</span></span></a></div>
+                  <div><a href="-h-a-l-t/index.html#-739389684%2FProperties%2F-1172623753"><span><span>ordinal</span></span></a></div>
 <span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-739389684%2FProperties%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../../com.apollographql.cache.normalized.options/-on-error/-h-a-l-t/index.html#-739389684%2FProperties%2F-1172623753">ordinal</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="-h-a-l-t/index.html#-739389684%2FProperties%2F-1172623753">ordinal</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -184,32 +199,32 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="tableheader">Functions</h2>
-        <div class="table"><a data-name="-743987326%2FFunctions%2F-1172623753" anchor-label="valueOf" id="-743987326%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+        <div class="table"><a data-name="2114170446%2FFunctions%2F-1172623753" anchor-label="valueOf" id="2114170446%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="value-of.html"><span>value</span><wbr><span><span>Of</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-743987326%2FFunctions%2F-1172623753"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2114170446%2FFunctions%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="value-of.html"><span class="token function">valueOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">CacheKey.Scope</a></div><div class="brief "><p class="paragraph">Returns the enum constant of this type with the specified name. The string must match exactly an identifier used to declare an enum constant in this type. (Extraneous whitespace characters are not permitted.)</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="value-of.html"><span class="token function">valueOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">OnError</a></div><div class="brief "><p class="paragraph">Returns the enum constant of this type with the specified name. The string must match exactly an identifier used to declare an enum constant in this type. (Extraneous whitespace characters are not permitted.)</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1614536718%2FFunctions%2F-1172623753" anchor-label="values" id="1614536718%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
+<a data-name="-555058214%2FFunctions%2F-1172623753" anchor-label="values" id="-555058214%2FFunctions%2F-1172623753" data-filterable-set=":normalized-cache/commonMain"></a>
           <div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="values.html"><span><span>values</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1614536718%2FFunctions%2F-1172623753"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-555058214%2FFunctions%2F-1172623753"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="values.html"><span class="token function">values</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="index.html">CacheKey.Scope</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns an array containing the constants of this enum type, in the order they're declared.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="values.html"><span class="token function">values</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="index.html">OnError</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns an array containing the constants of this enum type, in the order they're declared.</p></div></div></div>
                 </div>
               </div>
             </div>
