@@ -22,5 +22,6 @@
   <toc-element topic="trimming.md" />
   <toc-element topic="partial-cache-reads.md" />
   <toc-element topic="compiler-plugin.md" />
+  <toc-element topic="performance.md" />
 
 </instance-profile>
