@@ -10,6 +10,7 @@ import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.MapJsonWriter
+import com.apollographql.cache.normalized.options.OnError
 
 /**
  * Encapsulates GraphQL data as a Map with inlined errors.
@@ -35,7 +36,7 @@ fun <D : Executable.Data> D.withErrors(
  * Returns this data with the given [errors] inlined.
  */
 internal fun Map<String, ApolloJsonElement>.withErrors(errors: List<Error>?): DataWithErrors {
-  if (errors == null || errors.isEmpty()) return this
+  if (errors.isNullOrEmpty()) return this
   var dataWithErrors = this
   for (error in errors) {
     val path = error.path ?: continue
@@ -112,7 +113,12 @@ private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: E
 /**
  * If a position contains an Error, replace it by a null if the field's type is nullable, propagate the error if not.
  */
-internal fun propagateErrors(dataWithErrors: Any?, field: CompiledField, errors: MutableList<Error>): ApolloJsonElement {
+internal fun processErrors(
+    dataWithErrors: Any?,
+    field: CompiledField,
+    onError: OnError,
+    errors: MutableList<Error>,
+): ApolloJsonElement {
   return when (dataWithErrors) {
     is Map<*, *> -> {
       if (field.selections.isEmpty()) {
@@ -128,15 +134,18 @@ internal fun propagateErrors(dataWithErrors: Any?, field: CompiledField, errors:
         when (value) {
           is Error -> {
             errors.add(value)
-            if (selection.type is CompiledNotNullType) {
+            if (onError == OnError.HALT) {
+              throw OnErrorHaltException()
+            }
+            if (onError == OnError.PROPAGATE && selection.type is CompiledNotNullType) {
               return null
             }
             null
           }
 
           else -> {
-            propagateErrors(value, selection, errors).also {
-              if (it == null && selection.type is CompiledNotNullType) {
+            processErrors(value, selection, onError, errors).also {
+              if (onError == OnError.PROPAGATE && it == null && selection.type is CompiledNotNullType) {
                 return null
               }
             }
@@ -160,15 +169,18 @@ internal fun propagateErrors(dataWithErrors: Any?, field: CompiledField, errors:
         when (value) {
           is Error -> {
             errors.add(value)
-            if (elementType is CompiledNotNullType) {
+            if (onError == OnError.HALT) {
+              throw OnErrorHaltException()
+            }
+            if (onError == OnError.PROPAGATE && elementType is CompiledNotNullType) {
               return null
             }
             null
           }
 
           else -> {
-            propagateErrors(value, field, errors).also {
-              if (it == null && elementType is CompiledNotNullType) {
+            processErrors(value, field, onError, errors).also {
+              if (onError == OnError.PROPAGATE && it == null && elementType is CompiledNotNullType) {
                 return null
               }
             }
@@ -182,6 +194,8 @@ internal fun propagateErrors(dataWithErrors: Any?, field: CompiledField, errors:
     }
   }
 }
+
+internal class OnErrorHaltException : Exception("A field resolved to an error and OnError is set to HALT")
 
 private fun CompiledSelection.fieldSelection(responseName: String): CompiledField? {
   fun CompiledSelection.fieldSelections(): List<CompiledField> {

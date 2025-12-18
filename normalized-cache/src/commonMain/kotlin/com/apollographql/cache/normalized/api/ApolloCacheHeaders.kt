@@ -1,5 +1,7 @@
 package com.apollographql.cache.normalized.api
 
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 /**
  * A collection of cache headers that Apollo's implementations of [NormalizedCache] respect.
  */
@@ -51,4 +53,12 @@ object ApolloCacheHeaders {
    * When true, [NormalizedCache.merge] skips merging records with the existing ones, instead, they are inserted as-is.
    */
   const val SKIP_MERGE = "skip-merge"
+
+  /**
+   * Defines how cached errors are surfaced.
+   *
+   * See [com.apollographql.cache.normalized.options.OnError].
+   */
+  @ApolloExperimental
+  const val ON_ERROR = "on-error"
 }

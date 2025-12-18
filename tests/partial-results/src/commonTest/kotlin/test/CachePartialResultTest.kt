@@ -6,6 +6,7 @@ import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.graphQLErrorOrNull
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
 import com.apollographql.cache.normalized.CacheManager
@@ -27,6 +28,9 @@ import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
+import com.apollographql.cache.normalized.options.OnError
+import com.apollographql.cache.normalized.options.onError
+import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.testing.append
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
@@ -40,6 +44,7 @@ import test.cache.Cache
 import test.fragment.UserFields
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.Duration
 
@@ -70,7 +75,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -89,11 +94,11 @@ class CachePartialResultTest {
                       email = "jsmith@example.com",
                       id = "1",
                       onUser = MeWithoutNickNameWithEmailQuery.OnUser(
-                          id = "1"
-                      )
-                  )
+                          id = "1",
+                      ),
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheResult = apolloClient.query(MeWithoutNickNameWithoutEmailQuery())
@@ -105,10 +110,10 @@ class CachePartialResultTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      __typename = "User"
-                  )
+                      __typename = "User",
+                  ),
               ),
-              cacheResult.data
+              cacheResult.data,
           )
 
           val cacheMissResult = apolloClient.query(MeWithNickNameQuery())
@@ -121,18 +126,18 @@ class CachePartialResultTest {
                       firstName = "John",
                       lastName = "Smith",
                       nickName = null,
-                      __typename = "User"
-                  )
+                      __typename = "User",
+                  ),
               ),
-              cacheMissResult.data
+              cacheMissResult.data,
           )
           assertErrorsEquals(
               listOf(
                   Error.Builder("Object '${CacheKey("User:1").keyToString()}' has no field named 'nickName' in the cache")
                       .path(listOf("me", "nickName"))
-                      .build()
+                      .build(),
               ),
-              cacheMissResult.errors
+              cacheMissResult.errors,
           )
         }
   }
@@ -169,7 +174,7 @@ class CachePartialResultTest {
             }
           ]
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -203,9 +208,9 @@ class CachePartialResultTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
@@ -217,9 +222,9 @@ class CachePartialResultTest {
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("User `3` not found").path(listOf("users", 2)).build()
+                  Error.Builder("User `3` not found").path(listOf("users", 2)).build(),
               ),
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -264,7 +269,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -286,7 +291,7 @@ class CachePartialResultTest {
                           __typename = "User",
                           id = "2",
                           firstName = "Jane",
-                          lastName = "Doe"
+                          lastName = "Doe",
                       ),
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
@@ -295,21 +300,21 @@ class CachePartialResultTest {
                                   __typename = "User",
                                   id = "3",
                                   firstName = "Amanda",
-                                  lastName = "Brown"
+                                  lastName = "Brown",
                               ),
                               users = listOf(
                                   MeWithBestFriendQuery.User(
                                       __typename = "User",
                                       id = "4",
                                       firstName = "Alice",
-                                      lastName = "White"
-                                  )
-                              )
-                          )
-                      )
-                  )
+                                      lastName = "White",
+                                  ),
+                              ),
+                          ),
+                      ),
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           // Remove project lead from the cache
@@ -328,7 +333,7 @@ class CachePartialResultTest {
                           __typename = "User",
                           id = "2",
                           firstName = "Jane",
-                          lastName = "Doe"
+                          lastName = "Doe",
                       ),
                       projects = listOf(
                           MeWithBestFriendQuery.Project(
@@ -339,22 +344,22 @@ class CachePartialResultTest {
                                       __typename = "User",
                                       id = "4",
                                       firstName = "Alice",
-                                      lastName = "White"
-                                  )
-                              )
-                          )
-                      )
-                  )
+                                      lastName = "White",
+                                  ),
+                              ),
+                          ),
+                      ),
+                  ),
               ),
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               listOf(
                   Error.Builder("Object '${CacheKey("User:3").keyToString()}' not found in the cache")
                       .path(listOf("me", "projects", 0, "lead"))
-                      .build()
+                      .build(),
               ),
-              cacheResult.errors
+              cacheResult.errors,
           )
 
           // Remove best friend from the cache
@@ -379,14 +384,14 @@ class CachePartialResultTest {
                                       __typename = "User",
                                       id = "4",
                                       firstName = "Alice",
-                                      lastName = "White"
-                                  )
-                              )
-                          )
-                      )
-                  )
+                                      lastName = "White",
+                                  ),
+                              ),
+                          ),
+                      ),
+                  ),
               ),
-              cacheResult2.data
+              cacheResult2.data,
           )
           assertErrorsEquals(
               listOf(
@@ -396,7 +401,7 @@ class CachePartialResultTest {
                       .path(listOf("me", "projects", 0, "lead"))
                       .build(),
               ),
-              cacheResult2.errors
+              cacheResult2.errors,
           )
 
           // Remove project user from the cache
@@ -415,9 +420,9 @@ class CachePartialResultTest {
                       .build(),
                   Error.Builder("Object '${CacheKey("User:4").keyToString()}' not found in the cache")
                       .path(listOf("me", "projects", 0, "users", 0))
-                      .build()
+                      .build(),
               ),
-              cacheResult3.errors
+              cacheResult3.errors,
           )
         }
   }
@@ -443,7 +448,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -465,16 +470,16 @@ class CachePartialResultTest {
                       __typename = "Project",
                       id = "42",
                       name = "El Dorado",
-                      description = "The lost city of gold"
+                      description = "The lost city of gold",
                   ),
                   project2 = DefaultProjectQuery.Project2(
                       __typename = "Project",
                       id = "44",
                       name = "Atlantis",
-                      description = "The lost city of water"
-                  )
+                      description = "The lost city of water",
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheResult = apolloClient.query(DefaultProjectQuery())
@@ -482,7 +487,7 @@ class CachePartialResultTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
         }
   }
@@ -507,7 +512,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -530,14 +535,14 @@ class CachePartialResultTest {
                       lastName = "Smith",
                       category = Category(
                           code = 1,
-                          name = "First"
+                          name = "First",
                       ),
                       moreInfo = listOf(0, "no", false, mapOf<String, Any?>(), emptyList<Any?>()),
                       id = "1",
                       __typename = "User",
-                  )
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheResult = apolloClient.query(UserByCategoryQuery(Category(2, "Second")))
@@ -545,7 +550,7 @@ class CachePartialResultTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
 
           // Remove the category from the cache
@@ -563,9 +568,9 @@ class CachePartialResultTest {
               listOf(
                   Error.Builder("Object '${CacheKey("User:1").keyToString()}' has no field named 'category' in the cache")
                       .path(listOf("user", "category"))
-                      .build()
+                      .build(),
               ),
-              cacheMissResult.errors
+              cacheMissResult.errors,
           )
         }
   }
@@ -600,7 +605,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -629,21 +634,21 @@ class CachePartialResultTest {
                           __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
-                              nickName0 = "JS"
+                              nickName0 = "JS",
                           ),
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",
                           category = Category(
                               code = 1,
-                              name = "First"
+                              name = "First",
                           ),
                           id = "1",
                           __typename = "User",
                       ),
-                  )
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheResult = apolloClient.query(WithFragmentsQuery())
@@ -651,7 +656,7 @@ class CachePartialResultTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
 
           // Remove lead from the cache
@@ -675,29 +680,29 @@ class CachePartialResultTest {
                           __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
-                              nickName0 = "JS"
+                              nickName0 = "JS",
                           ),
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",
                           category = Category(
                               code = 1,
-                              name = "First"
+                              name = "First",
                           ),
                           id = "1",
                           __typename = "User",
                       ),
-                  )
+                  ),
               ),
-              cacheMissResult.data
+              cacheMissResult.data,
           )
           assertErrorsEquals(
               listOf(
                   Error.Builder("Object '${CacheKey("User:2").keyToString()}' not found in the cache")
                       .path(listOf("me", "mainProject", "lead0"))
-                      .build()
+                      .build(),
               ),
-              cacheMissResult.errors
+              cacheMissResult.errors,
           )
         }
   }
@@ -718,7 +723,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -736,10 +741,10 @@ class CachePartialResultTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = "JS"
-                  )
+                      nickName = "JS",
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheMissResult = apolloClient.query(MeWithNickNameQuery())
@@ -752,18 +757,18 @@ class CachePartialResultTest {
                       firstName = "John",
                       lastName = "Smith",
                       nickName = null,
-                      __typename = "User"
-                  )
+                      __typename = "User",
+                  ),
               ),
-              cacheMissResult.data
+              cacheMissResult.data,
           )
           assertErrorsEquals(
               listOf(
                   Error.Builder("Field 'nickName' on object '${CacheKey("User:1").keyToString()}' is stale in the cache")
                       .path(listOf("me", "nickName"))
-                      .build()
+                      .build(),
               ),
-              cacheMissResult.errors
+              cacheMissResult.errors,
           )
         }
   }
@@ -789,7 +794,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -811,11 +816,11 @@ class CachePartialResultTest {
                           __typename = "EmployeeInfo",
                           id = "1",
                           salary = 100000,
-                          department = "Engineering"
-                      )
-                  )
+                          department = "Engineering",
+                      ),
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           val cacheMissResult = apolloClient.query(MeWithEmployeeInfoQuery())
@@ -823,17 +828,18 @@ class CachePartialResultTest {
               .execute()
           assertEquals(
               MeWithEmployeeInfoQuery.Data(null),
-              cacheMissResult.data
+              cacheMissResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("Field 'salary' on object '${
-                    CacheKey("User:1").append("employeeInfo").keyToString()
-                  }' is stale in the cache"
+                  Error.Builder(
+                      "Field 'salary' on object '${
+                        CacheKey("User:1").append("employeeInfo").keyToString()
+                      }' is stale in the cache",
                   )
-                      .path(listOf("me", "employeeInfo", "salary")).build()
+                      .path(listOf("me", "employeeInfo", "salary")).build(),
               ),
-              cacheMissResult.errors
+              cacheMissResult.errors,
           )
         }
   }
@@ -858,7 +864,7 @@ class CachePartialResultTest {
             }
           }
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -875,7 +881,83 @@ class CachePartialResultTest {
           assertErrorsEquals(
               Error.Builder("Field 'name' on object '${CacheKey("User:1").append("departmentInfo").keyToString()}' is stale in the cache")
                   .path(listOf("me", "departmentInfo", "name")).build(),
-              cacheMissResult.data?.me?.departmentInfo?.name?.graphQLErrorOrNull()
+              cacheMissResult.data?.me?.departmentInfo?.name?.graphQLErrorOrNull(),
+          )
+        }
+  }
+
+  @Test
+  fun onErrorNullWithCatchToNull() = runTest(before = { setUp() }, after = { tearDown() }) {
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
+        .storeReceivedDate(true)
+        .build()
+        .use { apolloClient ->
+          val cacheMissResult = apolloClient.query(GetFooQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .throwOnCacheMiss(false)
+              .onError(OnError.NULL)
+              .execute()
+          assertNotNull(cacheMissResult.data)
+          assertNull(cacheMissResult.data!!.foo)
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("Object '${CacheKey.QUERY_ROOT.keyToString()}' has no field named 'foo' in the cache")
+                      .path(listOf("foo"))
+                      .build(),
+              ),
+              cacheMissResult.errors,
+          )
+        }
+  }
+
+  @Test
+  fun onErrorNullWithoutCatchToNull() = runTest(before = { setUp() }, after = { tearDown() }) {
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
+        .storeReceivedDate(true)
+        .build()
+        .use { apolloClient ->
+          apolloExceptionHandler = {}
+          val cacheMissResult = apolloClient.query(GetFoo2Query())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .throwOnCacheMiss(false)
+              .onError(OnError.NULL)
+              .execute()
+          assertNull(cacheMissResult.data)
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("Could not parse cached data")
+                      .build(),
+              ),
+              cacheMissResult.errors,
+          )
+        }
+  }
+
+  @Test
+  fun onErrorHalt() = runTest(before = { setUp() }, after = { tearDown() }) {
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
+        .storeReceivedDate(true)
+        .build()
+        .use { apolloClient ->
+          val cacheMissResult = apolloClient.query(GetFoo2Query())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .throwOnCacheMiss(false)
+              .onError(OnError.HALT)
+              .execute()
+          assertNull(cacheMissResult.data)
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("Object '${CacheKey.QUERY_ROOT.keyToString()}' has no field named 'foo' in the cache")
+                      .path(listOf("foo"))
+                      .build(),
+              ),
+              cacheMissResult.errors,
           )
         }
   }
@@ -887,7 +969,7 @@ val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
-            .build()
+            .build(),
     )
   }
 }

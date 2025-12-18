@@ -26,14 +26,16 @@ import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.MetadataGenerator
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.OnErrorHaltException
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
-import com.apollographql.cache.normalized.api.propagateErrors
+import com.apollographql.cache.normalized.api.processErrors
 import com.apollographql.cache.normalized.api.rootKey
 import com.apollographql.cache.normalized.api.withErrors
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.cacheMissException
+import com.apollographql.cache.normalized.options.OnError
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import kotlinx.coroutines.channels.BufferOverflow
@@ -156,7 +158,12 @@ internal class DefaultCacheManager(
     @Suppress("UNCHECKED_CAST")
     val dataWithNulls: Map<String, ApolloJsonElement>? =
       if (batchReaderData.hasErrors) {
-        propagateErrors(dataWithErrors, operation.rootField(), errors)
+        val onError = OnError.valueOf(cacheHeaders.headerValue(ApolloCacheHeaders.ON_ERROR) ?: OnError.PROPAGATE.name)
+        try {
+          processErrors(dataWithErrors = dataWithErrors, field = operation.rootField(), onError = onError, errors = errors)
+        } catch (_: OnErrorHaltException) {
+          null
+        }
       } else {
         dataWithErrors
       } as Map<String, ApolloJsonElement>?
@@ -203,7 +210,7 @@ internal class DefaultCacheManager(
                 .fromCache(true)
                 .cacheHit(errors.isEmpty())
                 .stale(batchReaderData.cacheHeaders.headerValue(ApolloCacheHeaders.STALE) == "true")
-                .build()
+                .build(),
         )
         .build()
   }
