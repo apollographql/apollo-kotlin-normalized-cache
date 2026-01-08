@@ -13,6 +13,7 @@ apply(from = "gradle/ge.gradle")
 include(
     "normalized-cache",
     "normalized-cache-sqlite",
+    "normalized-cache-disk",
     "normalized-cache-apollo-compiler-plugin",
     "test-utils",
 )
