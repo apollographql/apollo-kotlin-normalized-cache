@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.Buffer
+
+private const val BLOB_CHUNK_SIZE = 1024 * 1024 // 1 MiB
 
 internal class RecordDatabase(
     private val driver: SqlDriver,
@@ -47,19 +50,44 @@ internal class RecordDatabase(
    * @param keys the keys of the records to select, size must be <= [parametersMax]
    */
   suspend fun selectRecords(keys: Collection<String>): List<Record> {
-    return recordQueries.selectRecords(keys).awaitAsList().map { RecordSerializer.deserialize(it.key, it.record) }
+    val rows = recordQueries.selectRecords(keys).awaitAsList()
+    val records = ArrayList<Record>(rows.size)
+    val buffer = Buffer()
+    var lastKey: String? = null
+    for (row in rows) {
+      val key = row.key
+      if (key != lastKey && lastKey != null) {
+        records.add(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+      }
+      buffer.write(row.record)
+      lastKey = key
+    }
+    if (lastKey != null) {
+      records.add(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+    }
+    return records
   }
 
   fun selectAllRecords(pageSize: Long = 100): Flow<Record> {
     return flow {
       var offset = 0L
+      val buffer = Buffer()
+      var lastKey: String? = null
       while (true) {
-        val page = recordQueries.selectAllRecords(limit = pageSize, offset = offset).awaitAsList()
-            .map { RecordSerializer.deserialize(it.key, it.record) }
-        for (record in page) {
-          emit(record)
+        val rowPage = recordQueries.selectAllRecords(limit = pageSize, offset = offset).awaitAsList()
+        for (row in rowPage) {
+          val key = row.key
+          if (key != lastKey && lastKey != null) {
+            emit(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+          }
+          buffer.write(row.record)
+          lastKey = key
         }
-        if (page.size < pageSize) {
+
+        if (rowPage.size < pageSize) {
+          if (lastKey != null) {
+            emit(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+          }
           break
         }
         offset += pageSize
@@ -67,10 +95,34 @@ internal class RecordDatabase(
     }
   }
 
+  /**
+   * Must be called inside a transaction.
+   */
   suspend fun insertOrUpdateRecord(record: Record) {
-    recordQueries.insertOrUpdateRecord(key = record.key.key, record = RecordSerializer.serialize(record), updated_date = currentTimeMillis())
-  }
+    recordQueries.deleteRecords(listOf(record.key.key))
+    val recordBytes = RecordSerializer.serialize(record)
+    val updatedDate = currentTimeMillis()
+    // Fast path for small records
+    if (recordBytes.size <= BLOB_CHUNK_SIZE) {
+      recordQueries.insertOrUpdateRecord(
+          key = record.key.key,
+          chunk_index = 0L,
+          record = recordBytes,
+          updated_date = updatedDate,
+      )
+      return
+    }
 
+    val chunks = recordBytes.asIterable().chunked(BLOB_CHUNK_SIZE)
+    for ((index, chunk) in chunks.withIndex()) {
+      recordQueries.insertOrUpdateRecord(
+          key = record.key.key,
+          chunk_index = index.toLong(),
+          record = chunk.toByteArray(),
+          updated_date = updatedDate,
+      )
+    }
+  }
 
   /**
    * @param keys the keys of the records to delete, size must be <= [parametersMax]

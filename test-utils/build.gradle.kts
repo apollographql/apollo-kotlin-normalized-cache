@@ -18,7 +18,6 @@ kotlin {
         api(libs.kotlinx.coroutines.test)
         api(project(":normalized-cache"))
         api(project(":normalized-cache-sqlite"))
-        api(project(":normalized-cache-disk"))
         implementation(libs.kotlin.test)
       }
     }
