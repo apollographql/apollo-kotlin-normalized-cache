@@ -24,7 +24,7 @@ import kotlin.test.assertEquals
 class BigRecordTest {
   @Test
   fun test() = runBlocking {
-    // Force crash is reading fails
+    // Force crash if reading fails
     apolloExceptionHandler = { throw it }
 
     val cacheManager = CacheManager(
