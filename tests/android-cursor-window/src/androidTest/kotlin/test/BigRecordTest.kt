@@ -11,7 +11,7 @@ import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
-import com.apollographql.cache.normalized.sql.SqlNormalizedCacheFactory
+import com.apollographql.cache.normalized.sql.bundled.SqlNormalizedCacheFactory
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Test
@@ -28,7 +28,7 @@ class BigRecordTest {
     apolloExceptionHandler = { throw it }
 
     val cacheManager = CacheManager(
-        normalizedCacheFactory = SqlNormalizedCacheFactory(context = InstrumentationRegistry.getInstrumentation().targetContext),
+        normalizedCacheFactory = SqlNormalizedCacheFactory(),
         cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
         cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
     ).also { it.clearAll() }

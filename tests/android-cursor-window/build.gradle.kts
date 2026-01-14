@@ -38,7 +38,7 @@ tasks.withType(KotlinJvmCompile::class.java).configureEach {
 dependencies {
   implementation(libs.apollo.runtime)
 
-  implementation("com.apollographql.cache:normalized-cache-sqlite")
+  implementation("com.apollographql.cache:normalized-cache-sqlite-bundled")
 
   androidTestImplementation("androidx.test.ext:junit:1.3.0")
   androidTestImplementation("androidx.test:runner:1.7.0")
