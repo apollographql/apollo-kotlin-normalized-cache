@@ -32,9 +32,9 @@ class SqlNormalizedCache internal constructor(
     }
     return try {
       selectRecords(keys)
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to read the records from the database, it is possibly corrupted - treat this as a cache miss
-      apolloExceptionHandler(Exception("Unable to read records from the database", e))
+      apolloExceptionHandler(Exception("Unable to read records from the database", t))
       emptyList()
     }
   }
@@ -43,9 +43,9 @@ class SqlNormalizedCache internal constructor(
     return try {
       recordDatabase.init()
       recordDatabase.selectAllRecords()
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to clear the records from the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to read records from the database", e))
+      apolloExceptionHandler(Exception("Unable to read records from the database", t))
       emptyFlow()
     }
   }
@@ -54,9 +54,9 @@ class SqlNormalizedCache internal constructor(
     try {
       recordDatabase.init()
       recordDatabase.deleteAllRecords()
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to clear the records from the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to clear records from the database", e))
+      apolloExceptionHandler(Exception("Unable to clear records from the database", t))
     }
   }
 
@@ -70,9 +70,9 @@ class SqlNormalizedCache internal constructor(
       recordDatabase.transaction {
         internalDeleteRecords(cacheKeys.map { it.key }, cascade)
       }
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to delete the records from the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to delete records from the database", e))
+      apolloExceptionHandler(Exception("Unable to delete records from the database", t))
       0
     }
   }
@@ -87,9 +87,9 @@ class SqlNormalizedCache internal constructor(
     }
     return try {
       internalUpdateRecords(records = records, cacheHeaders = cacheHeaders, recordMerger = recordMerger)
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to merge the records in the database, it is possibly corrupted - treat this as a cache miss
-      apolloExceptionHandler(Exception("Unable to merge records into the database", e))
+      apolloExceptionHandler(Exception("Unable to merge records into the database", t))
       emptySet()
     }
   }
@@ -111,9 +111,9 @@ class SqlNormalizedCache internal constructor(
     return try {
       recordDatabase.init()
       recordDatabase.databaseSize()
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to get the size of the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to get the size of the database", e))
+      apolloExceptionHandler(Exception("Unable to get the size of the database", t))
       -1
     }
   }
@@ -209,9 +209,9 @@ class SqlNormalizedCache internal constructor(
       } else {
         size
       }
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
       // Unable to trim the records from the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to trim records from the database", e))
+      apolloExceptionHandler(Exception("Unable to trim records from the database", t))
       return -1
     }
   }

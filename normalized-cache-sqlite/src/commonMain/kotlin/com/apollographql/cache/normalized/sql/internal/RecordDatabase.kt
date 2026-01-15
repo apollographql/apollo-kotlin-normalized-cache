@@ -25,14 +25,14 @@ internal class RecordDatabase(
   suspend fun init() {
     if (isInitialized) return
     mutex.withLock {
-      if (isInitialized) return@withLock
-      if (name != null) bind(name)
+      if (isInitialized) return
       maybeCreateOrMigrateSchema(driver)
       checkSchema(driver)
 
       // Increase the memory cache to 8 MiB
       // https://www.sqlite.org/pragma.html#pragma_cache_size
       recordQueries.setCacheSize()
+      if (name != null) bind(name)
       isInitialized = true
     }
   }
