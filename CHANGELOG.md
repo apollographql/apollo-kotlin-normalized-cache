@@ -2,7 +2,7 @@
 
 PUT_CHANGELOG_HERE
 
-# v1.0.0-beta.2
+# v1.0.0-beta.3
 _2026-01-16_
 
 > Note: this release changes the SQL database schema, which clears all cached data.
@@ -14,6 +14,10 @@ _2026-01-16_
 - Add `loadAllRecords` (#283)
 - Add `onError` (experimental) (#284) 
 - Catch `Throwable` rather than `Exception` in the SQL cache (#287)
+
+# v1.0.0-beta.2
+
+The artifact was published with the wrong version name, do not use.
 
 # v1.0.0-beta.1
 _2025-12-09_
