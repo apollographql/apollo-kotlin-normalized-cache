@@ -1,0 +1,11 @@
+-- Version 3 is the 'record' schema without chunk_index - we need to drop it and recreate it with chunk_index
+DROP TABLE IF EXISTS record;
+
+CREATE TABLE record (
+  key TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  record BLOB NOT NULL,
+  updated_date INTEGER NOT NULL,
+  PRIMARY KEY (key, chunk_index) ON CONFLICT REPLACE
+)
+WITHOUT ROWID;

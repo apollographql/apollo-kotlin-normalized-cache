@@ -1,19 +1,20 @@
 CREATE TABLE record (
   key TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
   record BLOB NOT NULL,
   updated_date INTEGER NOT NULL,
-  PRIMARY KEY (key) ON CONFLICT REPLACE
+  PRIMARY KEY (key, chunk_index) ON CONFLICT REPLACE
 )
 WITHOUT ROWID;
 
 selectRecords:
-SELECT key, record FROM record WHERE key IN ?;
+SELECT key, chunk_index, record FROM record WHERE key IN ? ORDER BY key, chunk_index;
 
 selectAllRecords:
-SELECT key, record FROM record LIMIT :limit OFFSET :offset;
+SELECT key, chunk_index, record FROM record ORDER BY key, chunk_index LIMIT :limit OFFSET :offset;
 
 insertOrUpdateRecord:
-INSERT INTO record (key, record, updated_date) VALUES (?, ?, ?);
+INSERT INTO record (key, chunk_index, record, updated_date) VALUES (?, ?, ?, ?);
 
 deleteRecords:
 DELETE FROM record WHERE key IN ?;
