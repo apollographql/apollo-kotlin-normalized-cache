@@ -2,7 +2,18 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.2
+_2026-01-16_
+
+> Note: this release changes the SQL database schema, which clears all cached data.
+> Therefore when upgrading to this version from the previous beta, cache misses are expected until the cache is repopulated.
+> This was necessary to fix the `SQLiteBlobTooBigException` long standing [issue](https://github.com/apollographql/apollo-kotlin-normalized-cache/issues/121).
+
+- Make records chunked if they are above 1MiB (#286)
 - Add `ReadOnlyNormalizedCache.nextCache` and `ReadOnlyNormalizedCache.size()` (#280)
+- Add `loadAllRecords` (#283)
+- Add `onError` (experimental) (#284) 
+- Catch `Throwable` rather than `Exception` in the SQL cache (#287)
 
 # v1.0.0-beta.1
 _2025-12-09_
