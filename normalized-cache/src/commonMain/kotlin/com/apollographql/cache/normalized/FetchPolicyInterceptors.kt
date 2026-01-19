@@ -14,8 +14,6 @@ import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
 import com.apollographql.cache.normalized.options.noCache
 import com.apollographql.cache.normalized.options.onlyIfCached
-import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -45,7 +43,6 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
                 .fetchFromCache(true)
                 .build(),
         ).single()
-            .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
         emit(
             cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
                 .build(),
@@ -98,7 +95,6 @@ val NetworkFirstInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build(),
       ).single()
-          .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
       emit(cacheResponse)
     }
   }
@@ -120,7 +116,6 @@ val CacheAndNetworkInterceptor = object : ApolloInterceptor {
               .fetchFromCache(true)
               .build(),
       ).single()
-          .errorsAsException(throwOnCacheMiss = request.throwOnCacheMiss, serverErrorsAsCacheMisses = request.serverErrorsAsCacheMisses)
 
       emit(cacheResponse.newBuilder().isLast(false).build())
 
@@ -147,59 +142,6 @@ fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(): ApolloResponse<D
         .data(null)
         .errors(null)
         .build()
-  }
-}
-
-private fun <D : Operation.Data> ApolloResponse<D>.errorsAsException(
-    throwOnCacheMiss: Boolean,
-    serverErrorsAsCacheMisses: Boolean,
-): ApolloResponse<D> {
-  return if (!throwOnCacheMiss && !serverErrorsAsCacheMisses) {
-    this
-  } else {
-    val cacheMissException = if (!throwOnCacheMiss) {
-      null
-    } else {
-      errors.orEmpty().mapNotNull { it.cacheMissException }.reduceOrNull { acc, e ->
-        acc.addSuppressed(e)
-        acc
-      }
-    }
-    val cachedErrorException = if (!serverErrorsAsCacheMisses) {
-      null
-    } else {
-      errors.orEmpty().mapNotNull { if (it.cacheMissException != null) null else ApolloGraphQLException(it) }.reduceOrNull { acc, e ->
-        acc.addSuppressed(e)
-        acc
-      }
-    }
-    when {
-      cacheMissException != null -> {
-        newBuilder()
-            .exception(
-                cacheMissException.apply {
-                  if (cachedErrorException != null) {
-                    addSuppressed(cachedErrorException)
-                  }
-                },
-            )
-            .data(null)
-            .errors(null)
-            .build()
-      }
-
-      cachedErrorException != null -> {
-        newBuilder()
-            .exception(cachedErrorException)
-            .data(null)
-            .errors(null)
-            .build()
-      }
-
-      else -> {
-        this
-      }
-    }
   }
 }
 

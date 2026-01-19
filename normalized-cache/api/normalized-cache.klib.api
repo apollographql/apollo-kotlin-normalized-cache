@@ -637,10 +637,14 @@ final object com.apollographql.cache.normalized.api/ApolloCacheHeaders { // com.
         final fun <get-ON_ERROR>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.ON_ERROR.<get-ON_ERROR>|<get-ON_ERROR>(){}[0]
     final const val RECEIVED_DATE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE|{}RECEIVED_DATE[0]
         final fun <get-RECEIVED_DATE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.RECEIVED_DATE.<get-RECEIVED_DATE>|<get-RECEIVED_DATE>(){}[0]
+    final const val SERVER_ERRORS_AS_CACHE_MISSES // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SERVER_ERRORS_AS_CACHE_MISSES|{}SERVER_ERRORS_AS_CACHE_MISSES[0]
+        final fun <get-SERVER_ERRORS_AS_CACHE_MISSES>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SERVER_ERRORS_AS_CACHE_MISSES.<get-SERVER_ERRORS_AS_CACHE_MISSES>|<get-SERVER_ERRORS_AS_CACHE_MISSES>(){}[0]
     final const val SKIP_MERGE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SKIP_MERGE|{}SKIP_MERGE[0]
         final fun <get-SKIP_MERGE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.SKIP_MERGE.<get-SKIP_MERGE>|<get-SKIP_MERGE>(){}[0]
     final const val STALE // com.apollographql.cache.normalized.api/ApolloCacheHeaders.STALE|{}STALE[0]
         final fun <get-STALE>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.STALE.<get-STALE>|<get-STALE>(){}[0]
+    final const val THROW_ON_CACHE_MISS // com.apollographql.cache.normalized.api/ApolloCacheHeaders.THROW_ON_CACHE_MISS|{}THROW_ON_CACHE_MISS[0]
+        final fun <get-THROW_ON_CACHE_MISS>(): kotlin/String // com.apollographql.cache.normalized.api/ApolloCacheHeaders.THROW_ON_CACHE_MISS.<get-THROW_ON_CACHE_MISS>|<get-THROW_ON_CACHE_MISS>(){}[0]
 }
 
 final object com.apollographql.cache.normalized.api/DefaultCacheKeyGenerator : com.apollographql.cache.normalized.api/CacheKeyGenerator { // com.apollographql.cache.normalized.api/DefaultCacheKeyGenerator|null[0]

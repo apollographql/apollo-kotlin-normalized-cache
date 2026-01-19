@@ -30,6 +30,7 @@ import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.options.OnError
 import com.apollographql.cache.normalized.options.onError
+import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
 import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.testing.append
@@ -969,6 +970,8 @@ val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
+            .throwOnCacheMiss(false)
+            .serverErrorsAsCacheMisses(false)
             .build(),
     )
   }
