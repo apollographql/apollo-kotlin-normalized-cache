@@ -800,6 +800,19 @@ public final class com/apollographql/cache/normalized/memory/MemoryCacheFactory 
 	public fun create ()Lcom/apollographql/cache/normalized/memory/MemoryCache;
 }
 
+public final class com/apollographql/cache/normalized/options/CacheOnError : java/lang/Enum {
+	public static final field HALT Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static final field NULL Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static final field PROPAGATE Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static fun values ()[Lcom/apollographql/cache/normalized/options/CacheOnError;
+}
+
+public final class com/apollographql/cache/normalized/options/CacheOnErrorKt {
+	public static final fun cacheOnError (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/cache/normalized/options/CacheOnError;)Ljava/lang/Object;
+}
+
 public final class com/apollographql/cache/normalized/options/OnError : java/lang/Enum {
 	public static final field HALT Lcom/apollographql/cache/normalized/options/OnError;
 	public static final field NULL Lcom/apollographql/cache/normalized/options/OnError;

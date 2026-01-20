@@ -28,8 +28,8 @@ import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
-import com.apollographql.cache.normalized.options.OnError
-import com.apollographql.cache.normalized.options.onError
+import com.apollographql.cache.normalized.options.CacheOnError
+import com.apollographql.cache.normalized.options.cacheOnError
 import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
 import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import com.apollographql.cache.normalized.storeReceivedDate
@@ -898,7 +898,7 @@ class CachePartialResultTest {
           val cacheMissResult = apolloClient.query(GetFooQuery())
               .fetchPolicy(FetchPolicy.CacheOnly)
               .throwOnCacheMiss(false)
-              .onError(OnError.NULL)
+              .cacheOnError(CacheOnError.NULL)
               .execute()
           assertNotNull(cacheMissResult.data)
           assertNull(cacheMissResult.data!!.foo)
@@ -925,7 +925,7 @@ class CachePartialResultTest {
           val cacheMissResult = apolloClient.query(GetFoo2Query())
               .fetchPolicy(FetchPolicy.CacheOnly)
               .throwOnCacheMiss(false)
-              .onError(OnError.NULL)
+              .cacheOnError(CacheOnError.NULL)
               .execute()
           assertNull(cacheMissResult.data)
           assertErrorsEquals(
@@ -949,7 +949,7 @@ class CachePartialResultTest {
           val cacheMissResult = apolloClient.query(GetFoo2Query())
               .fetchPolicy(FetchPolicy.CacheOnly)
               .throwOnCacheMiss(false)
-              .onError(OnError.HALT)
+              .cacheOnError(CacheOnError.HALT)
               .execute()
           assertNull(cacheMissResult.data)
           assertErrorsEquals(

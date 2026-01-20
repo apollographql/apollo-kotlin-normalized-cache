@@ -26,7 +26,7 @@ import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.optimisticData
-import com.apollographql.cache.normalized.options.onError
+import com.apollographql.cache.normalized.options.cacheOnError
 import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
 import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import com.apollographql.cache.normalized.storeReceivedDate
@@ -209,7 +209,7 @@ internal class ApolloCacheInterceptor(
     val cacheHeaders = request.cacheHeaders
         .newBuilder().apply {
           addHeader(ApolloCacheHeaders.CURRENT_DATE, (request.clock() / 1000).toString())
-          addHeader(ApolloCacheHeaders.ON_ERROR, request.onError.name)
+          addHeader(ApolloCacheHeaders.ON_ERROR, request.cacheOnError.name)
           if (request.memoryCacheOnly) {
             addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true")
           }

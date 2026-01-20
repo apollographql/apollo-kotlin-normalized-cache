@@ -57,7 +57,7 @@ object ApolloCacheHeaders {
   /**
    * Defines how cached errors are surfaced.
    *
-   * See [com.apollographql.cache.normalized.options.OnError].
+   * See [com.apollographql.cache.normalized.options.CacheOnError].
    */
   @ApolloExperimental
   const val ON_ERROR = "on-error"

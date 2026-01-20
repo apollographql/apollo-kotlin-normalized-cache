@@ -10,7 +10,7 @@ import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.MapJsonWriter
-import com.apollographql.cache.normalized.options.OnError
+import com.apollographql.cache.normalized.options.CacheOnError
 
 /**
  * Encapsulates GraphQL data as a Map with inlined errors.
@@ -116,7 +116,7 @@ private fun Map<String, ApolloJsonElement>.withErrorAt(path: List<Any>, error: E
 internal fun processErrors(
     dataWithErrors: Any?,
     field: CompiledField,
-    onError: OnError,
+    onError: CacheOnError,
     errors: MutableList<Error>,
 ): ApolloJsonElement {
   return when (dataWithErrors) {
@@ -134,10 +134,10 @@ internal fun processErrors(
         when (value) {
           is Error -> {
             errors.add(value)
-            if (onError == OnError.HALT) {
+            if (onError == CacheOnError.HALT) {
               throw OnErrorHaltException()
             }
-            if (onError == OnError.PROPAGATE && selection.type is CompiledNotNullType) {
+            if (onError == CacheOnError.PROPAGATE && selection.type is CompiledNotNullType) {
               return null
             }
             null
@@ -145,7 +145,7 @@ internal fun processErrors(
 
           else -> {
             processErrors(value, selection, onError, errors).also {
-              if (onError == OnError.PROPAGATE && it == null && selection.type is CompiledNotNullType) {
+              if (onError == CacheOnError.PROPAGATE && it == null && selection.type is CompiledNotNullType) {
                 return null
               }
             }
@@ -169,10 +169,10 @@ internal fun processErrors(
         when (value) {
           is Error -> {
             errors.add(value)
-            if (onError == OnError.HALT) {
+            if (onError == CacheOnError.HALT) {
               throw OnErrorHaltException()
             }
-            if (onError == OnError.PROPAGATE && elementType is CompiledNotNullType) {
+            if (onError == CacheOnError.PROPAGATE && elementType is CompiledNotNullType) {
               return null
             }
             null
@@ -180,7 +180,7 @@ internal fun processErrors(
 
           else -> {
             processErrors(value, field, onError, errors).also {
-              if (onError == OnError.PROPAGATE && it == null && elementType is CompiledNotNullType) {
+              if (onError == CacheOnError.PROPAGATE && it == null && elementType is CompiledNotNullType) {
                 return null
               }
             }
