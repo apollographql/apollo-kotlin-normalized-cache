@@ -35,12 +35,12 @@ internal class CacheBatchReader(
     private val fieldKeyGenerator: FieldKeyGenerator,
 
     /**
-     * If false, cache misses are returned inside the [DataWithErrors], otherwise, they throw [CacheMissException].
+     * If true, cache misses throw [CacheMissException], otherwise they are returned inside the [DataWithErrors].
      */
     private val throwOnCacheMiss: Boolean,
 
     /**
-     * If false, server errors are returned inside the [DataWithErrors], otherwise, they throw [ApolloGraphQLException].
+     * If true, cached server errors throw [ApolloGraphQLException], otherwise they are returned inside the [DataWithErrors].
      */
     private val serverErrorsAsCacheMisses: Boolean,
 ) {
