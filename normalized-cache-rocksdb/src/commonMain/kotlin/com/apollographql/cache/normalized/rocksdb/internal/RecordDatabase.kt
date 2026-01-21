@@ -30,7 +30,7 @@ internal class RecordDatabase(
     }
   }
 
-  suspend fun selectRecords(keys: Collection<String>): List<Record> {
+  fun selectRecords(keys: Collection<String>): List<Record> {
     return db.multiGetAsList(keys.map { it.encodeToByteArray() }).mapIndexedNotNull { index, value ->
       if (value != null) {
         RecordSerializer.deserialize(keys.elementAt(index), value)
@@ -52,7 +52,7 @@ internal class RecordDatabase(
     }
   }
 
-  suspend fun insertOrUpdateRecords(records: Collection<Record>) {
+  fun insertOrUpdateRecords(records: Collection<Record>) {
     WriteBatch().use { batch ->
       for (record in records) {
         batch.put(record.key.key.encodeToByteArray(), RecordSerializer.serialize(record))
@@ -66,7 +66,7 @@ internal class RecordDatabase(
   /**
    * @param keys the keys of the records to delete, size must be <= [parametersMax]
    */
-  suspend fun deleteRecords(keys: Collection<String>) {
+  fun deleteRecords(keys: Collection<String>) {
     WriteBatch().use { batch ->
       for (key in keys) {
         batch.delete(key.encodeToByteArray())
@@ -77,7 +77,7 @@ internal class RecordDatabase(
     }
   }
 
-  suspend fun deleteAllRecords() {
+  fun deleteAllRecords() {
     // TODO just delete the file and recreate it
     WriteBatch().use { batch ->
       db.newIterator().use { iterator ->
@@ -93,17 +93,17 @@ internal class RecordDatabase(
     }
   }
 
-  suspend fun databaseSize(): Long {
+  fun databaseSize(): Long {
     // TODO
     return -1
   }
 
-  suspend fun count(): Long {
+  fun count(): Long {
     // TODO
     return -1
   }
 
-  suspend fun trimByUpdatedDate(limit: Long) {
+  fun trimByUpdatedDate(limit: Long) {
     // TODO
   }
 
