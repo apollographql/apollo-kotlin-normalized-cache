@@ -2,10 +2,10 @@ CREATE TABLE record (
   key TEXT NOT NULL,
   chunk_index INTEGER NOT NULL,
   record BLOB NOT NULL,
-  updated_date INTEGER NOT NULL,
-  PRIMARY KEY (key, chunk_index) ON CONFLICT REPLACE
-)
-WITHOUT ROWID;
+  updated_date INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX record_pk ON record(key, chunk_index);
 
 selectRecords:
 SELECT key, chunk_index, record FROM record WHERE key IN ? ORDER BY key, chunk_index;
