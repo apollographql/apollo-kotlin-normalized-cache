@@ -123,8 +123,12 @@ class SqlNormalizedCache internal constructor(
       visited: MutableSet<String> = mutableSetOf(),
   ): Set<String> {
     if (keys.isEmpty()) return emptySet()
-    val referencedKeys =
-      recordDatabase.selectRecords(keys - visited).flatMap { it.referencedFields() }.map { it.key }.toSet()
+    val recordsToSelect = keys - visited
+    val referencedKeys = if (recordsToSelect.isEmpty()) {
+      emptySet()
+    } else {
+      recordDatabase.selectRecords(recordsToSelect).flatMap { it.referencedFields() }.map { it.key }.toSet()
+    }
     visited += keys
     return referencedKeys + getReferencedKeysRecursively(referencedKeys, visited)
   }
