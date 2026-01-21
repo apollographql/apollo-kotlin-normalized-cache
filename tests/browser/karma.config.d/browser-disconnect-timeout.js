@@ -1,1 +1,1 @@
-config.set({browserDisconnectTimeout: 12000});
+config.browserDisconnectTimeout = 12000;
