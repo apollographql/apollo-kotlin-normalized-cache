@@ -10,7 +10,7 @@ import com.apollographql.apollo.api.Operation
  * Defines how cached errors are surfaced.
  */
 @ApolloExperimental
-enum class OnError {
+enum class CacheOnError {
   /**
    * Errors are surfaced as `null`.
    */
@@ -27,22 +27,22 @@ enum class OnError {
   HALT,
 }
 
-internal class OnErrorContext(val onError: OnError) : ExecutionContext.Element {
+internal class CacheOnErrorContext(val cacheOnError: CacheOnError) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
 
-  companion object Key : ExecutionContext.Key<OnErrorContext>
+  companion object Key : ExecutionContext.Key<CacheOnErrorContext>
 }
 
-internal val <D : Operation.Data> ApolloRequest<D>.onError
-  get() = executionContext[OnErrorContext]?.onError ?: OnError.PROPAGATE
+internal val <D : Operation.Data> ApolloRequest<D>.cacheOnError
+  get() = executionContext[CacheOnErrorContext]?.cacheOnError ?: CacheOnError.PROPAGATE
 
 /**
  * Controls how cached errors are surfaced.
  *
- * Default: [OnError.PROPAGATE]
+ * Default: [CacheOnError.PROPAGATE]
  */
 @ApolloExperimental
-fun <T> MutableExecutionOptions<T>.onError(onError: OnError) = addExecutionContext(
-    OnErrorContext(onError),
+fun <T> MutableExecutionOptions<T>.cacheOnError(cacheOnError: CacheOnError) = addExecutionContext(
+    CacheOnErrorContext(cacheOnError),
 )

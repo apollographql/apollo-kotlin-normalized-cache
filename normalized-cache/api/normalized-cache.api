@@ -280,8 +280,10 @@ public final class com/apollographql/cache/normalized/api/ApolloCacheHeaders {
 	public static final field MEMORY_CACHE_ONLY Ljava/lang/String;
 	public static final field ON_ERROR Ljava/lang/String;
 	public static final field RECEIVED_DATE Ljava/lang/String;
+	public static final field SERVER_ERRORS_AS_CACHE_MISSES Ljava/lang/String;
 	public static final field SKIP_MERGE Ljava/lang/String;
 	public static final field STALE Ljava/lang/String;
+	public static final field THROW_ON_CACHE_MISS Ljava/lang/String;
 }
 
 public final class com/apollographql/cache/normalized/api/CacheControlCacheResolver : com/apollographql/cache/normalized/api/CacheResolver {
@@ -796,6 +798,19 @@ public final class com/apollographql/cache/normalized/memory/MemoryCacheFactory 
 	public final fun chain (Lcom/apollographql/cache/normalized/api/NormalizedCacheFactory;)Lcom/apollographql/cache/normalized/memory/MemoryCacheFactory;
 	public synthetic fun create ()Lcom/apollographql/cache/normalized/api/NormalizedCache;
 	public fun create ()Lcom/apollographql/cache/normalized/memory/MemoryCache;
+}
+
+public final class com/apollographql/cache/normalized/options/CacheOnError : java/lang/Enum {
+	public static final field HALT Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static final field NULL Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static final field PROPAGATE Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/apollographql/cache/normalized/options/CacheOnError;
+	public static fun values ()[Lcom/apollographql/cache/normalized/options/CacheOnError;
+}
+
+public final class com/apollographql/cache/normalized/options/CacheOnErrorKt {
+	public static final fun cacheOnError (Lcom/apollographql/apollo/api/MutableExecutionOptions;Lcom/apollographql/cache/normalized/options/CacheOnError;)Ljava/lang/Object;
 }
 
 public final class com/apollographql/cache/normalized/options/OnError : java/lang/Enum {

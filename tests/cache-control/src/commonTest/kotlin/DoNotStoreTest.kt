@@ -23,6 +23,8 @@ import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
+import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
+import com.apollographql.cache.normalized.options.throwOnCacheMiss
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.append
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
@@ -253,7 +255,9 @@ private val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
-            .build()
+            .throwOnCacheMiss(false)
+            .serverErrorsAsCacheMisses(false)
+            .build(),
     )
   }
 }

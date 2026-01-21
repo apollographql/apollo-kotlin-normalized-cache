@@ -5,6 +5,7 @@ import com.apollographql.apollo.api.CompiledFragment
 import com.apollographql.apollo.api.CompiledSelection
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
+import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
@@ -32,7 +33,16 @@ internal class CacheBatchReader(
     private val rootSelections: List<CompiledSelection>,
     private val rootField: CompiledField,
     private val fieldKeyGenerator: FieldKeyGenerator,
-    private val returnPartialResponses: Boolean,
+
+    /**
+     * If true, cache misses throw [CacheMissException], otherwise they are returned inside the [DataWithErrors].
+     */
+    private val throwOnCacheMiss: Boolean,
+
+    /**
+     * If true, cached server errors throw [ApolloGraphQLException], otherwise they are returned inside the [DataWithErrors].
+     */
+    private val serverErrorsAsCacheMisses: Boolean,
 ) {
   /**
    * @param key: the key of the record we need to fetch
@@ -93,8 +103,8 @@ internal class CacheBatchReader(
   ): List<CompiledField> {
     val state = CollectState(variables)
     collect(selections, parentType, typename, state)
-    return state.fields.groupBy { (it.responseName) to it.condition }.values.map {
-      it.first().newBuilder().selections(it.flatMap { it.selections }).build()
+    return state.fields.groupBy { (it.responseName) to it.condition }.values.map { fields ->
+      fields.first().newBuilder().selections(fields.flatMap { it.selections }).build()
     }
   }
 
@@ -106,14 +116,21 @@ internal class CacheBatchReader(
             parentType = rootField.type.rawType().name,
             path = emptyList(),
             fieldPath = listOf(rootField),
-        )
+        ),
     )
 
     while (pendingReferences.isNotEmpty()) {
       val records: Map<CacheKey, Record> = cache.loadRecords(pendingReferences.map { it.key }, cacheHeaders)
-          .also {
+          .also { records ->
             if (!hasErrors) {
-              hasErrors = it.any { it.values.any { it.hasErrors() } }
+              val serverError = records.firstNotNullOfOrNull { it.values.firstNotNullOfOrNull { fieldValue -> fieldValue.firstError() } }
+              if (serverError != null) {
+                if (serverErrorsAsCacheMisses) {
+                  throw ApolloGraphQLException(serverError)
+                } else {
+                  hasErrors = true
+                }
+              }
             }
           }
           .associateBy { it.key }
@@ -126,13 +143,13 @@ internal class CacheBatchReader(
             // This happens the very first time we read the cache
             record = Record(pendingReference.key, emptyMap())
           } else {
-            if (returnPartialResponses) {
+            if (throwOnCacheMiss) {
+              throw CacheMissException(pendingReference.key.keyToString())
+            } else {
               data[pendingReference.path] =
                 cacheMissError(CacheMissException(key = pendingReference.key.keyToString(), fieldName = null, stale = false), path = pendingReference.path)
               hasErrors = true
               return@forEach
-            } else {
-              throw CacheMissException(pendingReference.key.keyToString())
             }
           }
         }
@@ -156,15 +173,15 @@ internal class CacheBatchReader(
                     cacheHeaders = cacheHeaders,
                     fieldKeyGenerator = fieldKeyGenerator,
                     path = pendingReference.fieldPath + it,
-                )
+                ),
             ).unwrap()
           } catch (e: CacheMissException) {
             if (e.stale) isStale = true
-            if (returnPartialResponses) {
+            if (throwOnCacheMiss) {
+              throw e
+            } else {
               hasErrors = true
               cacheMissError(e, pendingReference.path + it.responseName)
-            } else {
-              throw e
             }
           }
           value.registerCacheKeys(pendingReference.path + it.responseName, pendingReference.fieldPath + it, it.selections, it.type.rawType().name)
@@ -216,7 +233,7 @@ internal class CacheBatchReader(
                 parentType = parentType,
                 path = path,
                 fieldPath = fieldPath,
-            )
+            ),
         )
       }
 
@@ -246,15 +263,15 @@ internal class CacheBatchReader(
                     cacheHeaders = cacheHeaders,
                     fieldKeyGenerator = fieldKeyGenerator,
                     path = fieldPath + it,
-                )
+                ),
             ).unwrap()
           } catch (e: CacheMissException) {
             if (e.stale) isStale = true
-            if (returnPartialResponses) {
+            if (throwOnCacheMiss) {
+              throw e
+            } else {
               hasErrors = true
               cacheMissError(e, path + it.responseName)
-            } else {
-              throw e
             }
           }
           value.registerCacheKeys(path + it.responseName, fieldPath + it, it.selections, it.type.rawType().name)
@@ -325,18 +342,17 @@ internal class CacheBatchReader(
   }
 
   @Suppress("UNCHECKED_CAST")
-  internal fun Any?.hasErrors(): Boolean {
+  internal fun Any?.firstError(): Error? {
     val queue = ArrayDeque<Any?>()
     queue.add(this)
     while (queue.isNotEmpty()) {
-      val current = queue.removeFirst()
-      when (current) {
-        is Error -> return true
+      when (val current = queue.removeFirst()) {
+        is Error -> return current
         is List<*> -> queue.addAll(current)
         // Embedded fields can be represented as Maps
         is Map<*, *> -> queue.addAll(current.values)
       }
     }
-    return false
+    return null
   }
 }

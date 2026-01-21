@@ -57,8 +57,22 @@ object ApolloCacheHeaders {
   /**
    * Defines how cached errors are surfaced.
    *
-   * See [com.apollographql.cache.normalized.options.OnError].
+   * See [com.apollographql.cache.normalized.options.CacheOnError].
    */
   @ApolloExperimental
   const val ON_ERROR = "on-error"
+
+  /**
+   * When true, missing fields from the cache should result in an exception.
+   *
+   * @see com.apollographql.cache.normalized.options.throwOnCacheMiss
+   */
+  const val THROW_ON_CACHE_MISS = "throw-on-cache-miss"
+
+  /**
+   * When true, GraphQL errors in the cache should be treated as cache misses.
+   *
+   * @see com.apollographql.cache.normalized.options.ServerErrorsAsCacheMisses
+   */
+  const val SERVER_ERRORS_AS_CACHE_MISSES = "server-errors-as-cache-misses"
 }

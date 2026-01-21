@@ -9,6 +9,7 @@ import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.json.ApolloJsonElement
 import com.apollographql.apollo.api.json.jsonReader
 import com.apollographql.apollo.api.variables
+import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.CacheInfo
@@ -35,7 +36,7 @@ import com.apollographql.cache.normalized.api.withErrors
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.cacheMissException
-import com.apollographql.cache.normalized.options.OnError
+import com.apollographql.cache.normalized.options.CacheOnError
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
 import kotlinx.coroutines.channels.BufferOverflow
@@ -140,25 +141,41 @@ internal class DefaultCacheManager(
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
   ): ApolloResponse<D> {
+    val throwOnCacheMiss = cacheHeaders.headerValue(ApolloCacheHeaders.THROW_ON_CACHE_MISS) == "true"
+    val serverErrorsAsCacheMisses = cacheHeaders.headerValue(ApolloCacheHeaders.SERVER_ERRORS_AS_CACHE_MISSES) == "true"
     val variables = operation.variables(customScalarAdapters, true)
-    val batchReaderData = CacheBatchReader(
-        cache = cache,
-        cacheHeaders = cacheHeaders,
-        cacheResolver = cacheResolver,
-        variables = variables,
-        rootKey = operation.rootKey(),
-        rootSelections = operation.rootField().selections,
-        rootField = operation.rootField(),
-        fieldKeyGenerator = fieldKeyGenerator,
-        returnPartialResponses = true,
-    ).collectData()
+    val batchReaderData =
+      try {
+        CacheBatchReader(
+            cache = cache,
+            cacheHeaders = cacheHeaders,
+            cacheResolver = cacheResolver,
+            variables = variables,
+            rootKey = operation.rootKey(),
+            rootSelections = operation.rootField().selections,
+            rootField = operation.rootField(),
+            fieldKeyGenerator = fieldKeyGenerator,
+            throwOnCacheMiss = throwOnCacheMiss,
+            serverErrorsAsCacheMisses = serverErrorsAsCacheMisses,
+        ).collectData()
+      } catch (e: ApolloException) {
+        return ApolloResponse.Builder(operation, uuid4())
+            .exception(e)
+            .cacheInfo(
+                CacheInfo.Builder()
+                    .fromCache(true)
+                    .cacheHit(false)
+                    .build(),
+            )
+            .build()
+      }
     val dataWithErrors: DataWithErrors = batchReaderData.toMap()
     val errors = mutableListOf<Error>()
 
     @Suppress("UNCHECKED_CAST")
     val dataWithNulls: Map<String, ApolloJsonElement>? =
       if (batchReaderData.hasErrors) {
-        val onError = OnError.valueOf(cacheHeaders.headerValue(ApolloCacheHeaders.ON_ERROR) ?: OnError.PROPAGATE.name)
+        val onError = CacheOnError.valueOf(cacheHeaders.headerValue(ApolloCacheHeaders.ON_ERROR) ?: CacheOnError.PROPAGATE.name)
         try {
           processErrors(dataWithErrors = dataWithErrors, field = operation.rootField(), onError = onError, errors = errors)
         } catch (_: OnErrorHaltException) {
@@ -183,13 +200,20 @@ internal class DefaultCacheManager(
         // Could not parse the data from the cache - can happen after a schema breaking change. Treat it as a cache miss.
         apolloExceptionHandler(Exception("Could not parse cached data", e))
         return ApolloResponse.Builder(operation, uuid4())
-            .errors(
-                listOf(
-                    Error.Builder("Could not parse cached data")
-                        .cacheMissException(CacheMissException(e.message ?: "Could not parse cached data"))
-                        .build(),
-                ),
-            )
+            .apply {
+              val cacheMissException = CacheMissException(e.message ?: "Could not parse cached data")
+              if (throwOnCacheMiss) {
+                exception(cacheMissException)
+              } else {
+                errors(
+                    listOf(
+                        Error.Builder("Could not parse cached data")
+                            .cacheMissException(cacheMissException)
+                            .build(),
+                    ),
+                )
+              }
+            }
             .cacheInfo(
                 CacheInfo.Builder()
                     .fromCache(true)
@@ -231,7 +255,8 @@ internal class DefaultCacheManager(
         rootSelections = fragment.rootField().selections,
         rootField = fragment.rootField(),
         fieldKeyGenerator = fieldKeyGenerator,
-        returnPartialResponses = false,
+        throwOnCacheMiss = true,
+        serverErrorsAsCacheMisses = true,
     ).collectData()
     val dataWithErrors = batchReaderData.toMap(withErrors = false)
     val falseVariablesCustomScalarAdapter =
