@@ -23,7 +23,7 @@ internal class RecordDatabase(
     if (isInitialized) return
     mutex.withLock {
       if (isInitialized) return
-
+      checkNotBound(name)
       db = openRocksDB(name)
       bind(name)
       isInitialized = true
@@ -108,6 +108,7 @@ internal class RecordDatabase(
   }
 
   suspend fun close() {
+    if (!isInitialized) return
     db.close()
     release(name)
   }
@@ -116,9 +117,14 @@ internal class RecordDatabase(
     private val mutex = Mutex()
     private val boundNames = mutableSetOf<String>()
 
-    suspend fun bind(name: String) {
+    suspend fun checkNotBound(name: String) {
       mutex.withLock {
         check(!boundNames.contains(name)) { "The file $name is already bound to another RocksDBNormalizedCache. Call RocksDBNormalizedCache.close() to release it." }
+      }
+    }
+
+    suspend fun bind(name: String) {
+      mutex.withLock {
         boundNames.add(name)
       }
     }

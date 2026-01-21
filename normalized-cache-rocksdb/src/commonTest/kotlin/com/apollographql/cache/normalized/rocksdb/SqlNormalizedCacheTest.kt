@@ -257,6 +257,7 @@ class SqlNormalizedCacheTest {
     val normalizedCache = RocksDBNormalizedCacheFactory().create().apply { clearAll() }
     val sizeOfRecord = normalizedCache.sizeOfRecord(record)
     assertEquals(157, sizeOfRecord)
+    normalizedCache.close()
   }
 
   @Test
