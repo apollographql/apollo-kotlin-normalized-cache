@@ -1,0 +1,11 @@
+-- Version 4 is the 'record' schema with 'WITHOUT ROWID' - we need to drop it and recreate it, and add the unique index
+DROP TABLE IF EXISTS record;
+
+CREATE TABLE record (
+  key TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  record BLOB NOT NULL,
+  updated_date INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX record_pk ON record(key, chunk_index);

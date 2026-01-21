@@ -39,12 +39,12 @@ class TrimTest {
     cacheManager.accessCache { it.merge(newRecords, CacheHeaders.NONE, recordMerger = DefaultRecordMerger) }
 
     val sizeBeforeTrim = cacheManager.trim(-1, 0.1f)
-    assertEquals(8515584, sizeBeforeTrim)
+    assertEquals(2572288, sizeBeforeTrim)
 
     // Trim the cache by 10%
-    val sizeAfterTrim = cacheManager.trim(8515584, 0.1f)
+    val sizeAfterTrim = cacheManager.trim(2572288, 0.1f)
 
-    assertEquals(7667712, sizeAfterTrim)
+    assertEquals(2318336, sizeAfterTrim)
     // The oldest key must have been removed
     assertNull(cacheManager.accessCache { it.loadRecord(CacheKey("old"), CacheHeaders.NONE) })
   }
