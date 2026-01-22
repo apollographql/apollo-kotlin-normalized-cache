@@ -20,15 +20,17 @@ internal class RecordDatabase(
     private val driver: SqlDriver,
     private val name: String?,
 ) {
-  private val recordQueries: RecordQueries = SqlRecordDatabase(driver).recordQueries
-
   private val mutex = Mutex()
   private var isInitialized = false
+
+  private lateinit var recordQueries: RecordQueries
 
   suspend fun init() {
     if (isInitialized) return
     mutex.withLock {
       if (isInitialized) return
+      if (name != null) checkNotBound(name)
+      recordQueries = SqlRecordDatabase(driver).recordQueries
       maybeCreateOrMigrateSchema(driver)
       checkSchema(driver)
 
@@ -162,6 +164,8 @@ internal class RecordDatabase(
   }
 
   suspend fun close() {
+    if (!isInitialized) return
+    driver.close()
     if (name != null) release(name)
   }
 
@@ -169,9 +173,13 @@ internal class RecordDatabase(
     private val mutex = Mutex()
     private val boundNames = mutableSetOf<String>()
 
-    suspend fun bind(name: String) {
+    suspend fun checkNotBound(name: String) {
       mutex.withLock {
         check(!boundNames.contains(name)) { "The file $name is already bound to another SqlNormalizedCache. Call SqlNormalizedCache.close() to release it." }
+      }
+    }
+    suspend fun bind(name: String) {
+      mutex.withLock {
         boundNames.add(name)
       }
     }

@@ -292,6 +292,7 @@ class SqlNormalizedCacheTest {
     val normalizedCache = SqlNormalizedCacheFactory().create().apply { clearAll() }
     val sizeOfRecord = normalizedCache.sizeOfRecord(record)
     assertEquals(157, sizeOfRecord)
+    normalizedCache.close()
   }
 
   @Test
