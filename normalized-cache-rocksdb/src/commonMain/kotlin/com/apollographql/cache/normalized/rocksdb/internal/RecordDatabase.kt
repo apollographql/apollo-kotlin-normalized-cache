@@ -5,13 +5,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import maryk.rocksdb.Options
 import maryk.rocksdb.RocksDB
 import maryk.rocksdb.WriteBatch
 import maryk.rocksdb.WriteOptions
+import maryk.rocksdb.destroyRocksDB
 import maryk.rocksdb.openRocksDB
 
 internal class RecordDatabase(
-    private val name: String,
+    private val path: String,
 ) {
   private val mutex = Mutex()
   private var isInitialized = false
@@ -23,9 +25,9 @@ internal class RecordDatabase(
     if (isInitialized) return
     mutex.withLock {
       if (isInitialized) return
-      checkNotBound(name)
-      db = openRocksDB(name)
-      bind(name)
+      checkNotBound(path)
+      db = openRocksDB(path)
+      bind(path)
       isInitialized = true
     }
   }
@@ -78,19 +80,11 @@ internal class RecordDatabase(
   }
 
   fun deleteAllRecords() {
-    // TODO just delete the file and recreate it
-    WriteBatch().use { batch ->
-      db.newIterator().use { iterator ->
-        iterator.seekToFirst()
-        while (iterator.isValid()) {
-          batch.delete(iterator.key())
-          iterator.next()
-        }
-      }
-      WriteOptions().use { writeOptions ->
-        db.write(writeOptions, batch)
-      }
+    db.close()
+    Options().use { options ->
+      destroyRocksDB(path, options)
     }
+    db = openRocksDB(path)
   }
 
   fun databaseSize(): Long {
@@ -110,7 +104,7 @@ internal class RecordDatabase(
   suspend fun close() {
     if (!isInitialized) return
     db.close()
-    release(name)
+    release(path)
   }
 
   companion object {

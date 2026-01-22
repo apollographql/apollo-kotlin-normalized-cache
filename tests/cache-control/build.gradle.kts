@@ -18,6 +18,7 @@ kotlin {
       dependencies {
         implementation(libs.apollo.runtime)
         implementation("com.apollographql.cache:normalized-cache-sqlite")
+        implementation("com.apollographql.cache:normalized-cache-rocksdb")
       }
     }
 

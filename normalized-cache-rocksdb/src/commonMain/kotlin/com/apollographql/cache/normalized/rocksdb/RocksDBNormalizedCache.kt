@@ -26,7 +26,7 @@ class RocksDBNormalizedCache internal constructor(
   }
 
   override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
-    if (cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
+    if (keys.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
       return emptyList()
     }
     return try {
@@ -64,6 +64,9 @@ class RocksDBNormalizedCache internal constructor(
   }
 
   override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+    if (cacheKeys.isEmpty()) {
+      return 0
+    }
     return try {
       recordDatabase.init()
       internalDeleteRecords(cacheKeys.map { it.key }, cascade)
@@ -79,7 +82,7 @@ class RocksDBNormalizedCache internal constructor(
   }
 
   override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
-    if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE) || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
+    if (records.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE) || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
       return emptySet()
     }
     return try {
@@ -115,7 +118,7 @@ class RocksDBNormalizedCache internal constructor(
     }
   }
 
-  private suspend fun getReferencedKeysRecursively(
+  private fun getReferencedKeysRecursively(
       keys: Collection<String>,
       visited: MutableSet<String> = mutableSetOf(),
   ): Set<String> {
@@ -133,7 +136,7 @@ class RocksDBNormalizedCache internal constructor(
   /**
    * Assumes an enclosing transaction
    */
-  private suspend fun internalDeleteRecords(keys: Collection<String>, cascade: Boolean): Int {
+  private fun internalDeleteRecords(keys: Collection<String>, cascade: Boolean): Int {
     val referencedKeys = if (cascade) {
       getReferencedKeysRecursively(keys)
     } else {

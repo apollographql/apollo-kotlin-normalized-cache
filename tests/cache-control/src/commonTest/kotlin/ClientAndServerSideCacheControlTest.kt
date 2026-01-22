@@ -21,6 +21,7 @@ import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
+import com.apollographql.cache.normalized.rocksdb.RocksDBNormalizedCacheFactory
 import com.apollographql.cache.normalized.storeExpirationDate
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
@@ -32,6 +33,8 @@ import kotlinx.coroutines.flow.flow
 import programmatic.GetUserEmailQuery
 import programmatic.GetUserNameQuery
 import programmatic.GetUserQuery
+import kotlin.random.Random
+import kotlin.random.nextULong
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -50,8 +53,18 @@ class ClientAndServerSideCacheControlTest {
   }
 
   @Test
-  fun cacheMissesChained() {
+  fun cacheMissesChainedSql() {
     cacheMisses(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  }
+
+  @Test
+  fun cacheMissesRocksDB() {
+    cacheMisses(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}"))
+  }
+
+  @Test
+  fun cacheMissesChainedRocksDB() {
+    cacheMisses(MemoryCacheFactory().chain(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}")))
   }
 
   private fun cacheMisses(normalizedCacheFactory: NormalizedCacheFactory) = runTest {
@@ -131,8 +144,18 @@ class ClientAndServerSideCacheControlTest {
   }
 
   @Test
-  fun isStaleChained() {
+  fun isStaleChainedSql() {
     isStale(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  }
+
+  @Test
+  fun isStaleRocksDB() {
+    isStale(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}"))
+  }
+
+  @Test
+  fun isStaleChainedRocksDB() {
+    isStale(MemoryCacheFactory().chain(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}")))
   }
 
   private fun isStale(normalizedCacheFactory: NormalizedCacheFactory) = runTest {
@@ -213,8 +236,18 @@ class ClientAndServerSideCacheControlTest {
   }
 
   @Test
-  fun queryNetworkIfStaleChained() {
+  fun queryNetworkIfStaleChainedSql() {
     queryNetworkIfStale(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  }
+
+  @Test
+  fun queryNetworkIfStaleRocksDB() {
+    queryNetworkIfStale(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}"))
+  }
+
+  @Test
+  fun queryNetworkIfStaleChainedRocksDB() {
+    queryNetworkIfStale(MemoryCacheFactory().chain(RocksDBNormalizedCacheFactory("apollo-${Random.nextULong()}")))
   }
 
   private fun queryNetworkIfStale(normalizedCacheFactory: NormalizedCacheFactory) = runTest {
