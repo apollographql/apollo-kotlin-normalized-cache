@@ -2,6 +2,18 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.4
+_2026-01-23_
+
+> Note: this release changes the SQL database schema, which clears all cached data.
+> Therefore when upgrading to this version from the previous beta, cache misses are expected until the cache is repopulated.
+> More info about this change in #289.
+
+- Do not call `processErrors` if `throwOnCacheMiss` and `serverErrorsAsCacheMisses` are true (#288)
+- Remove WITHOUT ROWID (#289)
+- Fix init/close (#291)
+- Bypass empty operations (#292)
+
 # v1.0.0-beta.3
 _2026-01-16_
 
