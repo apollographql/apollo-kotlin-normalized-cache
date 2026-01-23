@@ -49,14 +49,19 @@ class MemoryCache(
     }
   }
 
-  override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> = withLock {
-    val recordsByKey: Map<CacheKey, Record?> = keys.associateWith { key -> lruCache[key] }
-    val missingKeys = recordsByKey.filterValues { it == null }.keys
-    val nextCachedRecords = nextCache?.loadRecords(missingKeys, cacheHeaders).orEmpty()
-    for (record in nextCachedRecords) {
-      lruCache[record.key] = record
+  override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
+    if (keys.isEmpty()) {
+      return emptyList()
     }
-    recordsByKey.values.filterNotNull() + nextCachedRecords
+    return withLock {
+      val recordsByKey: Map<CacheKey, Record?> = keys.associateWith { key -> lruCache[key] }
+      val missingKeys = recordsByKey.filterValues { it == null }.keys
+      val nextCachedRecords = nextCache?.loadRecords(missingKeys, cacheHeaders).orEmpty()
+      for (record in nextCachedRecords) {
+        lruCache[record.key] = record
+      }
+      recordsByKey.values.filterNotNull() + nextCachedRecords
+    }
   }
 
   override suspend fun loadAllRecords(): Flow<Record> {
@@ -75,6 +80,9 @@ class MemoryCache(
   }
 
   override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
+    if (cacheKeys.isEmpty()) {
+      return 0
+    }
     return withLock {
       val total = internalRemove(cacheKeys, cascade)
       nextCache?.remove(cacheKeys, cascade)
@@ -105,7 +113,7 @@ class MemoryCache(
   }
 
   override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
-    if (cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
+    if (records.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
       return emptySet()
     }
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)
