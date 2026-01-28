@@ -165,6 +165,7 @@ internal class DefaultCacheManager(
                 CacheInfo.Builder()
                     .fromCache(true)
                     .cacheHit(false)
+                    .stale(e is CacheMissException && e.stale)
                     .build(),
             )
             .build()
