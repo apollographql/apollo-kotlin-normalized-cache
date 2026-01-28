@@ -34,6 +34,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
+
 class StaleTest {
   @Test
   fun staleErrorThenNetworkError() = runTest {
@@ -65,7 +66,7 @@ class StaleTest {
         ),
         cacheHeaders = receivedDate(currentTimeSeconds() - 15.days.inWholeSeconds),
     )
-    mockServer.enqueue(MockResponse.Builder().statusCode(500).build())
+    mockServer.enqueue(MockResponse.Builder().statusCode(500).body("error").build())
 
     val response: Flow<ApolloResponse<GetUserNameQuery.Data>> = apolloClient
         .query(GetUserNameQuery())
