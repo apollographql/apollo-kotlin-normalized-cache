@@ -2,6 +2,11 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.5
+_2026-01-29_
+
+- [Fix] Surface staleness in CacheInfo when throwOnCacheMiss is true (#294)
+
 # v1.0.0-beta.4
 _2026-01-23_
 
