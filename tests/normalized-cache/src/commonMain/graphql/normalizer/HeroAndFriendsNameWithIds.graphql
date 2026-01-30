@@ -8,3 +8,15 @@ query HeroAndFriendsNamesWithIDs($episode: Episode) {
     }
   }
 }
+
+query HeroAndFriendsNamesWithIDsAndPoint($episode: Episode) {
+  hero(episode: $episode) {
+    id
+    name
+    friends {
+      id
+      name
+    }
+  }
+  point
+}

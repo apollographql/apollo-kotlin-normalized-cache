@@ -70,6 +70,8 @@ apollo {
     sealedClassesForEnumsMatching.set(listOf("Episode"))
     generateOptionalOperationVariables.set(false)
     mapScalar("Color", "kotlin.String")
+    // Adapter registered at runtime
+    mapScalar("Point", "test.Point")
 
     @OptIn(ApolloExperimental::class)
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {

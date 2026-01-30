@@ -24,6 +24,7 @@ import com.apollographql.cache.normalized.removeOperation
 import com.apollographql.cache.normalized.testing.runTest
 import normalizer.CharacterNameByIdQuery
 import normalizer.ColorQuery
+import normalizer.HeroAndFriendsNamesWithIDsAndPointQuery
 import normalizer.HeroAndFriendsNamesWithIDsQuery
 import normalizer.HeroAndFriendsWithFragmentsQuery
 import normalizer.fragment.HeroWithFriendsFragment
@@ -47,7 +48,8 @@ class StoreTest {
   private fun setUp() {
     cacheManager =
       CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(keyScope = CacheKey.Scope.SERVICE), cacheResolver = IdCacheResolver(keyScope = CacheKey.Scope.SERVICE))
-    apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager).build()
+    apolloClient = ApolloClient.Builder().networkTransport(QueueTestNetworkTransport()).cacheManager(cacheManager)
+        .addCustomScalarAdapter(normalizer.type.Point.type, PointAdapter).build()
   }
 
   @Test
@@ -101,18 +103,18 @@ class StoreTest {
 
   @Test
   fun removeQueryFromStore() = runTest(before = { setUp() }) {
-    // Setup the cache with ColorQuery and HeroAndFriendsNamesWithIDsQuery
+    // Setup the cache with ColorQuery and HeroAndFriendsNamesWithIDsAndPointQuery
     val colorQuery = ColorQuery()
     apolloClient.enqueueTestResponse(colorQuery, ColorQuery.Data(color = "red"))
     apolloClient.query(colorQuery).fetchPolicy(FetchPolicy.NetworkOnly).execute()
     storeAllFriends()
 
-    // Remove fields from HeroAndFriendsNamesWithIDsQuery
-    val operation = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
+    // Remove fields from HeroAndFriendsNamesWithIDsAndPointQuery
+    val operation = HeroAndFriendsNamesWithIDsAndPointQuery(Episode.NEWHOPE)
     val operationData = apolloClient.apolloStore.readOperation(operation).data!!
     apolloClient.apolloStore.removeOperation(operation, operationData)
 
-    // Fields from HeroAndFriendsNamesWithIDsQuery should be removed
+    // Fields from HeroAndFriendsNamesWithIDsAndPointQuery should be removed
     assertFriendIsNotCached("1000")
     assertFriendIsNotCached("1002")
     assertFriendIsNotCached("1003")
@@ -144,13 +146,13 @@ class StoreTest {
                             humanWithIdFragment = HumanWithIdFragment(
                                 __typename = "Human",
                                 id = "1000",
-                                name = "Luke Skywalker"
-                            )
+                                name = "Luke Skywalker",
+                            ),
                         ),
-                    )
-                )
-            )
-        )
+                    ),
+                ),
+            ),
+        ),
     )
     apolloClient.query(heroAndFriendsWithFragmentsQuery).fetchPolicy(FetchPolicy.NetworkOnly).execute()
 
@@ -218,31 +220,37 @@ class StoreTest {
   }
 
   private suspend fun storeAllFriends() {
-    val query = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
-    apolloClient.enqueueTestResponse(query, HeroAndFriendsNamesWithIDsQuery.Data(
-        HeroAndFriendsNamesWithIDsQuery.Hero(
-            "Droid",
-            "2001",
-            "R2-D2",
-            listOf(
-                HeroAndFriendsNamesWithIDsQuery.Friend(
-                    "Human",
-                    "1000",
-                    "Luke Skywalker"
+    val query = HeroAndFriendsNamesWithIDsAndPointQuery(Episode.NEWHOPE)
+    apolloClient.enqueueTestResponse(
+        query,
+        HeroAndFriendsNamesWithIDsAndPointQuery.Data(
+            HeroAndFriendsNamesWithIDsAndPointQuery.Hero(
+                "Droid",
+                "2001",
+                "R2-D2",
+                listOf(
+                    HeroAndFriendsNamesWithIDsAndPointQuery.Friend(
+                        "Human",
+                        "1000",
+                        "Luke Skywalker",
+                    ),
+                    HeroAndFriendsNamesWithIDsAndPointQuery.Friend(
+                        "Human",
+                        "1002",
+                        "Han Solo",
+                    ),
+                    HeroAndFriendsNamesWithIDsAndPointQuery.Friend(
+                        "Human",
+                        "1003",
+                        "Leia Organa",
+                    ),
                 ),
-                HeroAndFriendsNamesWithIDsQuery.Friend(
-                    "Human",
-                    "1002",
-                    "Han Solo"
-                ),
-                HeroAndFriendsNamesWithIDsQuery.Friend(
-                    "Human",
-                    "1003",
-                    "Leia Organa"
-                ),
-            )
-        )
-    )
+            ),
+            Point(
+                1,
+                2,
+            ),
+        ),
     )
     val response = apolloClient.query(query)
         .fetchPolicy(FetchPolicy.NetworkOnly).execute()
@@ -268,7 +276,7 @@ class StoreTest {
         apolloClientToUse.query(CharacterNameByIdQuery(id))
             .fetchPolicy(FetchPolicy.CacheOnly)
             .execute()
-            .exception
+            .exception,
     )
   }
 
@@ -277,7 +285,7 @@ class StoreTest {
         apolloClient.query(HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE))
             .fetchPolicy(FetchPolicy.CacheOnly)
             .execute()
-            .exception
+            .exception,
     )
   }
 

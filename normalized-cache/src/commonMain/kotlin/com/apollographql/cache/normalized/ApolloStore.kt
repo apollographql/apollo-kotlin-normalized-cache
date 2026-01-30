@@ -437,7 +437,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     cacheHeaders: CacheHeaders,
     publish: Boolean,
 ): Set<String> {
-  val dataWithErrors = data.withErrors(executable, null)
+  val dataWithErrors = data.withErrors(executable = executable, errors = null, customScalarAdapters = customScalarAdapters)
   val normalizationRecords = normalize(
       executable = executable,
       dataWithErrors = dataWithErrors,

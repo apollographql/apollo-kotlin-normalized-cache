@@ -26,6 +26,8 @@ type Query {
   instant: Instant!
 
   color: Color!
+
+  point: Point!
 }
 
 """
@@ -346,3 +348,5 @@ schema {
 scalar Json
 
 scalar Color
+
+scalar Point
