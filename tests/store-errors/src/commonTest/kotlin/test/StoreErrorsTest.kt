@@ -5,6 +5,7 @@ import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Operation
+import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
 import com.apollographql.cache.normalized.CacheManager
@@ -33,6 +34,7 @@ import test.cache.Cache
 import test.fragment.UserFields
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class StoreErrorsTest {
@@ -93,7 +95,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -110,16 +112,16 @@ class StoreErrorsTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = null
-                  )
+                      nickName = null,
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(MeWithNickNameQuery())
@@ -127,11 +129,11 @@ class StoreErrorsTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -182,7 +184,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -210,15 +212,15 @@ class StoreErrorsTest {
                           email = "jdoe@example.com",
                       ),
                       null,
-                  )
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("User `3` not found").path(listOf("users", 2)).build()
+                  Error.Builder("User `3` not found").path(listOf("users", 2)).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(UsersQuery(listOf("1", "2", "3")))
@@ -230,7 +232,7 @@ class StoreErrorsTest {
           )
           assertErrorsEquals(
               networkResult.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -290,7 +292,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -315,38 +317,38 @@ class StoreErrorsTest {
                                   __typename = "User",
                                   id = "3",
                                   firstName = "Amanda",
-                                  lastName = "Brown"
+                                  lastName = "Brown",
                               ),
                               users = listOf(
                                   MeWithBestFriendQuery.User(
                                       __typename = "User",
                                       id = "4",
                                       firstName = "Alice",
-                                      lastName = "White"
-                                  )
-                              )
-                          )
-                      )
-                  )
+                                      lastName = "White",
+                                  ),
+                              ),
+                          ),
+                      ),
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("Cannot find best friend").path(listOf("me", "bestFriend")).build()
+                  Error.Builder("Cannot find best friend").path(listOf("me", "bestFriend")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
           val cacheResult = apolloClient.query(MeWithBestFriendQuery())
               .fetchPolicyInterceptor(PartialCacheOnlyInterceptor)
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -387,7 +389,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -404,16 +406,16 @@ class StoreErrorsTest {
                       __typename = "Project",
                       id = "44",
                       name = "Atlantis",
-                      description = "The lost city of water"
-                  )
+                      description = "The lost city of water",
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("Project `42` not found").path(listOf("project")).build()
+                  Error.Builder("Project `42` not found").path(listOf("project")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(DefaultProjectQuery())
@@ -421,11 +423,11 @@ class StoreErrorsTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               networkResult.errors,
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -481,7 +483,7 @@ class StoreErrorsTest {
             }
           ]
         }
-        """
+        """,
     )
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
@@ -510,29 +512,29 @@ class StoreErrorsTest {
                           __typename = "User",
                           lastName = "Smith",
                           onUser = WithFragmentsQuery.OnUser1(
-                              nickName0 = "JS"
+                              nickName0 = "JS",
                           ),
                       ),
                       userFields = UserFields(
                           email0 = "jdoe@example.com",
                           category = Category(
                               code = 1,
-                              name = "First"
+                              name = "First",
                           ),
                           id = "1",
                           __typename = "User",
-                          bestFriend0 = null
+                          bestFriend0 = null,
                       ),
-                  )
+                  ),
               ),
-              networkResult.data
+              networkResult.data,
           )
 
           assertErrorsEquals(
               listOf(
-                  Error.Builder("Cannot find best friend").path(listOf("me", "bestFriend0")).build()
+                  Error.Builder("Cannot find best friend").path(listOf("me", "bestFriend0")).build(),
               ),
-              networkResult.errors
+              networkResult.errors,
           )
 
           val cacheResult = apolloClient.query(WithFragmentsQuery())
@@ -540,7 +542,7 @@ class StoreErrorsTest {
               .execute()
           assertEquals(
               networkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
         }
   }
@@ -576,7 +578,7 @@ class StoreErrorsTest {
               }
             }
           }
-          """
+          """,
     )
     mockServer.enqueueString(
         // language=JSON
@@ -598,7 +600,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
     mockServer.enqueueString(
         // language=JSON
@@ -620,7 +622,7 @@ class StoreErrorsTest {
               }
             ]
           }
-          """
+          """,
     )
 
 
@@ -639,10 +641,10 @@ class StoreErrorsTest {
                       id = "1",
                       firstName = "John",
                       lastName = "Smith",
-                      nickName = "JS"
-                  )
+                      nickName = "JS",
+                  ),
               ),
-              noErrorNetworkResult.data
+              noErrorNetworkResult.data,
           )
           assertNull(noErrorNetworkResult.errors)
 
@@ -651,7 +653,7 @@ class StoreErrorsTest {
               .execute()
           assertEquals(
               noErrorNetworkResult.data,
-              cacheResult.data
+              cacheResult.data,
           )
           assertNull(cacheResult.errors)
 
@@ -668,10 +670,10 @@ class StoreErrorsTest {
                       id = "1",
                       firstName = "Johnny",
                       lastName = "Smith",
-                      nickName = "JS"
-                  )
+                      nickName = "JS",
+                  ),
               ),
-              cacheResult.data
+              cacheResult.data,
           )
           assertNull(cacheResult.errors)
 
@@ -689,16 +691,16 @@ class StoreErrorsTest {
                       id = "1",
                       firstName = "Johnny Boy",
                       lastName = "Smith",
-                      nickName = null
-                  )
+                      nickName = null,
+                  ),
               ),
-              cacheResult.data
+              cacheResult.data,
           )
           assertErrorsEquals(
               listOf(
-                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+                  Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
               ),
-              cacheResult.errors
+              cacheResult.errors,
           )
         }
   }
@@ -712,8 +714,8 @@ class StoreErrorsTest {
             id = "1",
             firstName = "John",
             lastName = "Smith",
-            nickName = null
-        )
+            nickName = null,
+        ),
     ).withErrors(
         query,
         listOf(Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()),
@@ -726,8 +728,10 @@ class StoreErrorsTest {
     assertEquals("1", normalized[CacheKey("User:1")]!!["id"])
     assertEquals("John", normalized[CacheKey("User:1")]!!["firstName"])
     assertEquals("Smith", normalized[CacheKey("User:1")]!!["lastName"])
-    assertErrorsEquals(Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName"))
-        .build(), normalized[CacheKey("User:1")]!!["nickName"] as Error
+    assertErrorsEquals(
+        Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName"))
+            .build(),
+        normalized[CacheKey("User:1")]!!["nickName"] as Error,
     )
   }
 
@@ -755,11 +759,11 @@ class StoreErrorsTest {
                 id = "1",
                 firstName = "John",
                 lastName = "Smith",
-                nickName = null
-            )
+                nickName = null,
+            ),
         ),
         errors = listOf(
-            Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+            Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
         ),
     )
     val responseFromCache = cacheManager.readOperation(MeWithNickNameQuery())
@@ -770,17 +774,114 @@ class StoreErrorsTest {
                 id = "1",
                 firstName = "John",
                 lastName = "Smith",
-                nickName = null
-            )
+                nickName = null,
+            ),
         ),
         responseFromCache.data,
     )
     assertErrorsEquals(
         listOf(
-            Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build()
+            Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
         ),
-        responseFromCache.errors
+        responseFromCache.errors,
     )
+  }
+
+  @Test
+  fun errorInRootRecordMemory() = runTest(before = { setUp() }, after = { tearDown() }) {
+    errorInRootRecord(memoryCacheManager)
+  }
+
+  @Test
+  fun errorInRootRecordSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    errorInRootRecord(sqlCacheManager)
+  }
+
+  @Test
+  fun errorInRootRecordMemoryThenSql() = runTest(before = { setUp() }, after = { tearDown() }) {
+    errorInRootRecord(memoryThenSqlCacheManager)
+  }
+
+  private suspend fun errorInRootRecord(cacheManager: CacheManager) {
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cacheManager(cacheManager)
+        .build()
+        .use { apolloClient ->
+          mockServer.enqueueString(
+              // language=JSON
+              """
+              {
+                "data": {
+                  "x": null
+                },
+                "errors": [
+                  {
+                    "message": "'someInt' can't be resolved",
+                    "path": ["x"]
+                  }
+                ]
+              }
+              """.trimIndent(),
+          )
+          val someIntNetworkResult = apolloClient.query(SomeIntQuery())
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertNull(someIntNetworkResult.exception)
+          assertEquals(SomeIntQuery.Data(null), someIntNetworkResult.data)
+          assertErrorsEquals(
+              listOf(
+                  Error.Builder("'someInt' can't be resolved").path(listOf("x")).build(),
+              ),
+              someIntNetworkResult.errors,
+          )
+
+          val someIntCacheResult = apolloClient.query(SomeIntQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertNotNull(someIntCacheResult.exception)
+          assertErrorsEquals(someIntNetworkResult.errors!!.first(), (someIntCacheResult.exception as ApolloGraphQLException).error)
+          assertNull(someIntCacheResult.data)
+
+          mockServer.enqueueString(
+              // language=JSON
+              """
+              {
+                "data": {
+                  "p": {
+                    "__typename": "Project",
+                    "id": "42",
+                    "name": "Apollo"
+                  }
+                }
+              }
+              """.trimIndent(),
+          )
+          val meNetworkResult = apolloClient.query(ProjectQuery())
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+          assertNull(meNetworkResult.exception)
+          assertEquals(
+              ProjectQuery.Data(
+                  ProjectQuery.P(
+                      __typename = "Project",
+                      id = "42",
+                      name = "Apollo",
+                  ),
+              ),
+              meNetworkResult.data,
+          )
+          assertNull(meNetworkResult.errors)
+
+          val meCacheResult = apolloClient.query(ProjectQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertNull(meCacheResult.exception)
+          assertEquals(
+              meNetworkResult.data,
+              meCacheResult.data,
+          )
+        }
   }
 }
 

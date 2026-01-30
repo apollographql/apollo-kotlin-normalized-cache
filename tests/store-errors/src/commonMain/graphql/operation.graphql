@@ -93,3 +93,14 @@ fragment UserFields on User {
     lastName
   }
 }
+query SomeIntQuery {
+  x: someInt(someParam: "test")
+}
+
+query ProjectQuery {
+  p: project(id: "42") {
+    id
+    name
+  }
+}
+

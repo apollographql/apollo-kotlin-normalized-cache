@@ -121,18 +121,6 @@ internal class CacheBatchReader(
 
     while (pendingReferences.isNotEmpty()) {
       val records: Map<CacheKey, Record> = cache.loadRecords(pendingReferences.map { it.key }, cacheHeaders)
-          .also { records ->
-            if (!hasErrors) {
-              val serverError = records.firstNotNullOfOrNull { it.values.firstNotNullOfOrNull { fieldValue -> fieldValue.firstError() } }
-              if (serverError != null) {
-                if (serverErrorsAsCacheMisses) {
-                  throw ApolloGraphQLException(serverError)
-                } else {
-                  hasErrors = true
-                }
-              }
-            }
-          }
           .associateBy { it.key }
       val copy = pendingReferences.toList()
       pendingReferences.clear()
@@ -182,6 +170,17 @@ internal class CacheBatchReader(
             } else {
               hasErrors = true
               cacheMissError(e, pendingReference.path + it.responseName)
+            }
+          }.also { value ->
+            if (!hasErrors) {
+              val serverError = value.firstError()
+              if (serverError != null) {
+                if (serverErrorsAsCacheMisses) {
+                  throw ApolloGraphQLException(serverError)
+                } else {
+                  hasErrors = true
+                }
+              }
             }
           }
           value.registerCacheKeys(pendingReference.path + it.responseName, pendingReference.fieldPath + it, it.selections, it.type.rawType().name)

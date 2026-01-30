@@ -3,7 +3,7 @@ type Query {
   users(ids: [ID!]!): [User]!
   project(id: ID! = "1"): Project
   user(category: Category!): User!
-  someInt: Int
+  someInt(someParam: String!): Int
   someInt2: Int
 }
 
