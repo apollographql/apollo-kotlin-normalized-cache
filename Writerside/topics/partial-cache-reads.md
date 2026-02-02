@@ -1,55 +1,68 @@
 # Partial cache reads
 
-The cache supports partial cache reads, in a similar way to how GraphQL supports partial responses.
-This means that if some fields are missing from the cache, the cache returns the available data along with any errors for the missing fields.
+The cache supports **partial cache reads**, in a similar way to how GraphQL supports partial responses.
 
-## With `ApolloStore`
+This means that if some fields are missing from the cache or represent an error from the server, the cache can return the **available data** along with the errors.
 
-The [`ApolloStore.readOperation()`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-apollo-store/read-operation.html)
-API returns an `ApolloResponse<D>` that can contain partial `data` and non-empty `errors` for any missing (or stale) fields in the cache.
+This is **opt-in**: by default, executing operations or calling [`ApolloStore.readOperation()`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-apollo-store/read-operation.html) returns responses that expose cache misses and cached server errors with a **non-null `exception`** and a **null `data`**.
+
+To enable partial cache reads:
+- For cache misses, [set](options.md) [`throwOnCacheMiss(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
+- For cached server errors, [set](options.md) [`serverErrorsAsCacheMisses(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
+
+Doing this, the returned responses can contain **partial `data`** and **non-empty `errors`** for any missing (or stale) fields in the cache and cached server errors.
 
 > `ApolloResponse.cacheInfo.isCacheHit` will be false when any field is missing.
 > `ApolloResponse.cacheInfo.isStale` will be true when any field is stale.
 
-If a cache miss exception is preferred, you can use the `ApolloResponse<D>.errorsAsException()` extension function that returns 
-a response with an exception if there are any errors.
+## Server errors stored in the cache
 
-## With `ApolloClient`
+Errors from the server are stored in the cache, and can be returned when reading it, as seen above.
 
-When executing operations, the built-in fetch policies ([`FetchPolicy.CacheFirst`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-fetch-policy/-cache-first/index.html?query=CacheFirst),
-[`FetchPolicy.CacheOnly`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-fetch-policy/-cache-only/index.html),
-etc.) will treat cache misses as exceptions (partial results are disabled) by default.
+By default, errors don't replace existing data in the cache. You can change this behavior with [`errorsReplaceCachedValues(true)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/errors-replace-cached-values.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.errorsReplaceCachedValues(errorsReplaceCachedValues:%20Boolean):%20T).
 
-To benefit from partial cache reads, [you can set](options.md) [`throwOnCacheMiss(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html),
-or implement your own fetch policy interceptor as shown in this example:
+## Strategies
+
+Using the above options and (optionally) a custom fetch policy, you can implement different strategies for your application.
+
+***👉 Go to cache first, don't emit partial data, and go to the network if there are cache misses or cached server errors***
+
+That is the default behavior.
+
+***👉 Go to cache first, emit partial data with cached server errors / don't emit partial data when there are cache misses, and go to the network if there are cache misses***
+
+Use `serverErrorsAsCacheMisses(false)`.
+
+***👉 Go to cache first, emit partial data with cache miss errors and cached server errors, and go to the network if there are any errors***
+
+Use `serverErrorsAsCacheMisses(false)`, `throwOnCacheMiss(false)`, and a custom fetch policy interceptor like so:
 
 ```kotlin
-object PartialCacheOnlyInterceptor : ApolloInterceptor {
-  override fun <D : Operation.Data> intercept(
-      request: ApolloRequest<D>, 
-      chain: ApolloInterceptorChain
-  ): Flow<ApolloResponse<D>> {
-    return chain.proceed(
-        request = request
-            .newBuilder()
-            // Controls where to read the data from (cache or network)
-            .fetchFromCache(true)
-            .build()
-    )
-  }
-}
-
-// ...
-
 val apolloClient = ApolloClient.Builder()
     /*...*/
-    .serverUrl("https://example.com/graphql")
-    .fetchPolicyInterceptor(PartialCacheOnlyInterceptor)
+    .serverErrorsAsCacheMisses(false)
+    .throwOnCacheMiss(false)
+    .fetchPolicyInterceptor(MyCacheInterceptor)
     .build()
 ```
 
-## Error stored in the cache
-
-Errors from the server are stored in the cache, and will be returned when reading it.
-
-By default, errors don't replace existing data in the cache. You can change this behavior with [`errorsReplaceCachedValues(true)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/errors-replace-cached-values.html?query=fun%20%3CT%3E%20MutableExecutionOptions%3CT%3E.errorsReplaceCachedValues(errorsReplaceCachedValues:%20Boolean):%20T).
+```kotlin
+object MyCacheInterceptor : ApolloInterceptor {
+  override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
+    return flow {
+      val cacheResponse = chain.proceed(
+          request = request
+              .newBuilder()
+              // Controls where to read the data from (cache or network)
+              .fetchFromCache(true)
+              .build(),
+      ).single()
+      val fetchFromNetwork = cacheResponse.exception != null || cacheResponse.errors != null && cacheResponse.errors!!.isNotEmpty()
+      emit(cacheResponse.newBuilder().isLast(!fetchFromNetwork).build())
+      if (fetchFromNetwork) {
+        emitAll(chain.proceed(request = request))
+      }
+    }
+  }
+}
+```
