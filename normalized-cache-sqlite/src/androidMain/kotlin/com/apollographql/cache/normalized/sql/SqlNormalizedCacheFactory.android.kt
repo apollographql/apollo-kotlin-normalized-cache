@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.apollographql.apollo.exception.apolloExceptionHandler
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 
@@ -57,6 +58,17 @@ fun SqlNormalizedCacheFactory(
             override fun onConfigure(db: SupportSQLiteDatabase) {
               super.onConfigure(db)
               configure?.invoke(db)
+            }
+
+            override fun onCorruption(db: SupportSQLiteDatabase) {
+              apolloExceptionHandler(Exception("Corruption detected, recreating the database"))
+              super.onCorruption(db)
+            }
+
+            override fun onDowngrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {
+              // Treat downgrades as corruption, which results in a clean database
+              apolloExceptionHandler(Exception("onDowngrade from $oldVersion to $newVersion, treating as database corruption"))
+              super.onCorruption(db)
             }
           },
           useNoBackupDirectory = useNoBackupDirectory,
