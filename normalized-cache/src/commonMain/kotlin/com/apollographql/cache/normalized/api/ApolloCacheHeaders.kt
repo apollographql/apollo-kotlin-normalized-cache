@@ -65,14 +65,14 @@ object ApolloCacheHeaders {
   /**
    * When true, missing fields from the cache should result in an exception.
    *
-   * @see com.apollographql.cache.normalized.options.throwOnCacheMiss
+   * @see com.apollographql.cache.normalized.options.cacheMissesAsException
    */
-  const val THROW_ON_CACHE_MISS = "throw-on-cache-miss"
+  const val CACHE_MISSES_AS_EXCEPTION = "cache-misses-as-exception"
 
   /**
    * When true, GraphQL errors in the cache should be treated as cache misses.
    *
-   * @see com.apollographql.cache.normalized.options.ServerErrorsAsCacheMisses
+   * @see com.apollographql.cache.normalized.options.serverErrorsAsException
    */
-  const val SERVER_ERRORS_AS_CACHE_MISSES = "server-errors-as-cache-misses"
+  const val SERVER_ERRORS_AS_EXCEPTION = "server-errors-as-exception"
 }

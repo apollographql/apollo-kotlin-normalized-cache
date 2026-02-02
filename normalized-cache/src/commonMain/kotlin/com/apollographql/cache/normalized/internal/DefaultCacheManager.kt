@@ -141,8 +141,8 @@ internal class DefaultCacheManager(
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
   ): ApolloResponse<D> {
-    val throwOnCacheMiss = cacheHeaders.headerValue(ApolloCacheHeaders.THROW_ON_CACHE_MISS) == "true"
-    val serverErrorsAsCacheMisses = cacheHeaders.headerValue(ApolloCacheHeaders.SERVER_ERRORS_AS_CACHE_MISSES) == "true"
+    val cacheMissesAsException = cacheHeaders.headerValue(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION) == "true"
+    val serverErrorsAsException = cacheHeaders.headerValue(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION) == "true"
     val variables = operation.variables(customScalarAdapters, true)
     val batchReaderData =
       try {
@@ -155,8 +155,8 @@ internal class DefaultCacheManager(
             rootSelections = operation.rootField().selections,
             rootField = operation.rootField(),
             fieldKeyGenerator = fieldKeyGenerator,
-            throwOnCacheMiss = throwOnCacheMiss,
-            serverErrorsAsCacheMisses = serverErrorsAsCacheMisses,
+            cacheMissesAsException = cacheMissesAsException,
+            serverErrorsAsException = serverErrorsAsException,
         ).collectData()
       } catch (e: ApolloException) {
         return ApolloResponse.Builder(operation, uuid4())
@@ -203,7 +203,7 @@ internal class DefaultCacheManager(
         return ApolloResponse.Builder(operation, uuid4())
             .apply {
               val cacheMissException = CacheMissException(e.message ?: "Could not parse cached data")
-              if (throwOnCacheMiss) {
+              if (cacheMissesAsException) {
                 exception(cacheMissException)
               } else {
                 errors(
@@ -256,8 +256,8 @@ internal class DefaultCacheManager(
         rootSelections = fragment.rootField().selections,
         rootField = fragment.rootField(),
         fieldKeyGenerator = fieldKeyGenerator,
-        throwOnCacheMiss = true,
-        serverErrorsAsCacheMisses = true,
+        cacheMissesAsException = true,
+        serverErrorsAsException = true,
     ).collectData()
     val dataWithErrors = batchReaderData.toMap(withErrors = false)
     val falseVariablesCustomScalarAdapter =

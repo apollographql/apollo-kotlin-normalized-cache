@@ -23,8 +23,8 @@ import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
-import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
+import com.apollographql.cache.normalized.options.cacheMissesAsException
+import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.append
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
@@ -91,7 +91,7 @@ class DoNotStoreTest {
             }
           }
         }
-        """
+        """,
     )
     val maxAgeProvider = SchemaCoordinatesMaxAgeProvider(
         Cache.maxAges,
@@ -123,10 +123,10 @@ class DoNotStoreTest {
                       project = GetUserQuery.Project(
                           __typename = "Project",
                           name = "Stardust",
-                      )
-                  )
+                      ),
+                  ),
               ),
-              networkResponse.data
+              networkResponse.data,
           )
           val cacheResponse = apolloClient.query(GetUserQuery())
               .fetchPolicyInterceptor(PartialCacheOnlyInterceptor)
@@ -140,7 +140,7 @@ class DoNotStoreTest {
                   Error.Builder("Object '${CacheKey("User:42").keyToString()}' has no field named 'project' in the cache")
                       .path(listOf("user", "project")).build(),
               ),
-              cacheResponse.errors
+              cacheResponse.errors,
           )
         }
   }
@@ -181,7 +181,7 @@ class DoNotStoreTest {
             }
           }
         }
-        """
+        """,
     )
     val maxAgeProvider = SchemaCoordinatesMaxAgeProvider(
         Cache.maxAges,
@@ -226,14 +226,14 @@ class DoNotStoreTest {
                                   id = "42",
                                   name = "John",
                                   email = "john@example.com",
-                                  __typename = "User"
+                                  __typename = "User",
 
-                              )
-                          )
-                      )
-                  )
+                                  ),
+                          ),
+                      ),
+                  ),
               ),
-              networkResponse.data
+              networkResponse.data,
           )
 
           apolloClient.apolloStore.accessCache { cache ->
@@ -255,8 +255,8 @@ private val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
-            .throwOnCacheMiss(false)
-            .serverErrorsAsCacheMisses(false)
+            .cacheMissesAsException(false)
+            .serverErrorsAsException(false)
             .build(),
     )
   }

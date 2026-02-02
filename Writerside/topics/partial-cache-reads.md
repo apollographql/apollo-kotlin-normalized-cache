@@ -7,8 +7,8 @@ This means that if some fields are missing from the cache or represent an error 
 This is **opt-in**: by default, executing operations or calling [`ApolloStore.readOperation()`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/-apollo-store/read-operation.html) returns responses that expose cache misses and cached server errors with a **non-null `exception`** and a **null `data`**.
 
 To enable partial cache reads:
-- For cache misses, [set](options.md) [`throwOnCacheMiss(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
-- For cached server errors, [set](options.md) [`serverErrorsAsCacheMisses(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
+- For cache misses, [set](options.md) [`cacheMissesAsException(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
+- For cached server errors, [set](options.md) [`serverErrorsAsException(false)`](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized.options/throw-on-cache-miss.html).
 
 Doing this, the returned responses can contain **partial `data`** and **non-empty `errors`** for any missing (or stale) fields in the cache and cached server errors.
 
@@ -31,17 +31,17 @@ That is the default behavior.
 
 ***👉 Go to cache first, emit partial data with cached server errors / don't emit partial data when there are cache misses, and go to the network if there are cache misses***
 
-Use `serverErrorsAsCacheMisses(false)`.
+Use `serverErrorsAsException(false)`.
 
 ***👉 Go to cache first, emit partial data with cache miss errors and cached server errors, and go to the network if there are any errors***
 
-Use `serverErrorsAsCacheMisses(false)`, `throwOnCacheMiss(false)`, and a custom fetch policy interceptor like so:
+Use `serverErrorsAsException(false)`, `cacheMissesAsException(false)`, and a custom fetch policy interceptor like so:
 
 ```kotlin
 val apolloClient = ApolloClient.Builder()
     /*...*/
-    .serverErrorsAsCacheMisses(false)
-    .throwOnCacheMiss(false)
+    .serverErrorsAsException(false)
+    .cacheMissesAsException(false)
     .fetchPolicyInterceptor(MyCacheInterceptor)
     .build()
 ```

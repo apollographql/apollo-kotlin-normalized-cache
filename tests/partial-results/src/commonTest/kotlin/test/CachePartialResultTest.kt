@@ -29,9 +29,9 @@ import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.options.CacheOnError
+import com.apollographql.cache.normalized.options.cacheMissesAsException
 import com.apollographql.cache.normalized.options.cacheOnError
-import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
+import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.testing.append
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
@@ -897,7 +897,7 @@ class CachePartialResultTest {
         .use { apolloClient ->
           val cacheMissResult = apolloClient.query(GetFooQuery())
               .fetchPolicy(FetchPolicy.CacheOnly)
-              .throwOnCacheMiss(false)
+              .cacheMissesAsException(false)
               .cacheOnError(CacheOnError.NULL)
               .execute()
           assertNotNull(cacheMissResult.data)
@@ -924,7 +924,7 @@ class CachePartialResultTest {
           apolloExceptionHandler = {}
           val cacheMissResult = apolloClient.query(GetFoo2Query())
               .fetchPolicy(FetchPolicy.CacheOnly)
-              .throwOnCacheMiss(false)
+              .cacheMissesAsException(false)
               .cacheOnError(CacheOnError.NULL)
               .execute()
           assertNull(cacheMissResult.data)
@@ -948,7 +948,7 @@ class CachePartialResultTest {
         .use { apolloClient ->
           val cacheMissResult = apolloClient.query(GetFoo2Query())
               .fetchPolicy(FetchPolicy.CacheOnly)
-              .throwOnCacheMiss(false)
+              .cacheMissesAsException(false)
               .cacheOnError(CacheOnError.HALT)
               .execute()
           assertNull(cacheMissResult.data)
@@ -970,8 +970,8 @@ val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
-            .throwOnCacheMiss(false)
-            .serverErrorsAsCacheMisses(false)
+            .cacheMissesAsException(false)
+            .serverErrorsAsException(false)
             .build(),
     )
   }
