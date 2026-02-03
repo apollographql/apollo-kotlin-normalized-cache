@@ -22,6 +22,7 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
+import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.fetchPolicy
@@ -45,8 +46,10 @@ import test.cache.Cache
 import test.fragment.UserFields
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 
 class CachePartialResultTest {
@@ -116,6 +119,9 @@ class CachePartialResultTest {
               ),
               cacheResult.data,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertTrue(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
 
           val cacheMissResult = apolloClient.query(MeWithNickNameQuery())
               .fetchPolicyInterceptor(PartialCacheOnlyInterceptor)
@@ -140,6 +146,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -227,6 +236,9 @@ class CachePartialResultTest {
               ),
               cacheResult.errors,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertTrue(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
         }
   }
 
@@ -362,6 +374,9 @@ class CachePartialResultTest {
               ),
               cacheResult.errors,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
 
           // Remove best friend from the cache
           apolloClient.apolloStore.remove(CacheKey("User:2"))
@@ -404,6 +419,9 @@ class CachePartialResultTest {
               ),
               cacheResult2.errors,
           )
+          assertTrue(cacheResult2.cacheInfo!!.isFromCache)
+          assertFalse(cacheResult2.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult2.cacheInfo!!.isStale)
 
           // Remove project user from the cache
           apolloClient.apolloStore.remove(CacheKey("User:4"))
@@ -425,6 +443,9 @@ class CachePartialResultTest {
               ),
               cacheResult3.errors,
           )
+          assertTrue(cacheResult3.cacheInfo!!.isFromCache)
+          assertFalse(cacheResult3.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult3.cacheInfo!!.isStale)
         }
   }
 
@@ -490,6 +511,9 @@ class CachePartialResultTest {
               networkResult.data,
               cacheResult.data,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertTrue(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
         }
   }
 
@@ -553,6 +577,9 @@ class CachePartialResultTest {
               networkResult.data,
               cacheResult.data,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertTrue(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
 
           // Remove the category from the cache
           apolloClient.apolloStore.accessCache { cache ->
@@ -573,6 +600,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -659,6 +689,9 @@ class CachePartialResultTest {
               networkResult.data,
               cacheResult.data,
           )
+          assertTrue(cacheResult.cacheInfo!!.isFromCache)
+          assertTrue(cacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheResult.cacheInfo!!.isStale)
 
           // Remove lead from the cache
           apolloClient.apolloStore.remove(CacheKey("User:2"))
@@ -705,6 +738,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -771,6 +807,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertTrue(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -842,6 +881,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertTrue(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -884,6 +926,9 @@ class CachePartialResultTest {
                   .path(listOf("me", "departmentInfo", "name")).build(),
               cacheMissResult.data?.me?.departmentInfo?.name?.graphQLErrorOrNull(),
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertTrue(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -910,6 +955,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -935,6 +983,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 
@@ -960,6 +1011,9 @@ class CachePartialResultTest {
               ),
               cacheMissResult.errors,
           )
+          assertTrue(cacheMissResult.cacheInfo!!.isFromCache)
+          assertFalse(cacheMissResult.cacheInfo!!.isCacheHit)
+          assertFalse(cacheMissResult.cacheInfo!!.isStale)
         }
   }
 }

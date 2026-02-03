@@ -164,7 +164,8 @@ internal class DefaultCacheManager(
             .cacheInfo(
                 CacheInfo.Builder()
                     .fromCache(true)
-                    .cacheHit(false)
+                    // Consider cached server errors as cache hits
+                    .cacheHit(e !is CacheMissException)
                     .stale(e is CacheMissException && e.stale)
                     .build(),
             )
@@ -233,7 +234,8 @@ internal class DefaultCacheManager(
         .cacheInfo(
             CacheInfo.Builder()
                 .fromCache(true)
-                .cacheHit(errors.isEmpty())
+                // Consider cached server errors as cache hits
+                .cacheHit(errors.none { it.cacheMissException != null })
                 .stale(batchReaderData.cacheHeaders.headerValue(ApolloCacheHeaders.STALE) == "true")
                 .build(),
         )
