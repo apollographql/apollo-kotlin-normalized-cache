@@ -17,7 +17,7 @@ import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
+import com.apollographql.cache.normalized.options.cacheMissesAsException
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.mockserver.MockResponse
 import com.apollographql.mockserver.MockServer
@@ -43,7 +43,7 @@ class StaleTest {
         .serverUrl(mockServer.url())
         .storeReceivedDate(true)
         .maxStale(14.days)
-        .throwOnCacheMiss(true)
+        .cacheMissesAsException(true)
         .normalizedCache(
             normalizedCacheFactory = MemoryCacheFactory(),
             cacheKeyGenerator = IdCacheKeyGenerator(),

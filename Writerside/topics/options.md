@@ -29,15 +29,17 @@ A response is fetched from the cache and then from the network.
 Warning: this can emit multiple successful responses, therefore [ApolloCall.execute()](https://www.apollographql.com/docs/kotlin/kdoc/apollo-runtime/com.apollographql.apollo/-apollo-call/execute.html) should not be used with this policy.
 Use only with [ApolloCall.toFlow()](https://www.apollographql.com/docs/kotlin/kdoc/apollo-runtime/com.apollographql.apollo/-apollo-call/index.html#-2144194671%2FFunctions%2F981543781) or [ApolloCall.watch()](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc/normalized-cache/com.apollographql.cache.normalized/watch.html?query=fun%20%3CD%20:%20Query.Data%3E%20ApolloCall%3CD%3E.watch():%20Flow%3CApolloResponse%3CD%3E%3E).
 
-## `serverErrorsAsCacheMisses`
+## `serverErrorsAsException`
 
-Sets whether GraphQL errors in the cache should be treated as cache misses. When true (the default), if any field is an Error in the cache, the returned response will have a null data and a non-null exception of type `ApolloGraphQLException`.
+Sets whether GraphQL errors in the cache should be exposed as an exception. When true (the default), if any field is an Error in the cache, the returned response will have a null data and a non-null exception of type `ApolloGraphQLException`.
 
-## `throwOnCacheMiss`
+Set this to false to allow partial responses from the cache, where errors are included in the response's `errors`.
 
-Sets whether missing fields from the cache should result in an exception. When true (the default), if any field is missing in the cache, the returned response will have a null data and a non-null exception of type `CacheMissException`.
+## `cacheMissesAsException`
 
-Set this to false to allow partial responses from the cache, where _some_ or _all_ of the fields may be missing.
+Sets whether missing fields from the cache should be exposed as an exception. When true (the default), if any field is missing in the cache, the returned response will have a null data and a non-null exception of type `CacheMissException`.
+
+Set this to false to allow partial responses from the cache, where _some_ or _all_ of the fields may be missing, and Errors are included in the response's `errors` to represent cache misses.
 
 ## `maxStale`
 

@@ -129,8 +129,8 @@ Now `storePartialResponses()` is removed and is the default, and errors returned
 
 By default, errors will not replace existing data in the cache. You can change this behavior with `errorsReplaceCachedValues(true)`.
 
-> The built-in fetch policies treat any missing or error field as a full cache miss by default (same behavior as previous versions). This
-> is [configurable](options.md) with `serverErrorsAsCacheMisses` and `throwOnCacheMiss`.
+> By default, partial responses are disabled so any missing or error fields are exposed as a response with no data (same behavior as previous versions). This
+> is [configurable](options.md) with `cacheMissesAsException` and `serverErrorsAsException`.
 >
 > For more flexibility you can also implement your own fetch policy interceptor to handle partial cache reads, as shown in [this example](https://github.com/apollographql/apollo-kotlin-normalized-cache/blob/main/tests/partial-results/src/commonTest/kotlin/test/CachePartialResultTest.kt#L809).
 
