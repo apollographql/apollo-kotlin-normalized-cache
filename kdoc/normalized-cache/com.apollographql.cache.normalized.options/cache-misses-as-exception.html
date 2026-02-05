@@ -2,8 +2,8 @@
 <html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
-    <title>SERVER_ERRORS_AS_CACHE_MISSES</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <title>cacheMissesAsException</title>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
     <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
       if (storage == null) {
@@ -19,28 +19,28 @@
       }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
-<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
-<link href="../../../styles/style.css" rel="Stylesheet">
-<link href="../../../styles/main.css" rel="Stylesheet">
-<link href="../../../styles/prism.css" rel="Stylesheet">
-<link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
-<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
-<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
-<script type="text/javascript" src="../../../scripts/main.js" defer></script>
-<script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
 <div class="root">
     <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
-<a class="library-name--link" href="../../../index.html" tabindex="1">
+<a class="library-name--link" href="../../index.html" tabindex="1">
                     apollo-kotlin-normalized-cache
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
         <div class="library-version" id="library-version">
-<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.api/-apollo-cache-headers/-s-e-r-v-e-r_-e-r-r-o-r-s_-a-s_-c-a-c-h-e_-m-i-s-s-e-s.html&quot;}">1.0.0-beta.6-SNAPSHOT</dokka-template-command>        </div>
+<dokka-template-command data="{&quot;@class&quot;:&quot;org.jetbrains.dokka.base.templating.ReplaceVersionsCommand&quot;,&quot;location&quot;:&quot;com.apollographql.cache.normalized.options/cache-misses-as-exception.html&quot;}">1.0.0-beta.6-SNAPSHOT</dokka-template-command>        </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
                 <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":normalized-cache/commonMain">common</button>
@@ -90,12 +90,12 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="member" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.api/ApolloCacheHeaders/SERVER_ERRORS_AS_CACHE_MISSES/#/PointingToDeclaration//-1172623753">
-  <div class="breadcrumbs"><a href="../../index.html">normalized-cache</a><span class="delimiter">/</span><a href="../index.html">com.apollographql.cache.normalized.api</a><span class="delimiter">/</span><a href="index.html">ApolloCacheHeaders</a><span class="delimiter">/</span><span class="current">SERVER_ERRORS_AS_CACHE_MISSES</span></div>
+<div class="main-content" data-page-type="member" id="content" pageids="normalized-cache::com.apollographql.cache.normalized.options//cacheMissesAsException/com.apollographql.apollo.api.MutableExecutionOptions[TypeParam(bounds=[kotlin.Any?])]#kotlin.Boolean/PointingToDeclaration//-1172623753">
+  <div class="breadcrumbs"><a href="../index.html">normalized-cache</a><span class="delimiter">/</span><a href="index.html">com.apollographql.cache.normalized.options</a><span class="delimiter">/</span><span class="current">cacheMissesAsException</span></div>
   <div class="cover ">
-    <h1 class="cover"><span>SERVER_</span><wbr><span>ERRORS_</span><wbr><span>AS_</span><wbr><span>CACHE_</span><wbr><span>MISSES</span></h1>
+    <h1 class="cover"><span>cache</span><wbr><span>Misses</span><wbr><span>As</span><wbr><span><span>Exception</span></span></h1>
   </div>
-  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">const </span><span class="token keyword">val </span><a href="-s-e-r-v-e-r_-e-r-r-o-r-s_-a-s_-c-a-c-h-e_-m-i-s-s-e-s.html">SERVER_ERRORS_AS_CACHE_MISSES</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><p class="paragraph">When true, GraphQL errors in the cache should be treated as cache misses.</p><h4 class="tableheader">See also</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":normalized-cache/commonMain" data-filterable-set=":normalized-cache/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../../../normalized-cache/com.apollographql.cache.normalized.options/-server-errors-as-cache-misses/index.html"><span>Server</span><wbr><span>Errors</span><wbr><span>As</span><wbr><span>Cache</span><wbr><span><span>Misses</span></span></a></div></span></div><div></div></div></div></div></div></div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":normalized-cache/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="cache-misses-as-exception.html">T</a><span class="token operator">&gt; </span><span data-unresolved-link="com.apollographql.apollo.api/MutableExecutionOptions///PointingToDeclaration/">MutableExecutionOptions</span><span class="token operator">&lt;</span><a href="cache-misses-as-exception.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="cache-misses-as-exception.html"><span class="token function">cacheMissesAsException</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cacheMissesAsException<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="cache-misses-as-exception.html">T</a></div><p class="paragraph">Sets whether missing fields from the cache should be exposed as an exception.</p><p class="paragraph">When true, if any field is missing in the cache, the returned response will have a null data and a non-null exception of type <span data-unresolved-link="com.apollographql.apollo.exception/CacheMissException///PointingToDeclaration/">com.apollographql.apollo.exception.CacheMissException</span>.</p><p class="paragraph">Set this to false to allow partial responses from the cache, where <i>some</i> or <i>all</i> of the fields may be missing, and Errors are included in the response's <code class="lang-kotlin">errors</code> to represent cache misses.</p><p class="paragraph">Default: true</p></div></div>
 </div>
     <div class="footer">
         <div class="footer--container">
