@@ -1,7 +1,7 @@
 [versions]
 kotlin-plugin = "2.1.21"
 android-plugin = "8.12.3"
-apollo = "4.3.3"
+apollo = "4.4.1"
 okio = "3.9.0"
 atomicfu = "0.26.0" # Must be the same version as the one used by apollo-testing-support or native compilation will fail
 sqldelight = "2.1.0"
@@ -16,7 +16,7 @@ apollo-api = { group = "com.apollographql.apollo", name = "apollo-api", version.
 apollo-mpp-utils = { group = "com.apollographql.apollo", name = "apollo-mpp-utils", version.ref = "apollo" }
 apollo-testing-support = { group = "com.apollographql.apollo", name = "apollo-testing-support", version.ref = "apollo" }
 apollo-runtime = { group = "com.apollographql.apollo", name = "apollo-runtime", version.ref = "apollo" }
-apollo-mockserver = "com.apollographql.mockserver:apollo-mockserver:0.2.0"
+apollo-mockserver = "com.apollographql.mockserver:apollo-mockserver:0.3.1"
 apollo-ast = { group = "com.apollographql.apollo", name = "apollo-ast", version.ref = "apollo" }
 apollo-compiler = { group = "com.apollographql.apollo", name = "apollo-compiler", version.ref = "apollo" }
 apollo-cache = { group = "com.apollographql.apollo", name = "apollo-normalized-cache", version.ref = "apollo" }
