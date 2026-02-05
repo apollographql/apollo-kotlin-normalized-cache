@@ -15,14 +15,15 @@ import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.api.withErrors
+import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
-import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
+import com.apollographql.cache.normalized.options.cacheMissesAsException
+import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import com.apollographql.cache.normalized.testing.runTest
@@ -34,8 +35,10 @@ import test.cache.Cache
 import test.fragment.UserFields
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class StoreErrorsTest {
   private lateinit var mockServer: MockServer
@@ -842,6 +845,7 @@ class StoreErrorsTest {
           assertNotNull(someIntCacheResult.exception)
           assertErrorsEquals(someIntNetworkResult.errors!!.first(), (someIntCacheResult.exception as ApolloGraphQLException).error)
           assertNull(someIntCacheResult.data)
+          assertTrue(someIntCacheResult.cacheInfo!!.isCacheHit)
 
           mockServer.enqueueString(
               // language=JSON
@@ -881,6 +885,9 @@ class StoreErrorsTest {
               meNetworkResult.data,
               meCacheResult.data,
           )
+          assertTrue(someIntCacheResult.cacheInfo!!.isFromCache)
+          assertTrue(someIntCacheResult.cacheInfo!!.isCacheHit)
+          assertFalse(someIntCacheResult.cacheInfo!!.isStale)
         }
   }
 }
@@ -891,8 +898,8 @@ val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
         request = request
             .newBuilder()
             .fetchFromCache(true)
-            .throwOnCacheMiss(false)
-            .serverErrorsAsCacheMisses(false)
+            .cacheMissesAsException(false)
+            .serverErrorsAsException(false)
             .build(),
     )
   }

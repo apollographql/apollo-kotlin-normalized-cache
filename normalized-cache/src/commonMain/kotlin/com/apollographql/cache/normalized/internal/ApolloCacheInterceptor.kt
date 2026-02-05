@@ -26,9 +26,9 @@ import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.optimisticData
+import com.apollographql.cache.normalized.options.cacheMissesAsException
 import com.apollographql.cache.normalized.options.cacheOnError
-import com.apollographql.cache.normalized.options.serverErrorsAsCacheMisses
-import com.apollographql.cache.normalized.options.throwOnCacheMiss
+import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.flow.Flow
@@ -213,8 +213,8 @@ internal class ApolloCacheInterceptor(
           if (request.memoryCacheOnly) {
             addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true")
           }
-          addHeader(ApolloCacheHeaders.THROW_ON_CACHE_MISS, request.throwOnCacheMiss.toString())
-          addHeader(ApolloCacheHeaders.SERVER_ERRORS_AS_CACHE_MISSES, request.serverErrorsAsCacheMisses.toString())
+          addHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION, request.cacheMissesAsException.toString())
+          addHeader(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION, request.serverErrorsAsException.toString())
         }
         .build()
     val startMillis = currentTimeMillis()

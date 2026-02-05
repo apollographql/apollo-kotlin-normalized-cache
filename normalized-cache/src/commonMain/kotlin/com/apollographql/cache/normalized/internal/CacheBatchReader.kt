@@ -37,12 +37,12 @@ internal class CacheBatchReader(
     /**
      * If true, cache misses throw [CacheMissException], otherwise they are returned inside the [DataWithErrors].
      */
-    private val throwOnCacheMiss: Boolean,
+    private val cacheMissesAsException: Boolean,
 
     /**
      * If true, cached server errors throw [ApolloGraphQLException], otherwise they are returned inside the [DataWithErrors].
      */
-    private val serverErrorsAsCacheMisses: Boolean,
+    private val serverErrorsAsException: Boolean,
 ) {
   /**
    * @param key: the key of the record we need to fetch
@@ -131,7 +131,7 @@ internal class CacheBatchReader(
             // This happens the very first time we read the cache
             record = Record(pendingReference.key, emptyMap())
           } else {
-            if (throwOnCacheMiss) {
+            if (cacheMissesAsException) {
               throw CacheMissException(pendingReference.key.keyToString())
             } else {
               data[pendingReference.path] =
@@ -165,7 +165,7 @@ internal class CacheBatchReader(
             ).unwrap()
           } catch (e: CacheMissException) {
             if (e.stale) isStale = true
-            if (throwOnCacheMiss) {
+            if (cacheMissesAsException) {
               throw e
             } else {
               hasErrors = true
@@ -175,7 +175,7 @@ internal class CacheBatchReader(
             if (!hasErrors) {
               val serverError = value.firstError()
               if (serverError != null) {
-                if (serverErrorsAsCacheMisses) {
+                if (serverErrorsAsException) {
                   throw ApolloGraphQLException(serverError)
                 } else {
                   hasErrors = true
@@ -266,7 +266,7 @@ internal class CacheBatchReader(
             ).unwrap()
           } catch (e: CacheMissException) {
             if (e.stale) isStale = true
-            if (throwOnCacheMiss) {
+            if (cacheMissesAsException) {
               throw e
             } else {
               hasErrors = true
