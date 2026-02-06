@@ -1,7 +1,7 @@
 [versions]
 kotlin-plugin = "2.1.21"
 android-plugin = "8.12.3"
-apollo = "4.3.3"
+apollo = "4.4.1"
 okio = "3.9.0"
 atomicfu = "0.26.0" # Must be the same version as the one used by apollo-testing-support or native compilation will fail
 sqldelight = "2.1.0"
@@ -24,7 +24,7 @@ apollo-cache-sqlite = { group = "com.apollographql.apollo", name = "apollo-norma
 apollo-plugin = { group = "com.apollographql.apollo", name = "apollo-gradle-plugin", version.ref = "apollo" }
 atomicfu-library = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 atomicfu-plugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "atomicfu" }
-dgp = "com.gradle:develocity-gradle-plugin:4.2.2" # // sync with settings.gradle.kts
+dgp = "com.gradle:develocity-gradle-plugin:4.3.2" # // sync with settings.gradle.kts
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test" } # the Kotlin plugin resolves the version
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit" } # the Kotlin plugin resolves the version
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }

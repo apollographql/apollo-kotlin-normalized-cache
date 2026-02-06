@@ -867,7 +867,15 @@ class CachePartialResultTest {
               .fetchPolicyInterceptor(PartialCacheOnlyInterceptor)
               .execute()
           assertEquals(
-              MeWithEmployeeInfoQuery.Data(null),
+              MeWithEmployeeInfoQuery.Data(
+                  MeWithEmployeeInfoQuery.Me(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                      employeeInfo = null,
+                  ),
+              ),
               cacheMissResult.data,
           )
           assertErrorsEquals(
