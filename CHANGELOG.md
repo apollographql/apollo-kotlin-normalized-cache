@@ -2,6 +2,14 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-beta.6
+_2026-02-06_
+
+- [Fix] Don't throw for error fields that aren't selected (#298)
+- [Fix] Pass `customScalarAdapters` to `withErrors` in `removeData` (#297)
+- Treat downgrades as corruption (#300)
+- Rename `throwOnCacheMiss` -> `cacheMissesAsException` and `serverErrorsAsCacheMisses` -> `serverErrorsAsException` (#303)
+
 # v1.0.0-beta.5
 _2026-01-29_
 
