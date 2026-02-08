@@ -1,5 +1,5 @@
 [versions]
-kotlin-plugin = "2.1.21"
+kotlin-plugin = "2.3.10"
 android-plugin = "8.12.3"
 apollo = "4.4.1"
 okio = "3.9.0"
