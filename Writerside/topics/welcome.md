@@ -21,8 +21,7 @@ are added here instead. In the future, the main repository version will be depre
 
 ## Use in your project
 
-> During the beta phase, the API is still subject to change, although we will try to make changes in non-breaking ways.
-> For now it is recommended to experiment with this library in non-critical projects/modules, or behind a feature flag.
+> During the RC phase, the API is considered stable, although changes may happen according to feedback.
 
 {style="warning"}
 
@@ -65,7 +64,7 @@ apollo {
     // Add this
     plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
     pluginArgument("com.apollographql.cache.packageName", packageName.get())
-}
+  }
 }
 </code-block>
 

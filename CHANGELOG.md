@@ -2,6 +2,15 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-rc.0
+_2026-02-16_
+
+**This is the first Release Candidate of the new Normalized Cache.** 
+
+The API is expected to be stable. Please give it a try and report any issues you may encounter!
+
+Other than the name, this release is identical to `v1.0.0-beta.6`.
+
 # v1.0.0-beta.6
 _2026-02-06_
 
