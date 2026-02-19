@@ -2,6 +2,11 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-rc.1
+_2026-02-19_
+
+- [Fix] Pagination: don't crash when a Connection is null (#310)
+
 # v1.0.0-rc.0
 _2026-02-16_
 
