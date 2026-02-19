@@ -60,8 +60,7 @@ object EmptyMetadataGenerator : MetadataGenerator {
 class ConnectionMetadataGenerator(private val connectionTypes: Set<String>) : MetadataGenerator {
   @Suppress("UNCHECKED_CAST")
   override fun metadataForObject(obj: ApolloJsonElement, context: MetadataGeneratorContext): Map<String, ApolloJsonElement> {
-    if (context.field.type.rawType().name in connectionTypes) {
-      obj as Map<String, ApolloJsonElement>
+    if (context.field.type.rawType().name in connectionTypes && obj is Map<*,*>) {
       val pageInfo = obj["pageInfo"] as? Map<String, ApolloJsonElement>
       val edges = obj["edges"] as? List<Map<String, ApolloJsonElement>>
       if (edges == null && pageInfo == null) {
