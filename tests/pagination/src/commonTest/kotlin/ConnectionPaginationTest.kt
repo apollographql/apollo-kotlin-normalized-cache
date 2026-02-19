@@ -411,7 +411,7 @@ class ConnectionPaginationTest {
     cacheManager.writeOperation(
         operation = query,
         data = UsersQuery.Data { users = null },
-        errors = listOf(Error.Builder("An error occurred.").path(listOf("users")).build())
+        errors = listOf(Error.Builder("An error occurred.").path(listOf("users")).build()),
     )
     val responseFromStore = cacheManager.readOperation(query)
     assertEquals(UsersQuery.Data { users = null }, responseFromStore.data)
@@ -419,4 +419,28 @@ class ConnectionPaginationTest {
     assertEquals("An error occurred.", responseFromStore.errors?.firstOrNull()?.message)
     assertEquals(listOf("users"), responseFromStore.errors?.firstOrNull()?.path)
   }
+
+  @Test
+  fun nullConnection() = runTest {
+    val cacheManager = CacheManager(
+        normalizedCacheFactory = MemoryCacheFactory(),
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
+    )
+    cacheManager.clearAll()
+
+    val query1 = UsersQuery(first = Optional.Present(2))
+    val data1 = UsersQuery.Data {
+      users = null
+    }
+    cacheManager.writeOperation(query1, data1)
+    val dataFromStore = cacheManager.readOperation(query1).data
+    assertEquals(data1, dataFromStore)
+    assertChainedCachesAreEqual(cacheManager)
+  }
+
 }
