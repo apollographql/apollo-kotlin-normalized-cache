@@ -321,11 +321,14 @@ class KeyArgumentsCacheResolver(
   override fun resolveField(context: ResolverContext): Any? {
     val keyArgs =
       keyArgumentsProvider.getKeyArguments(context.parentType, context.field).ifEmpty { return DefaultCacheResolver.resolveField(context) }
-    val keyArgsMap = context.field.argumentValues(context.variables) { it.definition.name in keyArgs }
+    val keyArgsWithValues = context.field.argumentValues(context.variables) { it.definition.name in keyArgs }
     // Keep the same order as defined in the field policy
-    val keyArgsValues = keyArgs.map { keyArgsMap[it] }
-    if (keyArgsValues.isEmpty()) {
-      return DefaultCacheResolver.resolveField(context)
+    val keyArgsValues = keyArgs.map {
+      if (!keyArgsWithValues.containsKey(it)) {
+        // Missing key arg value
+        return DefaultCacheResolver.resolveField(context)
+      }
+      keyArgsWithValues[it]
     }
     var type = context.field.type
     if (type is CompiledNotNullType) {
