@@ -320,8 +320,12 @@ class KeyArgumentsCacheResolver(
     private val keyScope: CacheKey.Scope,
 ) : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
-    val keyArgs =
-      keyArgumentsProvider.getKeyArguments(context.parentType, context.field).ifEmpty { return DefaultCacheResolver.resolveField(context) }
+    val fieldKey = context.getFieldKey()
+    if (context.parent.containsKey(fieldKey)) {
+      return context.parent[fieldKey]
+    }
+    val keyArgs = keyArgumentsProvider.getKeyArguments(context.parentType, context.field)
+        .ifEmpty { return DefaultCacheResolver.resolveField(context) }
     val keyArgsWithValues = context.field.argumentValues(context.variables) { it.definition.name in keyArgs }
     // Keep the same order as defined in the field policy
     val keyArgsValues = keyArgs.map {
@@ -364,15 +368,10 @@ class KeyArgumentsCacheResolver(
         }
       }
     }
-    val fieldKey = context.getFieldKey()
-    return if (context.parent.containsKey(fieldKey)) {
-      context.parent[fieldKey]
+    return if (keyScope == CacheKey.Scope.TYPE) {
+      CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
     } else {
-      if (keyScope == CacheKey.Scope.TYPE) {
-        CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
-      } else {
-        CacheKey(keyArgsValues.map { it.toString() })
-      }
+      CacheKey(keyArgsValues.map { it.toString() })
     }
   }
 
