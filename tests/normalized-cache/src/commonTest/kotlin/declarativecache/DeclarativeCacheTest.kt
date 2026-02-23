@@ -202,20 +202,31 @@ class DeclarativeCacheTest {
   }
 
   @Test
-  fun fieldPolicyWithListsWrongCount() = runTest {
+  fun fieldPolicyWithListsWrongCountHit() = runTest {
     val cacheManager =
       CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
     // We query for 2 books but get only 1 from the backend
-    val booksQuery = GetBooksQuery(listOf("42", "43"))
-    cacheManager.writeOperation(booksQuery, GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))))
+    cacheManager.writeOperation(GetBooksQuery(listOf("42", "43")), GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))))
 
-    val booksCacheResponse = cacheManager.readOperation(booksQuery)
+    val booksCacheResponse = cacheManager.readOperation(GetBooksQuery(listOf("42", "43")))
+    assertEquals(GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))), booksCacheResponse.data)
+  }
+
+  @Test
+  fun fieldPolicyWithListsWrongCountMiss() = runTest {
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
+    // We query for 2 books but get only 1 from the backend
+    cacheManager.writeOperation(GetBooksQuery(listOf("42", "43")), GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))))
+
+    val booksCacheResponse = cacheManager.readOperation(GetBooksQuery(listOf("42", "44")))
     assertNull(booksCacheResponse.data)
     assertErrorsEquals(
         listOf(
-            Error.Builder("Object 'Book:43' not found in the cache").path(listOf("books", 1)).build(),
+            Error.Builder("Object 'Book:44' not found in the cache").path(listOf("books", 1)).build(),
         ),
         booksCacheResponse.errors,
     )
   }
+
 }
