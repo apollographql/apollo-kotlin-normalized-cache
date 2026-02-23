@@ -1,5 +1,6 @@
 package test.declarativecache
 
+import com.apollographql.apollo.api.Error
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
@@ -8,6 +9,7 @@ import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
+import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import com.apollographql.cache.normalized.testing.runTest
 import declarativecache.GetAuthorQuery
 import declarativecache.GetBookQuery
@@ -26,6 +28,7 @@ import declarativecache.cache.Cache
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class DeclarativeCacheTest {
 
@@ -133,8 +136,8 @@ class DeclarativeCacheTest {
         GetPromoAuthorQuery.PromoAuthor(
             firstName = "Pierre",
             lastName = "Bordage",
-            __typename = "Author"
-        )
+            __typename = "Author",
+        ),
     )
 
     cacheManager.writeOperation(authorQuery1, authorData1)
@@ -196,5 +199,23 @@ class DeclarativeCacheTest {
     data = cacheManager.readOperation(operation).data!!
 
     assertEquals("Title3", data.books.get(0).title)
+  }
+
+  @Test
+  fun fieldPolicyWithListsWrongCount() = runTest {
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
+    // We query for 2 books but get only 1 from the backend
+    val booksQuery = GetBooksQuery(listOf("42", "43"))
+    cacheManager.writeOperation(booksQuery, GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))))
+
+    val booksCacheResponse = cacheManager.readOperation(booksQuery)
+    assertNull(booksCacheResponse.data)
+    assertErrorsEquals(
+        listOf(
+            Error.Builder("Object 'Book:43' not found in the cache").path(listOf("books", 1)).build(),
+        ),
+        booksCacheResponse.errors,
+    )
   }
 }

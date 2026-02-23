@@ -162,8 +162,9 @@ private fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
     val argumentsMap = Buffer().writeUtf8(argumentsText).jsonReader().buffer().root as Map<*, *>
     val keyValues = argumentsMap[keyArg] as List<*>
     keyValues.mapIndexed { index, id ->
-      id to (v as List<*>)[index]
-    }.toMap()
+      // Use Unit as a marker for missing values since null is a valid value
+      id to (v as List<*>).getOrElse(index) { }
+    }.toMap().filterValues({ it != Unit })
   }.fold(emptyMap()) { acc, map ->
     acc + map
   }
