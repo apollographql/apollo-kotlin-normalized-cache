@@ -2,6 +2,12 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0-rc.2
+_2026-02-26_
+
+- [Fix] Fail fast when a key arg has no value (#312)
+- [Fix] Don't crash in `listItemsInParent` when list size doesn't match key args size (#314)
+
 # v1.0.0-rc.1
 _2026-02-19_
 
