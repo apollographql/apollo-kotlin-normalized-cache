@@ -1,6 +1,6 @@
 plugins {
   alias(libs.plugins.kotlin.jvm)
-  id("com.apollographql.apollo").version("4.2.0")
+  id("com.apollographql.apollo").version("4.4.1")
 }
 
 apollo {
