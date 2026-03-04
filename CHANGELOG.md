@@ -2,6 +2,16 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.0
+_2026-03-04_
+
+**The new Normalized Cache is now Generally Available.**
+
+- The [documentation](https://apollographql.github.io/apollo-kotlin-normalized-cache/welcome.html) is a great place to start.
+- Consult the [migration guide](https://apollographql.github.io/apollo-kotlin-normalized-cache/migration-guide.html) to upgrade from the previous version.
+
+Other than the name, this release is identical to `v1.0.0-rc.2`.
+
 # v1.0.0-rc.2
 _2026-02-26_
 

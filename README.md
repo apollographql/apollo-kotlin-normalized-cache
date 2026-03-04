@@ -14,17 +14,40 @@
 
 ## 🚀 Apollo Kotlin Normalized Cache
 
-This repository hosts [Apollo Kotlin](https://github.com/apollographql/apollo-kotlin)'s new normalized cache, aiming to replace the main repository's version.
+This repository hosts [Apollo Kotlin](https://github.com/apollographql/apollo-kotlin)'s Normalized Cache.
 
-Compared to the previous version, this new normalized cache brings:
+1. Add the dependencies to your project
 
-- [Pagination support](https://apollographql.github.io/apollo-kotlin-normalized-cache/pagination-home.html)
-- [Expiration](https://apollographql.github.io/apollo-kotlin-normalized-cache/expiration.html) (a.k.a. Time to live)
-- [Garbage collection](https://apollographql.github.io/apollo-kotlin-normalized-cache/garbage-collection.html), and [trimming](https://apollographql.github.io/apollo-kotlin-normalized-cache/trimming.html)
-- [Partial results from the cache](https://apollographql.github.io/apollo-kotlin-normalized-cache/partial-cache-reads.html)
-- API simplifications
-- Key scope support
-- SQL cache improved performance
+```kotlin
+// build.gradle.kts
+dependencies {
+  // For the memory cache
+  implementation("com.apollographql.cache:normalized-cache:$cacheVersion")
+
+  // For the SQL cache
+  implementation("com.apollographql.cache:normalized-cache-sqlite:$cacheVersion")
+}
+```
+
+2. Configure the compiler plugin
+
+```kotlin
+// build.gradle.kts
+apollo {
+  service("service") {
+    // ...
+
+    // For Apollo Kotlin v4
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:$cacheVersion") {
+      argument("com.apollographql.cache.packageName", packageName.get())
+    }
+
+    // For Apollo Kotlin v5+
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:$cacheVersion")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
+  }
+}
+```
 
 ## 📚 Documentation
 
@@ -34,6 +57,5 @@ See the project website for documentation:<br/>
 The Kdoc API reference can be found at:<br/>
 [https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc)
 
-## ⚠️ Disclaimer
-
-During the RC phase, the API is considered stable, although changes may happen according to feedback.
+The migration guide if you're coming from the previous version:<br/>
+[https://apollographql.github.io/apollo-kotlin-normalized-cache/migration-guide.html](https://apollographql.github.io/apollo-kotlin-normalized-cache/migration-guide.html) 
