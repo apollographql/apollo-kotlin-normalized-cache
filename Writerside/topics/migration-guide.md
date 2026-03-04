@@ -3,7 +3,7 @@
 The Normalized Cache is now hosted in this dedicated repository and published at its own cadence and versioning scheme.
 
 The Normalized Cache in the [Apollo Kotlin main repository](https://github.com/apollographql/apollo-kotlin) will not receive new features - they
-are added here instead. In the future, the main repository version will be deprecated and then removed.
+are added here instead. The main repository version is deprecated in Apollo Kotlin v5, and it will be removed in the future.
 
 This guide highlights the main differences between this library and the main repository version, and how to migrate from it.
 

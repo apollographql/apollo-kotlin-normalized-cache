@@ -17,11 +17,9 @@ Compared to the previous version, this library brings:
 - SQL cache improved performance
 
 The Normalized Cache in the [Apollo Kotlin main repository](https://github.com/apollographql/apollo-kotlin) will not receive new features - they
-are added here instead. In the future, the main repository version will be deprecated and then removed.
+are added here instead. The main repository version is deprecated in Apollo Kotlin v5, and it will be removed in the future.
 
 ## Use in your project
-
-> During the RC phase, the API is considered stable, although changes may happen according to feedback.
 
 {style="warning"}
 
