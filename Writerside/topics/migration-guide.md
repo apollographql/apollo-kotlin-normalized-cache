@@ -53,6 +53,7 @@ extend schema
 
 # With
 extend schema
+@link(url: "https://specs.apollo.dev/kotlin_labs/v0.5") # <- This line un-imports the old directives, not needed with Apollo Kotlin v5+
 @link(url: "https://specs.apollo.dev/cache/v0.4", import: ["@typePolicy", "@fieldPolicy"])
 ```
 
