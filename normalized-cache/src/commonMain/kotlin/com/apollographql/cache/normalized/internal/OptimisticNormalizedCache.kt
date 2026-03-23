@@ -8,7 +8,6 @@ import com.apollographql.cache.normalized.api.Record.Companion.changedKeys
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.benasher44.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
-import kotlin.math.max
 import kotlin.reflect.KClass
 
 internal class OptimisticNormalizedCache(
@@ -134,10 +133,13 @@ internal class OptimisticNormalizedCache(
   )
 
   private class RecordJournal(record: Record) {
+    private val lock = Lock()
+
     /**
      * The latest value of the record made by applying all the patches.
      */
     var current: Record = record
+      private set
 
     /**
      * A list of chronological patches applied to the record.
@@ -147,11 +149,11 @@ internal class OptimisticNormalizedCache(
     /**
      * Adds a new patch on top of all the previous ones.
      */
-    fun addPatch(record: Record): Set<String> {
+    fun addPatch(record: Record): Set<String> = lock.write {
       val (mergedRecord, changedKeys) = current.mergeWith(record)
       current = mergedRecord
       patches.add(record)
-      return changedKeys
+      changedKeys
     }
 
     /**
@@ -160,16 +162,16 @@ internal class OptimisticNormalizedCache(
      *
      * @return the changed keys or null if
      */
-    fun removePatch(mutationId: Uuid): RemovalResult {
+    fun removePatch(mutationId: Uuid): RemovalResult = lock.write {
       val recordIndex = patches.indexOfFirst { mutationId == it.mutationId }
       if (recordIndex == -1) {
         // The mutation did not impact this Record
-        return RemovalResult(emptySet(), false)
+        return@write RemovalResult(emptySet(), false)
       }
 
       if (patches.size == 1) {
         // The mutation impacted this Record and it was the only one in the history
-        return RemovalResult(current.fieldKeys(), true)
+        return@write RemovalResult(current.fieldKeys(), true)
       }
 
       /**
@@ -177,23 +179,12 @@ internal class OptimisticNormalizedCache(
        * Remember the oldRecord so that we can compute the changed keys
        */
       val oldRecord = current
-
-      patches.removeAt(recordIndex).key
-
-      var cur: Record? = null
-      val start = max(0, recordIndex - 1)
-      for (i in start until patches.size) {
-        val record = patches[i]
-        if (cur == null) {
-          cur = record
-        } else {
-          val (mergedRecord, _) = cur.mergeWith(record)
-          cur = mergedRecord
-        }
+      patches.removeAt(recordIndex)
+      current = patches.reduce { acc, record ->
+        val (mergedRecord, _) = acc.mergeWith(record)
+        mergedRecord
       }
-      current = cur!!
-
-      return RemovalResult(changedKeys(oldRecord, current), false)
+      RemovalResult(changedKeys(oldRecord, current), false)
     }
   }
 }
