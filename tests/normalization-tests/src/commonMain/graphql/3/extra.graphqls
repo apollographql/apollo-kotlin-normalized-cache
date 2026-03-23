@@ -1,3 +1,5 @@
+extend schema @link(url: "https://specs.apollo.dev/cache/v0.4", import: ["@typePolicy", "@fieldPolicy"])
+
 extend type Query @fieldPolicy(forField: "country" keyArgs: "code")
 
 extend type Book @typePolicy(keyFields: "id")
