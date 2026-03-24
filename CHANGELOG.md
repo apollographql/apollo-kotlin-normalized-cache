@@ -2,6 +2,18 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.1
+_2026-03-24_
+
+Maintenance release that fixes one bug and adds a new KMP target.
+
+This version also bumps KGP to 2.2. This is transparent for Android/JVM consumers but requires native/JS/wasm consumers to also use KGP 2.2+.
+
+- [Fix] Crash on `OptimisticNormalizedCache$RecordJournal.removePatch` (#330)
+- Add watchosDeviceArm64 target (#262)
+
+Thank you @MatthewFolbigg for your contribution! 💜
+
 # v1.0.0
 _2026-03-04_
 
