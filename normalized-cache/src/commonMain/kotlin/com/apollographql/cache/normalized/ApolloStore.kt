@@ -471,7 +471,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
       rootKey = cacheKey,
   )
   val fullRecords =
-    accessCache { cache -> cache.loadRecords(normalizationRecords.map { it.key }, cacheHeaders = this.cacheHeaders + cacheHeaders) }
+    accessCache { cache -> cache.loadRecords(normalizationRecords.map { it.key }, cacheHeaders = cacheHeaders) }
   val trimmedRecords = fullRecords.map { fullRecord ->
     val fieldNamesToTrim = normalizationRecords[fullRecord.key]?.fields?.keys.orEmpty()
     Record(
@@ -484,7 +484,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     cache.remove(normalizationRecords.keys, cascade = false)
     cache.merge(
         records = trimmedRecords,
-        cacheHeaders = this.cacheHeaders + cacheHeaders,
+        cacheHeaders = cacheHeaders,
         recordMerger = DefaultRecordMerger
     )
   }
