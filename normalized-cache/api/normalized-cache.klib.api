@@ -445,6 +445,7 @@ final class com.apollographql.cache.normalized.memory/MemoryCacheFactory : com.a
 
 final class com.apollographql.cache.normalized/ApolloStore { // com.apollographql.cache.normalized/ApolloStore|null[0]
     constructor <init>(com.apollographql.cache.normalized/CacheManager, com.apollographql.apollo.api/CustomScalarAdapters) // com.apollographql.cache.normalized/ApolloStore.<init>|<init>(com.apollographql.cache.normalized.CacheManager;com.apollographql.apollo.api.CustomScalarAdapters){}[0]
+    constructor <init>(com.apollographql.cache.normalized/CacheManager, com.apollographql.apollo.api/CustomScalarAdapters, com.apollographql.cache.normalized.api/CacheHeaders) // com.apollographql.cache.normalized/ApolloStore.<init>|<init>(com.apollographql.cache.normalized.CacheManager;com.apollographql.apollo.api.CustomScalarAdapters;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
 
     final val cacheManager // com.apollographql.cache.normalized/ApolloStore.cacheManager|{}cacheManager[0]
         final fun <get-cacheManager>(): com.apollographql.cache.normalized/CacheManager // com.apollographql.cache.normalized/ApolloStore.cacheManager.<get-cacheManager>|<get-cacheManager>(){}[0]
