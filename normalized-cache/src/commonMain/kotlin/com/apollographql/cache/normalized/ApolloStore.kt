@@ -44,7 +44,7 @@ class ApolloStore(
 
     /**
      * The cache headers that will be used with all operations.
-     * Additional cache headers can optionally be passed to operations, which will override those.
+     * Per-operation cache headers are merged on top of these, with per-operation values taking precedence when the same header key appears in both.
      */
     internal val cacheHeaders: CacheHeaders,
 ) {
