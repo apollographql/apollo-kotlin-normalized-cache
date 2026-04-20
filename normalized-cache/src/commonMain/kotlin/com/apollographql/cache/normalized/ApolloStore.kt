@@ -48,7 +48,7 @@ class ApolloStore(
      */
     internal val cacheHeaders: CacheHeaders,
 ) {
-  @Deprecated("Use the constructor with cacheHeaders parameter instead.")
+  @Deprecated("Use the constructor with cacheHeaders parameter instead.", ReplaceWith("ApolloStore(cacheManager, customScalarAdapters, CacheHeaders.NONE)"))
   constructor(
       cacheManager: CacheManager,
       customScalarAdapters: CustomScalarAdapters,
