@@ -27,7 +27,7 @@ class SqlNormalizedCache internal constructor(
   }
 
   override suspend fun loadRecords(keys: Collection<CacheKey>, cacheHeaders: CacheHeaders): Collection<Record> {
-    if (keys.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
+    if (keys.isEmpty() || cacheHeaders.headerValue(ApolloCacheHeaders.MEMORY_CACHE_ONLY) == "true") {
       return emptyList()
     }
     return try {
@@ -85,7 +85,7 @@ class SqlNormalizedCache internal constructor(
   }
 
   override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
-    if (records.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE) || cacheHeaders.hasHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY)) {
+    if (records.isEmpty() || cacheHeaders.headerValue(ApolloCacheHeaders.DO_NOT_STORE) == "true" || cacheHeaders.headerValue(ApolloCacheHeaders.MEMORY_CACHE_ONLY) == "true") {
       return emptySet()
     }
     return try {

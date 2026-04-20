@@ -1,18 +1,8 @@
 package com.apollographql.cache.normalized.options
 
-import com.apollographql.apollo.api.ExecutionContext
-import com.apollographql.apollo.api.ExecutionOptions
 import com.apollographql.apollo.api.MutableExecutionOptions
-
-internal class CacheMissesAsExceptionContext(val value: Boolean) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
-
-  companion object Key : ExecutionContext.Key<CacheMissesAsExceptionContext>
-}
-
-internal val ExecutionOptions.cacheMissesAsException: Boolean
-  get() = executionContext[CacheMissesAsExceptionContext]?.value ?: true
+import com.apollographql.cache.normalized.addCacheHeader
+import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 
 /**
  * Sets whether missing fields from the cache should be exposed as an exception.
@@ -26,7 +16,7 @@ internal val ExecutionOptions.cacheMissesAsException: Boolean
  * Default: true
  */
 fun <T> MutableExecutionOptions<T>.cacheMissesAsException(cacheMissesAsException: Boolean): T =
-  addExecutionContext(CacheMissesAsExceptionContext(cacheMissesAsException))
+  addCacheHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION, cacheMissesAsException.toString())
 
 @Deprecated("Renamed to cacheMissesAsException", ReplaceWith("cacheMissesAsException(throwOnCacheMiss)"))
 fun <T> MutableExecutionOptions<T>.throwOnCacheMiss(throwOnCacheMiss: Boolean): T = cacheMissesAsException(throwOnCacheMiss)

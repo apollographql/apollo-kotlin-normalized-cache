@@ -19,7 +19,21 @@ internal class CacheHeadersContext(val value: CacheHeaders) : ExecutionContext.E
 }
 
 internal val ExecutionOptions.cacheHeaders: CacheHeaders
-  get() = executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE
+  get() = (executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE).withDefaultValues
+
+private val CacheHeaders.withDefaultValues: CacheHeaders
+  get() = newBuilder()
+      .apply {
+        // Apply values for ExecutionOptions.cacheMissesAsException and ExecutionOptions.serverErrorsAsException
+        // which are true by default contrary to other flags.
+        if (!hasHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION)) {
+          addHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION, "true")
+        }
+        if (!hasHeader(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION)) {
+          addHeader(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION, "true")
+        }
+      }
+      .build()
 
 fun <D : Operation.Data> ApolloResponse.Builder<D>.cacheHeaders(cacheHeaders: CacheHeaders) =
   addExecutionContext(CacheHeadersContext(cacheHeaders))

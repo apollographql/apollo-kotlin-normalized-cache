@@ -30,10 +30,36 @@ import kotlin.reflect.KClass
  *
  * Note that changes are not automatically published - pass `publish = true` or call [publish] to notify any watchers.
  */
+@Suppress("DEPRECATION")
 class ApolloStore(
-    val cacheManager: CacheManager,
-    val customScalarAdapters: CustomScalarAdapters,
+    /**
+     * Wrapped cache manager.
+     */
+    cacheManager: CacheManager,
+
+    /**
+     * Scalar adapters that will be used with all operations.
+     */
+    customScalarAdapters: CustomScalarAdapters,
+
+    /**
+     * The cache headers that will be used with all operations.
+     * Additional cache headers can optionally be passed to operations, which will override those.
+     */
+    internal val cacheHeaders: CacheHeaders,
 ) {
+  @Deprecated("Use the constructor with cacheHeaders parameter instead.")
+  constructor(
+      cacheManager: CacheManager,
+      customScalarAdapters: CustomScalarAdapters,
+  ) : this(cacheManager, customScalarAdapters, CacheHeaders.NONE)
+
+  @Deprecated("This was accidentally made public and will be removed in a future release.")
+  val cacheManager: CacheManager = cacheManager
+
+  @Deprecated("This was accidentally made public and will be removed in a future release.")
+  val customScalarAdapters: CustomScalarAdapters = customScalarAdapters
+
   /**
    * Exposes the record field keys that have changed. This is collected internally to notify watchers.
    *
@@ -63,7 +89,7 @@ class ApolloStore(
       cacheHeaders: CacheHeaders = CacheHeaders.NONE,
   ): ApolloResponse<D> = cacheManager.readOperation(
       operation = operation,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -88,7 +114,7 @@ class ApolloStore(
       fragment = fragment,
       cacheKey = cacheKey,
       customScalarAdapters = customScalarAdapters,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
   )
 
   /**
@@ -117,7 +143,7 @@ class ApolloStore(
       data = data,
       errors = errors,
       publish = publish,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -144,7 +170,7 @@ class ApolloStore(
       operation = operation,
       dataWithErrors = dataWithErrors,
       publish = publish,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -174,7 +200,7 @@ class ApolloStore(
       cacheKey = cacheKey,
       data = data,
       publish = publish,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -396,7 +422,7 @@ suspend fun <D : Operation.Data> ApolloStore.removeOperation(
       executable = operation,
       cacheKey = operation.rootKey(),
       data = data,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       publish = publish,
   )
 }
@@ -425,7 +451,7 @@ suspend fun <D : Fragment.Data> ApolloStore.removeFragment(
       executable = fragment,
       cacheKey = cacheKey,
       data = data,
-      cacheHeaders = cacheHeaders,
+      cacheHeaders = this.cacheHeaders + cacheHeaders,
       publish = publish,
   )
 }
@@ -437,13 +463,15 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     cacheHeaders: CacheHeaders,
     publish: Boolean,
 ): Set<String> {
+  @Suppress("DEPRECATION")
   val dataWithErrors = data.withErrors(executable = executable, errors = null, customScalarAdapters = customScalarAdapters)
   val normalizationRecords = normalize(
       executable = executable,
       dataWithErrors = dataWithErrors,
       rootKey = cacheKey,
   )
-  val fullRecords = accessCache { cache -> cache.loadRecords(normalizationRecords.map { it.key }, cacheHeaders = cacheHeaders) }
+  val fullRecords =
+    accessCache { cache -> cache.loadRecords(normalizationRecords.map { it.key }, cacheHeaders = this.cacheHeaders + cacheHeaders) }
   val trimmedRecords = fullRecords.map { fullRecord ->
     val fieldNamesToTrim = normalizationRecords[fullRecord.key]?.fields?.keys.orEmpty()
     Record(
@@ -456,7 +484,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     cache.remove(normalizationRecords.keys, cascade = false)
     cache.merge(
         records = trimmedRecords,
-        cacheHeaders = cacheHeaders,
+        cacheHeaders = this.cacheHeaders + cacheHeaders,
         recordMerger = DefaultRecordMerger
     )
   }

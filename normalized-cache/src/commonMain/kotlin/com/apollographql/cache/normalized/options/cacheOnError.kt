@@ -1,10 +1,9 @@
 package com.apollographql.cache.normalized.options
 
 import com.apollographql.apollo.annotations.ApolloExperimental
-import com.apollographql.apollo.api.ApolloRequest
-import com.apollographql.apollo.api.ExecutionContext
 import com.apollographql.apollo.api.MutableExecutionOptions
-import com.apollographql.apollo.api.Operation
+import com.apollographql.cache.normalized.addCacheHeader
+import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 
 /**
  * Defines how cached errors are surfaced.
@@ -27,22 +26,10 @@ enum class CacheOnError {
   HALT,
 }
 
-internal class CacheOnErrorContext(val cacheOnError: CacheOnError) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
-
-  companion object Key : ExecutionContext.Key<CacheOnErrorContext>
-}
-
-internal val <D : Operation.Data> ApolloRequest<D>.cacheOnError
-  get() = executionContext[CacheOnErrorContext]?.cacheOnError ?: CacheOnError.PROPAGATE
-
 /**
  * Controls how cached errors are surfaced.
  *
  * Default: [CacheOnError.PROPAGATE]
  */
 @ApolloExperimental
-fun <T> MutableExecutionOptions<T>.cacheOnError(cacheOnError: CacheOnError) = addExecutionContext(
-    CacheOnErrorContext(cacheOnError),
-)
+fun <T> MutableExecutionOptions<T>.cacheOnError(cacheOnError: CacheOnError) = addCacheHeader(ApolloCacheHeaders.ON_ERROR, cacheOnError.name)
