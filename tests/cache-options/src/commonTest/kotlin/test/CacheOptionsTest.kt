@@ -959,6 +959,19 @@ class CacheOptionsTest {
   }
 
   @Test
+  fun clientCacheMissesAsExceptionFalseIsPropagatedToApolloStore() = runTest {
+    val apolloClient = ApolloClient.Builder()
+        .serverUrl("http://unused")
+        .cache(MemoryCacheFactory())
+        .cacheMissesAsException(false)
+        .build()
+    val response = apolloClient.apolloStore.readOperation(MeWithNickNameQuery())
+    // cacheMissesAsException set to false on the client: cache miss is in response.errors, not in exception
+    assertNull(response.exception)
+    assertEquals(response.errors?.size, 1)
+  }
+
+  @Test
   fun cacheHeadersCanBeOverriddenWithApolloStore() = runTest {
     val apolloClient = ApolloClient.Builder()
         .serverUrl("http://unused")
@@ -968,7 +981,7 @@ class CacheOptionsTest {
         MeWithNickNameQuery(),
         cacheHeaders = CacheHeaders.Builder().addHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION, "false").build()
     )
-    // cacheMissesAsException overridden by the header to be false: cache miss is in response.errors
+    // cacheMissesAsException overridden by the header to be false: cache miss is in response.errors, not in exception
     assertNull(response.exception)
     assertEquals(response.errors?.size, 1)
   }
