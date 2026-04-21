@@ -113,7 +113,7 @@ class MemoryCache(
   }
 
   override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
-    if (records.isEmpty() || cacheHeaders.hasHeader(ApolloCacheHeaders.DO_NOT_STORE)) {
+    if (records.isEmpty() || cacheHeaders.headerValue(ApolloCacheHeaders.DO_NOT_STORE) == "true") {
       return emptySet()
     }
     val receivedDate = cacheHeaders.headerValue(ApolloCacheHeaders.RECEIVED_DATE)

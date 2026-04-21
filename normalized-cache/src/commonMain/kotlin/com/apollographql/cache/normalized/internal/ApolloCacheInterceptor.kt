@@ -22,13 +22,8 @@ import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.clock
 import com.apollographql.cache.normalized.doNotStore
-import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchFromCache
-import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.optimisticData
-import com.apollographql.cache.normalized.options.cacheMissesAsException
-import com.apollographql.cache.normalized.options.cacheOnError
-import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.flow.Flow
@@ -76,12 +71,6 @@ internal class ApolloCacheInterceptor(
         var cacheHeaders = request.cacheHeaders + response.cacheHeaders
         if (request.storeReceivedDate) {
           cacheHeaders += nowReceivedDateCacheHeaders(request.clock)
-        }
-        if (request.memoryCacheOnly) {
-          cacheHeaders += CacheHeaders.Builder().addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true").build()
-        }
-        if (request.errorsReplaceCachedValues) {
-          cacheHeaders += CacheHeaders.Builder().addHeader(ApolloCacheHeaders.ERRORS_REPLACE_CACHED_VALUES, "true").build()
         }
         cacheManager.writeOperation(request.operation, response.data!!, response.errors, customScalarAdapters, cacheHeaders)
       } else {
@@ -209,12 +198,6 @@ internal class ApolloCacheInterceptor(
     val cacheHeaders = request.cacheHeaders
         .newBuilder().apply {
           addHeader(ApolloCacheHeaders.CURRENT_DATE, (request.clock() / 1000).toString())
-          addHeader(ApolloCacheHeaders.ON_ERROR, request.cacheOnError.name)
-          if (request.memoryCacheOnly) {
-            addHeader(ApolloCacheHeaders.MEMORY_CACHE_ONLY, "true")
-          }
-          addHeader(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION, request.cacheMissesAsException.toString())
-          addHeader(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION, request.serverErrorsAsException.toString())
         }
         .build()
     val startMillis = currentTimeMillis()

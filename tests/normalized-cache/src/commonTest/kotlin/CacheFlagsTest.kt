@@ -91,7 +91,8 @@ class CacheFlagsTest {
               override fun <D : Operation.Data> execute(request: ApolloRequest<D>): Flow<ApolloResponse<D>> {
                 return delegate.execute(request).map { response ->
                   // Parse data, errors or anything else and decide whether to store the response or not
-                  response.newBuilder().cacheHeaders(CacheHeaders.Builder().addHeader(ApolloCacheHeaders.DO_NOT_STORE, "").build()).build()
+                  response.newBuilder().cacheHeaders(CacheHeaders.Builder().addHeader(ApolloCacheHeaders.DO_NOT_STORE, "true").build())
+                      .build()
                 }
               }
 
