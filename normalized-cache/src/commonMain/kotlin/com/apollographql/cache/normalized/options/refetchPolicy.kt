@@ -31,7 +31,7 @@ fun <T> MutableExecutionOptions<T>.refetchPolicyInterceptor(interceptor: ApolloI
 @Suppress("UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.refetchPolicy(fetchPolicy: FetchPolicy): T {
   // Reset first
-  refetchOnlyIfCached(true)
+  refetchOnlyIfCached(false)
   refetchNoCache(false)
   return when (fetchPolicy) {
     FetchPolicy.NetworkFirst -> {

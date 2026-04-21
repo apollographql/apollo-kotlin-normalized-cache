@@ -359,6 +359,43 @@ class WatcherTest {
     job.cancel()
   }
 
+  /**
+   * A test to test refetching with a CacheFirst refetchPolicy. On a cache miss during refetch,
+   * the watcher should fall through to the network.
+   */
+  @Test
+  fun cacheFirstRefetchPolicy() = runTest(before = { setUp() }) {
+    val channel = Channel<ApolloResponse<EpisodeHeroNameQuery.Data>>(capacity = Channel.UNLIMITED)
+    val query = EpisodeHeroNameQuery(Episode.EMPIRE)
+
+    // Seed the watcher with an initial "R2-D2" response from the network
+    apolloClient.enqueueTestResponse(query, episodeHeroNameData)
+    val job = launch {
+      apolloClient.query(query)
+          .fetchPolicy(FetchPolicy.NetworkOnly)
+          .refetchPolicy(FetchPolicy.CacheFirst)
+          .watch()
+          .collect {
+            channel.send(it)
+          }
+    }
+    assertEquals("R2-D2", channel.awaitElement().data?.hero?.name)
+
+    // Clear the cache so the next refetch produces a cache miss.
+    // With CacheFirst, the watcher is expected to fall through to the network.
+    apolloClient.enqueueTestResponse(query, episodeHeroNameChangedData)
+    cacheManager.clearAll()
+    cacheManager.publish(CacheManager.ALL_KEYS)
+
+    // Cache miss is emitted first (null data)
+    assertIs<CacheMissException>(channel.awaitElement().exception)
+
+    // The network fall-through brings back "Artoo"
+    assertEquals("Artoo", channel.awaitElement().data?.hero?.name)
+
+    job.cancel()
+  }
+
 
   @Test
   fun nothingReceivedWhenCancelled() = runTest(before = { setUp() }) {
