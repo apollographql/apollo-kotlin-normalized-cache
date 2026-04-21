@@ -31,6 +31,8 @@ fun <T> MutableExecutionOptions<T>.fetchPolicyInterceptor(interceptor: ApolloInt
 /**
  * Sets the initial [FetchPolicy]
  * This only has effects for queries. Mutations and subscriptions always use the network only.
+ *
+ * Default: [FetchPolicy.CacheFirst]
  */
 @Suppress("UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.fetchPolicy(fetchPolicy: FetchPolicy): T {
