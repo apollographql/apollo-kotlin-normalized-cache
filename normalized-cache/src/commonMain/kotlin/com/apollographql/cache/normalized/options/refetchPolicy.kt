@@ -19,7 +19,9 @@ internal val <T> MutableExecutionOptions<T>.refetchPolicyInterceptor
   get() = executionContext[RefetchPolicyContext]?.interceptor ?: DefaultFetchPolicyInterceptor
 
 /**
- * Sets the [FetchPolicy] used when watching queries and a cache change has been published
+ * Sets the [FetchPolicy] used when watching queries and a cache change has been published.
+ *
+ * Default: [FetchPolicy.CacheOnly]
  */
 fun <T> MutableExecutionOptions<T>.refetchPolicyInterceptor(interceptor: ApolloInterceptor) = addExecutionContext(
     RefetchPolicyContext(interceptor),

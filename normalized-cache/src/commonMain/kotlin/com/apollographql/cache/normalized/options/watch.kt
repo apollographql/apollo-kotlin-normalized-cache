@@ -36,7 +36,7 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
  * There is a guarantee that the cache is subscribed before the initial response(s) finish emitting.
  * Any update to the cache done after the initial response(s) are received will be received.
  *
- * [fetchPolicy] controls how the result is first queried, while [refetchPolicy] will control the subsequent fetches.
+ * [fetchPolicy] controls how the result is first queried (default: [FetchPolicy.CacheFirst]), while [refetchPolicy] will control the subsequent fetches (default: [FetchPolicy.CacheOnly]).
  *
  * Note: when manually updating the cache through [ApolloStore], [ApolloStore.publish] must be called for watchers to be notified.
  *
