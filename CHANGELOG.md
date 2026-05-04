@@ -2,6 +2,16 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.2
+_2026-05-04_
+
+Maintenance release with 3 fixes:
+- Fetch failures with `@include` directive (#334)
+- Propagate cache headers to `ApolloStore` (#338)
+- Fix `refetchPolicy(CacheFirst)` not falling through to network on cache miss (#339)
+
+Thank you @devunt for your contribution! 💜
+
 # v1.0.1
 _2026-03-24_
 
