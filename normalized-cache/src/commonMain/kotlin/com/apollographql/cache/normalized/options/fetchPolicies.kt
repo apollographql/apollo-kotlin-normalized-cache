@@ -40,17 +40,10 @@ fun <T> MutableExecutionOptions<T>.fetchPolicy(fetchPolicy: FetchPolicy): T {
   onlyIfCached(false)
   noCache(false)
   return when (fetchPolicy) {
-    FetchPolicy.NetworkFirst -> {
-      fetchPolicyInterceptor(NetworkFirstInterceptor)
-    }
-
+    FetchPolicy.NetworkFirst -> fetchPolicyInterceptor(NetworkFirstInterceptor)
     FetchPolicy.CacheOnly -> onlyIfCached(true)
     FetchPolicy.NetworkOnly -> noCache(true)
     FetchPolicy.CacheFirst -> this as T
-    FetchPolicy.CacheAndNetwork,
-      -> {
-      // CacheAndNetwork is deprecated but should still work
-      fetchPolicyInterceptor(CacheAndNetworkInterceptor)
-    }
+    FetchPolicy.CacheAndNetwork -> fetchPolicyInterceptor(CacheAndNetworkInterceptor)
   }
 }
