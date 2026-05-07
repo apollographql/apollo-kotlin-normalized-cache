@@ -36,8 +36,7 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
  * The cache subscription is established before the last initial response is emitted to the collector, so any external cache update made
  * after collecting the last initial response will be received.
  *
- * Note: any cache write performed during the initial network fetch does not trigger an additional emission, because it happens before the
- * cache subscription is active, unless when [writeToCacheAsynchronously] is true.
+ * Note: when using [writeToCacheAsynchronously], the cache updates are postponed and behave as external cache updates. They may trigger emission. 
  *
  * [fetchPolicy] controls how the result is first queried (default: [FetchPolicy.CacheFirst]), while [refetchPolicy] will control the subsequent fetches (default: [FetchPolicy.CacheOnly]).
  *
