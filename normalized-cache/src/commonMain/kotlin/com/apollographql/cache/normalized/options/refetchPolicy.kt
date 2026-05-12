@@ -36,16 +36,10 @@ fun <T> MutableExecutionOptions<T>.refetchPolicy(fetchPolicy: FetchPolicy): T {
   refetchOnlyIfCached(false)
   refetchNoCache(false)
   return when (fetchPolicy) {
-    FetchPolicy.NetworkFirst -> {
-      refetchPolicyInterceptor(NetworkFirstInterceptor)
-    }
-
+    FetchPolicy.NetworkFirst ->refetchPolicyInterceptor(NetworkFirstInterceptor)
     FetchPolicy.CacheOnly -> refetchOnlyIfCached(true)
     FetchPolicy.NetworkOnly -> refetchNoCache(true)
     FetchPolicy.CacheFirst -> this as T
-    FetchPolicy.CacheAndNetwork,
-      -> {
-      refetchPolicyInterceptor(CacheAndNetworkInterceptor)
-    }
+    FetchPolicy.CacheAndNetwork -> refetchPolicyInterceptor(CacheAndNetworkInterceptor)
   }
 }
