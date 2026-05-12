@@ -164,9 +164,6 @@ private object ConnectionFieldMerger : FieldMerger {
     } else if (existingStartCursor == null && existingEndCursor == null) {
       // Existing is empty
       incoming
-    } else if (incomingStartCursor == null && incomingEndCursor == null) {
-      // Incoming is empty
-      existing
     } else if (incomingBeforeArgument == null && incomingAfterArgument == null) {
       // Incoming is not a pagination query, or a first page query
       // Handle this case by resetting the cache with this page
@@ -195,7 +192,8 @@ private object ConnectionFieldMerger : FieldMerger {
       if (incomingAfterArgument == existingEndCursor) {
         // Append to the end
         mergedStartCursor = existingStartCursor
-        mergedEndCursor = incomingEndCursor
+        // If incoming is empty, don't overwrite the existing end cursor we have
+        mergedEndCursor = incomingEndCursor ?: existingEndCursor
         mergedEdges = if (existingEdges == null || incomingEdges == null) {
           null
         } else {
@@ -210,7 +208,8 @@ private object ConnectionFieldMerger : FieldMerger {
         mergedHasNextPage = incomingHasNextPage
       } else if (incomingBeforeArgument == existingStartCursor) {
         // Prepend to the start
-        mergedStartCursor = incomingStartCursor
+        // If incoming is empty, don't overwrite the existing start cursor we have
+        mergedStartCursor = incomingStartCursor ?: existingStartCursor
         mergedEndCursor = existingEndCursor
         mergedEdges = if (existingEdges == null || incomingEdges == null) {
           null
