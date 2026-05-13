@@ -443,4 +443,78 @@ class ConnectionPaginationTest {
     assertChainedCachesAreEqual(cacheManager)
   }
 
+  @Test
+  fun emptyPageMemoryCache() {
+    emptyPageTest(MemoryCacheFactory())
+  }
+
+  @Test
+  fun emptyPageSqlCache() {
+    emptyPageTest(SqlNormalizedCacheFactory())
+  }
+
+  @Test
+  fun emptyPageChainedCache() {
+    emptyPageTest(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()))
+  }
+
+  private fun emptyPageTest(cacheFactory: NormalizedCacheFactory) = runTest {
+    val cacheManager = CacheManager(
+        normalizedCacheFactory = cacheFactory,
+        cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies),
+        cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies),
+        metadataGenerator = ConnectionMetadataGenerator(Cache.connectionTypes),
+        recordMerger = ConnectionRecordMerger,
+        fieldKeyGenerator = ConnectionFieldKeyGenerator(Cache.connectionTypes),
+        embeddedFieldsProvider = DefaultEmbeddedFieldsProvider(Cache.embeddedFields),
+    )
+    cacheManager.clearAll()
+
+    // First page
+    val query1 = UsersQuery(first = Optional.Present(2))
+    val data1 = UsersQuery.Data {
+      users = buildUserConnection {
+        pageInfo = buildPageInfo {
+          startCursor = "xx42"
+          endCursor = "xx43"
+        }
+        edges = listOf(
+            buildUserEdge {
+              cursor = "xx42"
+              node = buildUser {
+                id = "42"
+              }
+            },
+            buildUserEdge {
+              cursor = "xx43"
+              node = buildUser {
+                id = "43"
+              }
+            },
+        )
+      }
+    }
+    cacheManager.writeOperation(query1, data1)
+    var dataFromStore = cacheManager.readOperation(query1).data
+    assertEquals(data1, dataFromStore)
+    assertChainedCachesAreEqual(cacheManager)
+
+    // Page after, empty
+    val query2 = UsersQuery(first = Optional.Present(2), after = Optional.Present("xx43"))
+    val data2 = UsersQuery.Data {
+      users = buildUserConnection {
+        pageInfo = buildPageInfo {
+          startCursor = null
+          endCursor = null
+        }
+        edges = emptyList()
+      }
+    }
+    cacheManager.writeOperation(query2, data2)
+    dataFromStore = cacheManager.readOperation(query1).data
+    val expectedData = data1
+    assertEquals(expectedData, dataFromStore)
+    assertChainedCachesAreEqual(cacheManager)
+  }
+
 }
