@@ -2,6 +2,11 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.3
+_2026-05-13_
+
+- [Fix] Pagination: correctly handle merging empty pages (#344)
+
 # v1.0.2
 _2026-05-04_
 
