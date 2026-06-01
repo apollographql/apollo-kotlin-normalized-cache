@@ -256,6 +256,15 @@ class CacheControlCacheResolver(
         }
         if (staleDuration >= 0) isStale = true
       }
+
+      if (receivedDate == null && expirationDate == null) {
+        // We can't determine the field's staleness: consider it stale
+        throw CacheMissException(
+            key = context.parentKey.keyToString(),
+            fieldName = context.getFieldKey(),
+            stale = true,
+        )
+      }
     }
 
     val value = delegateResolver.resolveField(context)
