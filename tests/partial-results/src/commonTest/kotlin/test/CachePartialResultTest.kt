@@ -944,8 +944,7 @@ class CachePartialResultTest {
   fun onErrorNullWithCatchToNull() = runTest(before = { setUp() }, after = { tearDown() }) {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
-        .storeReceivedDate(true)
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
         .build()
         .use { apolloClient ->
           val cacheMissResult = apolloClient.query(GetFooQuery())
@@ -1001,8 +1000,7 @@ class CachePartialResultTest {
   fun onErrorHalt() = runTest(before = { setUp() }, after = { tearDown() }) {
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = CacheControlCacheResolver(SchemaCoordinatesMaxAgeProvider(Cache.maxAges, Duration.INFINITE), FieldPolicyCacheResolver(Cache.fieldPolicies)))
-        .storeReceivedDate(true)
+        .normalizedCache(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies))
         .build()
         .use { apolloClient ->
           val cacheMissResult = apolloClient.query(GetFoo2Query())

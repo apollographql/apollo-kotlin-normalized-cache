@@ -22,6 +22,7 @@ import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.mockserver.MockResponse
 import com.apollographql.mockserver.MockServer
 import declarative.GetUserNameQuery
+import declarative.cache.Cache.cache
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -96,5 +97,35 @@ class StaleTest {
       }
       awaitComplete()
     }
+  }
+
+  @Test
+  fun unknownAgeConsideredStale() = runTest {
+    val apolloClient = ApolloClient.Builder()
+        .serverUrl("http://unused")
+        .cache(MemoryCacheFactory())
+        .build()
+
+    apolloClient.apolloStore.writeOperation(
+        operation = GetUserNameQuery(),
+        data = GetUserNameQuery.Data(
+            GetUserNameQuery.User(
+                __typename = "User",
+                name = "John Doe",
+            ),
+        ),
+    )
+    val response = apolloClient
+        .query(GetUserNameQuery())
+        .fetchPolicy(FetchPolicy.CacheOnly)
+        .execute()
+
+    // No stored received date, so age can't be computed -> considered stale
+    assertIs<ApolloResponse<GetUserNameQuery.Data>>(response)
+    assertEquals(true, response.cacheInfo?.isStale)
+    assertNull(response.data)
+    assertNotNull(response.exception)
+    assertIs<CacheMissException>(response.exception)
+    assertEquals(true, response.isFromCache)
   }
 }
