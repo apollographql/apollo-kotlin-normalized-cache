@@ -3,8 +3,8 @@ package test
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.FetchPolicy.CacheFirst
 import com.apollographql.cache.normalized.isFromCache
-import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.refetchPolicy
+import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.cache.normalized.watch
 import com.apollographql.mockserver.MockServer
@@ -54,7 +54,7 @@ class FetchPolicyTest {
     }
     ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .cache(MemoryCacheFactory(), writeToCacheAsynchronously = true)
+        .cache(SqlNormalizedCacheFactory(), writeToCacheAsynchronously = true)
         .build()
         .use { apolloClient ->
           apolloClient.query(MeQuery())
