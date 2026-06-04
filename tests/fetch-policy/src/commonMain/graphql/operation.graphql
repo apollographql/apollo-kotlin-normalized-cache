@@ -1,0 +1,7 @@
+query MeQuery {
+  me {
+    id
+    firstName
+    lastName
+  }
+}
