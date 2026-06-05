@@ -47,7 +47,7 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
             cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
                 .build(),
         )
-        if (cacheResponse.exception == null) {
+        if (cacheResponse.exception !is CacheMissException) {
           return@flow
         }
       }
