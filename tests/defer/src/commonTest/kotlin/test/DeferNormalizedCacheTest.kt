@@ -7,6 +7,7 @@ import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.exception.ApolloException
 import com.apollographql.apollo.exception.ApolloGraphQLException
+import com.apollographql.apollo.exception.ApolloHttpException
 import com.apollographql.apollo.exception.ApolloNetworkException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.network.NetworkTransport
@@ -453,10 +454,13 @@ class DeferNormalizedCacheTest {
     )
     assertResponseListEquals(networkExpected, networkActual)
 
-    // The error was stored in the cache and is surfaced as an exception
+    mockServer.enqueueError(statusCode = 500)
+    // Because of the error we fallback to the network (which also fails)
     val exception = apolloClient.query(WithFragmentSpreadsQuery()).execute().exception
     check(exception is ApolloGraphQLException)
+    assertIs<ApolloHttpException>(exception.suppressedExceptions.first())
     assertEquals("GraphQL error: 'Cannot resolve isColor'", exception.message)
+    mockServer.awaitRequest()
   }
 
   @Test
