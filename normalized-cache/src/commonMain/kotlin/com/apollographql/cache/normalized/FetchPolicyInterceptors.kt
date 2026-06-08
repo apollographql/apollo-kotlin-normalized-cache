@@ -22,7 +22,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.single
 
 /**
- * An interceptor that emits the response from the cache first, and if there was a cache miss, emits the response(s) from the network.
+ * An interceptor that emits the response from the cache first, and if there was an exception on the response (e.g. a cache miss or a cached
+ * server error), emits the response(s) from the network.
  *
  * This is the default cache policy interceptor.
  *
@@ -43,11 +44,8 @@ val DefaultFetchPolicyInterceptor = object : ApolloInterceptor {
                 .fetchFromCache(true)
                 .build(),
         ).single()
-        emit(
-            cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null)
-                .build(),
-        )
-        if (cacheResponse.exception !is CacheMissException) {
+        emit(cacheResponse.newBuilder().isLast(request.onlyIfCached || cacheResponse.exception == null).build())
+        if (cacheResponse.exception == null) {
           return@flow
         }
       }
