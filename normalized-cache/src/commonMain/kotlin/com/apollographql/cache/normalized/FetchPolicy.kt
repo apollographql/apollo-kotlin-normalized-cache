@@ -4,9 +4,10 @@ import com.apollographql.apollo.ApolloCall
 
 enum class FetchPolicy {
   /**
-   * Emit the response from the cache first, and if there was a cache miss, emit the response(s) from the network.
+   * Emit the response from the cache first, and if there was an exception on the response (e.g. a cache miss or a cached server error),
+   * emits the response(s) from the network.
    *
-   * This is the default behaviour.
+   * This is the default behavior.
    */
   CacheFirst,
 
