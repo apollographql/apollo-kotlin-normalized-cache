@@ -8,10 +8,10 @@ The Normalized Cache is now hosted in this dedicated repository and published at
 
 Compared to the previous version, this library brings:
 
-- [Pagination support](pagination-home.md)
-- [](expiration.md) (a.k.a. Time to live)
-- [](garbage-collection.md), and [trimming](trimming.md)
-- [Partial results from the cache](partial-cache-reads.md)
+- [Pagination support](https://www.apollographql.com/docs/kotlin/caching/pagination/home)
+- [Expiration](https://www.apollographql.com/docs/kotlin/caching/expiration) (a.k.a. Time to live)
+- [Garbage collection](https://www.apollographql.com/docs/kotlin/caching/garbage-collection), and [trimming](https://www.apollographql.com/docs/kotlin/caching/trimming)
+- [Partial results from the cache](https://www.apollographql.com/docs/kotlin/caching/partial-cache-reads)
 - API simplifications
 - Key scope support
 - SQL cache improved performance
@@ -47,21 +47,21 @@ apollo {
     // ...
 
     // Add this
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 }
 ```
-<code-block lang="kotlin" collapsible="true" collapsed-title="For Apollo Kotlin v5+">
-// For Apollo Kotlin v5 and later
+<code-block lang="kotlin" collapsible="true" collapsed-title="For Apollo Kotlin v4">
+// For Apollo Kotlin v4
 apollo {
   service("service") {
     // ...
 
     // Add this
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%")
-    pluginArgument("com.apollographql.cache.packageName", packageName.get())
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin:%latest_version%") {
+      argument("com.apollographql.cache.packageName", packageName.get())
+    }
   }
 }
 </code-block>
