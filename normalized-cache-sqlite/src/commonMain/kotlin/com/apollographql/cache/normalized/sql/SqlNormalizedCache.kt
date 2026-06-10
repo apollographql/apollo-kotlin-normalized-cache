@@ -170,14 +170,15 @@ class SqlNormalizedCache internal constructor(
       recordDatabase.transaction {
         val existingRecords = selectRecords(records.map { it.key }).associateBy { it.key }
         records.flatMap { record ->
+          val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
           val existingRecord = existingRecords[record.key]
           if (existingRecord == null) {
-            recordDatabase.insertOrUpdateRecord(record.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
+            recordDatabase.insertOrUpdateRecord(record)
             record.fieldKeys()
           } else {
             val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
             if (mergedRecord.isNotEmpty()) {
-              recordDatabase.insertOrUpdateRecord(mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate))
+              recordDatabase.insertOrUpdateRecord(mergedRecord)
             }
             changedKeys
           }

@@ -122,17 +122,16 @@ class MemoryCache(
       val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
       val recordsToInsert = mutableListOf<Record>()
       val changedKeys = records.flatMap { record ->
+        val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
         val existingRecord = existingRecords[record.key]
         if (existingRecord == null) {
-          val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
           recordsToInsert.add(record)
           lruCache[record.key] = record
           record.fieldKeys()
         } else {
           val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
-          val mergedRecordWithDates = mergedRecord.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
-          recordsToInsert.add(mergedRecordWithDates)
-          lruCache[record.key] = mergedRecordWithDates
+          recordsToInsert.add(mergedRecord)
+          lruCache[record.key] = mergedRecord
           changedKeys
         }
       }.toSet()
