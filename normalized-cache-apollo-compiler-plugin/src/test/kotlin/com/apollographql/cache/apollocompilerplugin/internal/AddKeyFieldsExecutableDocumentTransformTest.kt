@@ -176,6 +176,182 @@ class AddKeyFieldsExecutableDocumentTransformTest {
   }
 
   @Test
+  fun keyFieldsOnUnionMembersDontOverselect() {
+    // language=GraphQL
+    val schemaText = """
+      type Query {
+        user: User
+      }
+            
+      interface Node @typePolicy(keyFields: "id") {
+        id: ID!
+      }
+            
+      union User = Person | Robot | Company
+      
+      type Person implements Node {
+        id: ID!
+        name: String!
+        friends: [Person!]!
+      }
+      
+      interface NodeWithDescription implements Node {
+        id: ID!
+        description: String!
+      }
+      
+      type Robot implements NodeWithDescription & Node {
+        id: ID!
+        name: String!
+        model: String!
+        description: String!
+      }
+      
+      type Company @typePolicy(keyFields: "id") {
+        name: String!
+        id: ID!
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val operationText1 = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected1 = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(schemaText, operationText1, expected1)
+
+    // language=GraphQL
+    val operationText2 = """
+      query GetUser {
+        user {
+          ... on Node {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected2 = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(schemaText, operationText2, expected2)
+
+    // language=GraphQL
+    val operationText3 = """
+      query GetUser {
+        user {
+          ... on Node {
+            ...NodeIdFragment
+            ... on Node {
+              id
+            }
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected3 = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node {
+            ...NodeIdFragment
+            ... on Node {
+              id
+            }
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(schemaText, operationText3, expected3)
+  }
+
+  @Test
   fun keyFieldsOnInterfacePossibleTypes() {
     // language=GraphQL
     val schemaText = """
