@@ -225,11 +225,11 @@ private class AddKeyFieldsExecutableDocumentTransformProcessor(
             }
             val possibleTypeWithParents =
               (schema.typeDefinition(possibleType) as GQLObjectTypeDefinition).implementsInterfaces + possibleType
-            val alreadySelectedFieldNames = fieldsWithTypeConditions
+            val possibleTypeAlreadySelectedFields = fieldsWithTypeConditions
                 .filter { it.typeCondition in possibleTypeWithParents }
                 .map { it.fieldName }
                 .toSet()
-            val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames - alreadySelectedFieldNames
+            val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames - possibleTypeAlreadySelectedFields
             if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
               GQLInlineFragment(
                   typeCondition = GQLNamedType(null, possibleType),
