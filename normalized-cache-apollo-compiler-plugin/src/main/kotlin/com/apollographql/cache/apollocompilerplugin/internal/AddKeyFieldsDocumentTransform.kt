@@ -4,10 +4,12 @@ package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.annotations.ApolloInternal
+import com.apollographql.apollo.ast.GQLBooleanValue
 import com.apollographql.apollo.ast.GQLDocument
 import com.apollographql.apollo.ast.GQLField
 import com.apollographql.apollo.ast.GQLFragmentDefinition
 import com.apollographql.apollo.ast.GQLFragmentSpread
+import com.apollographql.apollo.ast.GQLHasDirectives
 import com.apollographql.apollo.ast.GQLInlineFragment
 import com.apollographql.apollo.ast.GQLInterfaceTypeDefinition
 import com.apollographql.apollo.ast.GQLNamedType
@@ -66,29 +68,76 @@ private class AddKeyFieldsExecutableDocumentTransformProcessor(
       val typeCondition: String,
   )
 
+  /**
+   * Get field names in the selections, associated with their type condition.
+   * For instance if [typeCondition] is `ParentType`, given:
+   * ```graphql
+   * a
+   * b @skip(if: true)
+   * ... on SomeType {
+   *   x
+   *   z
+   * }
+   * ```
+   * returns:
+   * - a: ParentType
+   * - x: SomeType
+   * - z: SomeType
+   */
+  private fun List<GQLSelection>.fieldsWithTypeConditions(typeCondition: String): Set<FieldWithTypeCondition> = flatMap { selection ->
+    when (selection) {
+      is GQLInlineFragment -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        selection.selections.fieldsWithTypeConditions(selection.typeCondition?.name ?: typeCondition)
+      }
+
+      is GQLFragmentSpread -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        selection.fieldsWithTypeConditions()
+      }
+
+      is GQLField -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        listOf(
+            FieldWithTypeCondition(
+                fieldName = selection.name,
+                typeCondition = typeCondition
+            )
+        )
+      }
+    }
+  }.toSet()
+
   private fun GQLFragmentSpread.fieldsWithTypeConditions(): Set<FieldWithTypeCondition> {
     return fieldsWithTypeConditionsFragmentCache.getOrPut(name) {
       val fragmentDefinition = (document.definitions.filterIsInstance<GQLFragmentDefinition>() + extraFragmentDefinitions)
           .firstOrNull { it.name == name }
-          ?: return emptySet()
-      fragmentDefinition.selections.fieldsWithTypeConditions(typeCondition = fragmentDefinition.typeCondition.name)
+          ?: return@getOrPut emptySet()
+      fragmentDefinition.selections.fieldsWithTypeConditions(fragmentDefinition.typeCondition.name)
     }
   }
 
-  private fun List<GQLSelection>.fieldsWithTypeConditions(typeCondition: String): Set<FieldWithTypeCondition> = flatMap { selection ->
-    when (selection) {
-      is GQLInlineFragment -> selection.selections.fieldsWithTypeConditions(typeCondition = selection.typeCondition?.name ?: typeCondition)
-
-      is GQLFragmentSpread -> selection.fieldsWithTypeConditions()
-
-      is GQLField -> listOf(
-          FieldWithTypeCondition(
-              fieldName = selection.name,
-              typeCondition = typeCondition
-          )
-      )
+  /**
+   * Ignore when:
+   * - @skip(if: true)
+   * - @skip(if: $someVariable) (because we can't know)
+   * - @include(if: false)
+   * - @include(if: $someVariable) (because we can't know)
+   */
+  private fun GQLHasDirectives.shouldIgnore(): Boolean {
+    return directives.any { directive ->
+      directive.name == "skip" && run {
+        val value = directive.arguments.firstOrNull { it.name == "if" }?.value
+        value !is GQLBooleanValue || value.value
+      } || directive.name == "include" && run {
+        val value = directive.arguments.firstOrNull { it.name == "if" }?.value
+        value !is GQLBooleanValue || !value.value
+      }
     }
-  }.toSet()
+  }
 
   private fun GQLOperationDefinition.withRequiredFields(): GQLOperationDefinition {
     val parentType = rootTypeDefinition(schema)!!.name
