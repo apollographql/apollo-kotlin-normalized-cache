@@ -2,6 +2,13 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.4
+_2026-06-15_
+
+Maintenance release with 1 fix. If you are using the expiration feature we recommend upgrading to this version, to prevent some stale from data being incorrectly considered fresh.
+
+- [Fix] Expiration: received date set on whole record when merging (#354)
+
 # v1.0.3
 _2026-05-13_
 
