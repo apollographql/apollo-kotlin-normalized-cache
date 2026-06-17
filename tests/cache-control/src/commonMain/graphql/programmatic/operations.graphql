@@ -110,3 +110,17 @@ query GetNodes {
     id
   }
 }
+
+query GetProductName($id: ID!) {
+  product(id: $id) {
+    id
+    name
+  }
+}
+
+query GetProductNameWithoutParam {
+  product(id: "1") {
+    id
+    name
+  }
+}

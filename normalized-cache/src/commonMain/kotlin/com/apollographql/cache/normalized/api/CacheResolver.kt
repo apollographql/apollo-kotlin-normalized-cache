@@ -220,9 +220,8 @@ class CacheControlCacheResolver(
   override fun resolveField(context: ResolverContext): Any? {
     var isStale = false
     if (context.parent is Record) {
-      val field = context.field
       // Consider the client controlled max age
-      val receivedDate = context.parent.receivedDate(field.name)
+      val receivedDate = context.parent.receivedDate(context.getFieldKey())
       val currentDate = context.cacheHeaders.headerValue(ApolloCacheHeaders.CURRENT_DATE)?.toLongOrNull() ?: (currentTimeMillis() / 1000)
       if (receivedDate != null) {
         val age = currentDate - receivedDate
@@ -243,7 +242,7 @@ class CacheControlCacheResolver(
       }
 
       // Consider the server controlled max age
-      val expirationDate = context.parent.expirationDate(field.name)
+      val expirationDate = context.parent.expirationDate(context.getFieldKey())
       if (expirationDate != null) {
         val staleDuration = currentDate - expirationDate
         val maxStale = context.cacheHeaders.headerValue(ApolloCacheHeaders.MAX_STALE)?.toLongOrNull() ?: 0L
