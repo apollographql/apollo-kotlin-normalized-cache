@@ -29,6 +29,8 @@ import kotlinx.coroutines.test.runTest
 import programmatic.GetProductNameQuery
 import programmatic.GetProductNameQuery.Product
 import programmatic.GetProductNameWithoutParamQuery
+import programmatic.GetUserAdminQuery
+import programmatic.GetUserEmailQuery
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -271,5 +273,34 @@ class StaleTest {
       }
       awaitComplete()
     }
+  }
+
+  @Test
+  fun missingFieldDoesntShowAsStale() = runTest {
+    val apolloClient = ApolloClient.Builder()
+        .serverUrl("unused")
+        .storeReceivedDate(true)
+        .cacheMissesAsException(true)
+        .cache(MemoryCacheFactory())
+        .build()
+
+    apolloClient.apolloStore.writeOperation(
+        operation = GetUserAdminQuery(),
+        data = GetUserAdminQuery.Data(
+            GetUserAdminQuery.User(admin = true)
+        ),
+        cacheHeaders = receivedDate(currentTimeSeconds()),
+    )
+
+    val cacheRequest = apolloClient.query(GetUserEmailQuery())
+        .fetchPolicy(FetchPolicy.CacheOnly)
+        .execute()
+    assertEquals(expected = true, actual = cacheRequest.isFromCache)
+    assertEquals(expected = null, actual = cacheRequest.data)
+    assertEquals(expected = null, actual = cacheRequest.errors)
+    assertEquals(
+        expected = """Object 'user' has no field named 'email'""",
+        actual = cacheRequest.exception!!.message,
+    )
   }
 }

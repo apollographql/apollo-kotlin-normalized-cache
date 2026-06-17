@@ -218,6 +218,7 @@ class CacheControlCacheResolver(
   )
 
   override fun resolveField(context: ResolverContext): Any? {
+    val value = delegateResolver.resolveField(context)
     var isStale = false
     if (context.parent is Record) {
       // Consider the client controlled max age
@@ -266,7 +267,6 @@ class CacheControlCacheResolver(
       }
     }
 
-    val value = delegateResolver.resolveField(context)
     return if (isStale) {
       ResolvedValue(
           value = value,
