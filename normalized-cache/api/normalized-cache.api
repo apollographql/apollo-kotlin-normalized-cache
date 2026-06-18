@@ -390,6 +390,15 @@ public final class com/apollographql/cache/normalized/api/CacheResolver$Resolved
 	public final fun getValue ()Ljava/lang/Object;
 }
 
+public final class com/apollographql/cache/normalized/api/CacheResolver$ResolvedValue$CacheHeaders {
+	public static final field Companion Lcom/apollographql/cache/normalized/api/CacheResolver$ResolvedValue$CacheHeaders$Companion;
+	public static final field IS_SYNTHETIC_VALUE Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public final class com/apollographql/cache/normalized/api/CacheResolver$ResolvedValue$CacheHeaders$Companion {
+}
+
 public final class com/apollographql/cache/normalized/api/CacheResolverKt {
 	public static final fun FieldPolicyCacheResolver (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)Lcom/apollographql/cache/normalized/api/CacheResolver;
 	public static synthetic fun FieldPolicyCacheResolver$default (Ljava/util/Map;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;ILjava/lang/Object;)Lcom/apollographql/cache/normalized/api/CacheResolver;

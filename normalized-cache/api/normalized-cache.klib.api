@@ -46,6 +46,15 @@ abstract interface com.apollographql.cache.normalized.api/CacheResolver { // com
             final fun <get-cacheHeaders>(): com.apollographql.cache.normalized.api/CacheHeaders // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.cacheHeaders.<get-cacheHeaders>|<get-cacheHeaders>(){}[0]
         final val value // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.value|{}value[0]
             final fun <get-value>(): kotlin/Any? // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.value.<get-value>|<get-value>(){}[0]
+
+        final class CacheHeaders { // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders|null[0]
+            constructor <init>() // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.<init>|<init>(){}[0]
+
+            final object Companion { // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion|null[0]
+                final const val IS_SYNTHETIC_VALUE // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion.IS_SYNTHETIC_VALUE|{}IS_SYNTHETIC_VALUE[0]
+                    final fun <get-IS_SYNTHETIC_VALUE>(): kotlin/String // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion.IS_SYNTHETIC_VALUE.<get-IS_SYNTHETIC_VALUE>|<get-IS_SYNTHETIC_VALUE>(){}[0]
+            }
+        }
     }
 }
 

@@ -79,10 +79,37 @@ interface CacheResolver {
   fun resolveField(context: ResolverContext): Any?
 
   class ResolvedValue(
-      val value: Any?,
-      val cacheHeaders: CacheHeaders,
+      value: Any?,
+      val cacheHeaders: com.apollographql.cache.normalized.api.CacheHeaders,
+  ) {
+    val value: Any? = value.unwrapped()
+
+    class CacheHeaders {
+      companion object {
+        /**
+         * When true, the value returned by [resolveField] doesn't correspond to a field in a record, but was synthesized by the resolver.
+         */
+        const val IS_SYNTHETIC_VALUE = "IS_SYNTHETIC_VALUE"
+      }
+    }
+  }
+}
+
+private fun Any?.toSyntheticValue(): ResolvedValue {
+  return ResolvedValue(
+      value = this,
+      cacheHeaders = CacheHeaders.Builder().addHeader(ResolvedValue.CacheHeaders.IS_SYNTHETIC_VALUE, "true").build(),
   )
 }
+
+private val Any?.isSyntheticValue: Boolean
+  get() = this is ResolvedValue && this.cacheHeaders.headerValue(ResolvedValue.CacheHeaders.IS_SYNTHETIC_VALUE) == "true"
+
+private fun Any?.unwrapped(): Any? = when (this) {
+  is ResolvedValue -> this.value
+  else -> this
+}
+
 
 class ResolverContext(
     /**
@@ -219,6 +246,10 @@ class CacheControlCacheResolver(
 
   override fun resolveField(context: ResolverContext): Any? {
     val value = delegateResolver.resolveField(context)
+    if (value.isSyntheticValue) {
+      // Synthetic values have no metadata
+      return value
+    }
     var isStale = false
     if (context.parent is Record) {
       // Consider the client controlled max age
@@ -371,7 +402,7 @@ class KeyArgumentsCacheResolver(
                   CacheKey(value.toString())
                 }
               }
-            }
+            }.toSyntheticValue()
           }
         }
       }
@@ -380,7 +411,7 @@ class KeyArgumentsCacheResolver(
       CacheKey(type.rawType().name, keyArgsValues.map { it.toString() })
     } else {
       CacheKey(keyArgsValues.map { it.toString() })
-    }
+    }.toSyntheticValue()
   }
 
   private fun Error.withIndex(index: Int): Error {
