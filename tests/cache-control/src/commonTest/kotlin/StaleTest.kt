@@ -7,10 +7,10 @@ import com.apollographql.apollo.exception.ApolloHttpException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
-import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.fetchPolicy
@@ -47,7 +47,6 @@ class StaleTest {
     val mockServer = MockServer()
     val apolloClient = ApolloClient.Builder()
         .serverUrl(mockServer.url())
-        .storeReceivedDate(true)
         .maxStale(14.days)
         .cacheMissesAsException(true)
         .normalizedCache(
@@ -108,7 +107,14 @@ class StaleTest {
   fun unknownAgeConsideredStale() = runTest {
     val apolloClient = ApolloClient.Builder()
         .serverUrl("http://unused")
-        .cache(MemoryCacheFactory())
+        .normalizedCache(
+            normalizedCacheFactory = MemoryCacheFactory(),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = CacheControlCacheResolver(
+                maxAgeProvider = GlobalMaxAgeProvider(24.hours),
+                delegateResolver = DefaultCacheResolver,
+            )
+        )
         .build()
 
     apolloClient.apolloStore.writeOperation(
@@ -136,9 +142,8 @@ class StaleTest {
 
   @Test
   fun nonStaleCache() = runTest {
-    val mockServer = MockServer()
     val apolloClient = ApolloClient.Builder()
-        .serverUrl(mockServer.url())
+        .serverUrl("unused")
         .storeReceivedDate(true)
         .maxStale(14.days)
         .cacheMissesAsException(true)
@@ -185,9 +190,8 @@ class StaleTest {
 
   @Test
   fun nonStaleCacheWithParam() = runTest {
-    val mockServer = MockServer()
     val apolloClient = ApolloClient.Builder()
-        .serverUrl(mockServer.url())
+        .serverUrl("unused")
         .storeReceivedDate(true)
         .maxStale(14.days)
         .cacheMissesAsException(true)
@@ -207,8 +211,6 @@ class StaleTest {
         data = GetProductNameQuery.Data(product = Product("1", "name")),
         cacheHeaders = receivedDate(currentTimeSeconds()),
     )
-
-    println(NormalizedCache.prettifyDump(apolloClient.apolloStore.dump(), showMetadata = true))
 
     val response: Flow<ApolloResponse<GetProductNameQuery.Data>> = apolloClient
         .query(GetProductNameQuery("1"))
@@ -231,9 +233,8 @@ class StaleTest {
 
   @Test
   fun nonStaleCacheWithoutParam() = runTest {
-    val mockServer = MockServer()
     val apolloClient = ApolloClient.Builder()
-        .serverUrl(mockServer.url())
+        .serverUrl("unused")
         .storeReceivedDate(true)
         .maxStale(14.days)
         .cacheMissesAsException(true)

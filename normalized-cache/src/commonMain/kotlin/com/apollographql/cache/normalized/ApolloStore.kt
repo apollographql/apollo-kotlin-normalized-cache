@@ -4,8 +4,12 @@ import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.CustomScalarAdapters
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Executable
+import com.apollographql.apollo.api.ExecutionContext
+import com.apollographql.apollo.api.ExecutionOptions
 import com.apollographql.apollo.api.Fragment
 import com.apollographql.apollo.api.Operation
+import com.apollographql.apollo.api.http.HttpHeader
+import com.apollographql.apollo.api.http.HttpMethod
 import com.apollographql.cache.normalized.CacheManager.Companion.ALL_KEYS
 import com.apollographql.cache.normalized.CacheManager.ReadResult
 import com.apollographql.cache.normalized.api.CacheHeaders
@@ -47,12 +51,26 @@ class ApolloStore(
      * Per-operation cache headers are merged on top of these, with per-operation values taking precedence when the same header key appears in both.
      */
     internal val cacheHeaders: CacheHeaders,
+
+    /**
+     * Execution options that can be used by some operations.
+     * Some cache headers (such as [com.apollographql.cache.normalized.api.ApolloCacheHeaders.RECEIVED_DATE]) are derived from these options.
+     */
+    internal val executionOptions: ExecutionOptions,
 ) {
-  @Deprecated("Use the constructor with cacheHeaders parameter instead.", ReplaceWith("ApolloStore(cacheManager, customScalarAdapters, CacheHeaders.NONE)"))
+  @Deprecated("Use the constructor with cacheHeaders and executionOptions parameters instead.")
   constructor(
       cacheManager: CacheManager,
       customScalarAdapters: CustomScalarAdapters,
-  ) : this(cacheManager, customScalarAdapters, CacheHeaders.NONE)
+  ) : this(cacheManager, customScalarAdapters, CacheHeaders.NONE, EmptyExecutionOptions)
+
+  @Deprecated("Use the constructor with executionOptions parameter instead.")
+  constructor(
+      cacheManager: CacheManager,
+      customScalarAdapters: CustomScalarAdapters,
+      cacheHeaders: CacheHeaders,
+  ) : this(cacheManager, customScalarAdapters, cacheHeaders, EmptyExecutionOptions)
+
 
   @Deprecated("This was accidentally made public and will be removed in a future release.")
   val cacheManager: CacheManager = cacheManager
@@ -143,7 +161,11 @@ class ApolloStore(
       data = data,
       errors = errors,
       publish = publish,
-      cacheHeaders = this.cacheHeaders + cacheHeaders,
+      cacheHeaders = this.cacheHeaders + if (executionOptions.storeReceivedDate) {
+        nowReceivedDateCacheHeaders(executionOptions.clock) + cacheHeaders
+      } else {
+        cacheHeaders
+      },
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -170,7 +192,11 @@ class ApolloStore(
       operation = operation,
       dataWithErrors = dataWithErrors,
       publish = publish,
-      cacheHeaders = this.cacheHeaders + cacheHeaders,
+      cacheHeaders = this.cacheHeaders + if (executionOptions.storeReceivedDate) {
+        nowReceivedDateCacheHeaders(executionOptions.clock) + cacheHeaders
+      } else {
+        cacheHeaders
+      },
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -200,7 +226,11 @@ class ApolloStore(
       cacheKey = cacheKey,
       data = data,
       publish = publish,
-      cacheHeaders = this.cacheHeaders + cacheHeaders,
+      cacheHeaders = this.cacheHeaders + if (executionOptions.storeReceivedDate) {
+        nowReceivedDateCacheHeaders(executionOptions.clock) + cacheHeaders
+      } else {
+        cacheHeaders
+      },
       customScalarAdapters = customScalarAdapters,
   )
 
@@ -489,4 +519,21 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
     )
   }
   return normalizationRecords.values.flatMap { it.fieldKeys() }.toSet().also { if (publish) publish(it) }
+}
+
+private val EmptyExecutionOptions = object : ExecutionOptions {
+  override val executionContext: ExecutionContext
+    get() = ExecutionContext.Empty
+  override val httpMethod: HttpMethod?
+    get() = null
+  override val httpHeaders: List<HttpHeader>?
+    get() = null
+  override val sendApqExtensions: Boolean?
+    get() = null
+  override val sendDocument: Boolean?
+    get() = null
+  override val enableAutoPersistedQueries: Boolean?
+    get() = null
+  override val canBeBatched: Boolean?
+    get() = null
 }

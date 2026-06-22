@@ -259,7 +259,12 @@ fun ApolloClient.Builder.cacheManager(cacheManager: CacheManager, writeToCacheAs
 val ApolloClient.apolloStore: ApolloStore
   get() {
     return (cacheInterceptor as? CacheInterceptor)?.let {
-      ApolloStore(cacheManager = it.cacheManager, customScalarAdapters = customScalarAdapters, cacheHeaders = cacheHeaders)
+      ApolloStore(
+          cacheManager = it.cacheManager,
+          customScalarAdapters = customScalarAdapters,
+          cacheHeaders = cacheHeaders,
+          executionOptions = this,
+      )
     } ?: error("No store configured")
   }
 

@@ -17,12 +17,12 @@ import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.CacheInfo
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
-import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.cacheHeaders
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.clock
 import com.apollographql.cache.normalized.doNotStore
 import com.apollographql.cache.normalized.fetchFromCache
+import com.apollographql.cache.normalized.nowReceivedDateCacheHeaders
 import com.apollographql.cache.normalized.optimisticData
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
@@ -236,12 +236,6 @@ internal class ApolloCacheInterceptor(
                   .networkException(networkResponse.exception)
                   .build(),
           ).build()
-    }
-  }
-
-  companion object {
-    private fun nowReceivedDateCacheHeaders(clock: () -> Long): CacheHeaders {
-      return CacheHeaders.Builder().addHeader(ApolloCacheHeaders.RECEIVED_DATE, (clock() / 1000).toString()).build()
     }
   }
 }
