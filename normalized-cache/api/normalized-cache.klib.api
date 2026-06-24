@@ -46,6 +46,15 @@ abstract interface com.apollographql.cache.normalized.api/CacheResolver { // com
             final fun <get-cacheHeaders>(): com.apollographql.cache.normalized.api/CacheHeaders // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.cacheHeaders.<get-cacheHeaders>|<get-cacheHeaders>(){}[0]
         final val value // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.value|{}value[0]
             final fun <get-value>(): kotlin/Any? // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.value.<get-value>|<get-value>(){}[0]
+
+        final class CacheHeaders { // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders|null[0]
+            constructor <init>() // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.<init>|<init>(){}[0]
+
+            final object Companion { // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion|null[0]
+                final const val IS_SYNTHETIC_VALUE // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion.IS_SYNTHETIC_VALUE|{}IS_SYNTHETIC_VALUE[0]
+                    final fun <get-IS_SYNTHETIC_VALUE>(): kotlin/String // com.apollographql.cache.normalized.api/CacheResolver.ResolvedValue.CacheHeaders.Companion.IS_SYNTHETIC_VALUE.<get-IS_SYNTHETIC_VALUE>|<get-IS_SYNTHETIC_VALUE>(){}[0]
+            }
+        }
     }
 }
 
@@ -446,6 +455,7 @@ final class com.apollographql.cache.normalized.memory/MemoryCacheFactory : com.a
 final class com.apollographql.cache.normalized/ApolloStore { // com.apollographql.cache.normalized/ApolloStore|null[0]
     constructor <init>(com.apollographql.cache.normalized/CacheManager, com.apollographql.apollo.api/CustomScalarAdapters) // com.apollographql.cache.normalized/ApolloStore.<init>|<init>(com.apollographql.cache.normalized.CacheManager;com.apollographql.apollo.api.CustomScalarAdapters){}[0]
     constructor <init>(com.apollographql.cache.normalized/CacheManager, com.apollographql.apollo.api/CustomScalarAdapters, com.apollographql.cache.normalized.api/CacheHeaders) // com.apollographql.cache.normalized/ApolloStore.<init>|<init>(com.apollographql.cache.normalized.CacheManager;com.apollographql.apollo.api.CustomScalarAdapters;com.apollographql.cache.normalized.api.CacheHeaders){}[0]
+    constructor <init>(com.apollographql.cache.normalized/CacheManager, com.apollographql.apollo.api/CustomScalarAdapters, com.apollographql.cache.normalized.api/CacheHeaders, com.apollographql.apollo.api/ExecutionOptions) // com.apollographql.cache.normalized/ApolloStore.<init>|<init>(com.apollographql.cache.normalized.CacheManager;com.apollographql.apollo.api.CustomScalarAdapters;com.apollographql.cache.normalized.api.CacheHeaders;com.apollographql.apollo.api.ExecutionOptions){}[0]
 
     final val cacheManager // com.apollographql.cache.normalized/ApolloStore.cacheManager|{}cacheManager[0]
         final fun <get-cacheManager>(): com.apollographql.cache.normalized/CacheManager // com.apollographql.cache.normalized/ApolloStore.cacheManager.<get-cacheManager>|<get-cacheManager>(){}[0]

@@ -7,6 +7,7 @@ import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheControlCacheResolver
 import com.apollographql.cache.normalized.api.CacheHeaders
+import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
@@ -14,6 +15,7 @@ import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.MaxAge
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.SchemaCoordinatesMaxAgeProvider
+import com.apollographql.cache.normalized.api.receivedDate
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.clock
 import com.apollographql.cache.normalized.fetchPolicy
@@ -21,10 +23,13 @@ import com.apollographql.cache.normalized.internal.normalized
 import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
+import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.runTest
 import declarative.cache.Cache.cache
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import declarative.GetCompanyQuery as DeclarativeGetCompanyQuery
@@ -375,6 +380,63 @@ class ClientSideCacheControlTest {
     delaySeconds = 32
     e = client.query(DeclarativeGetProjectQuery()).fetchPolicy(FetchPolicy.CacheOnly).execute().exception as CacheMissException
     assertTrue(e.stale)
+  }
+
+  @Test
+  fun apolloStoreWriteStoreReceivedDate() = runTest {
+    val apolloClient = ApolloClient.Builder()
+        .normalizedCache(
+            normalizedCacheFactory = MemoryCacheFactory(),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = DefaultCacheResolver,
+        )
+        .serverUrl("unused")
+        .storeReceivedDate(true)
+        .build()
+
+    apolloClient.apolloStore.writeOperation(
+        operation = ProgrammaticGetUserQuery(),
+        data = ProgrammaticGetUserQuery.Data(
+            user = ProgrammaticGetUserQuery.User(
+                name = "John",
+                email = "john@example.com",
+                admin = true,
+            )
+        )
+    )
+    apolloClient.apolloStore.accessCache {
+      val rootRecord = it.loadRecord(CacheKey.QUERY_ROOT, CacheHeaders.NONE)
+      assertNotNull(rootRecord?.receivedDate("user"))
+    }
+  }
+
+  @Test
+  fun apolloStoreWriteStoreReceivedDateCanOverride() = runTest {
+    val apolloClient = ApolloClient.Builder()
+        .normalizedCache(
+            normalizedCacheFactory = MemoryCacheFactory(),
+            cacheKeyGenerator = DefaultCacheKeyGenerator,
+            cacheResolver = DefaultCacheResolver,
+        )
+        .serverUrl("unused")
+        .storeReceivedDate(true)
+        .build()
+
+    apolloClient.apolloStore.writeOperation(
+        operation = ProgrammaticGetUserQuery(),
+        data = ProgrammaticGetUserQuery.Data(
+            user = ProgrammaticGetUserQuery.User(
+                name = "John",
+                email = "john@example.com",
+                admin = true,
+            )
+        ),
+        cacheHeaders = receivedDate(42)
+    )
+    apolloClient.apolloStore.accessCache {
+      val rootRecord = it.loadRecord(CacheKey.QUERY_ROOT, CacheHeaders.NONE)
+      assertEquals(42, rootRecord?.receivedDate("user"))
+    }
   }
 }
 
