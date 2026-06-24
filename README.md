@@ -58,4 +58,4 @@ The Kdoc API reference can be found at:<br/>
 [https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc)
 
 The migration guide if you're coming from the previous version:<br/>
-https://apollographql.github.io/apollo-kotlin-normalized-cache/migration-guide.html
+https://www.apollographql.com/docs/kotlin/caching/migration-guide
