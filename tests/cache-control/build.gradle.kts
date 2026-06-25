@@ -49,9 +49,8 @@ apollo {
     srcDir("src/commonMain/graphql/declarative")
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 
   service("doNotStore") {
@@ -59,8 +58,7 @@ apollo {
     srcDir("src/commonMain/graphql/doNotStore")
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 }

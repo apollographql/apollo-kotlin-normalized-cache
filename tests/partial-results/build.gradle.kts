@@ -42,9 +42,8 @@ apollo {
     packageName.set("test")
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
 
     mapScalar("Category", "test.Category", "test.CategoryAdapter")
   }

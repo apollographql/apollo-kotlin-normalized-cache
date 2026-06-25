@@ -51,9 +51,8 @@ apollo {
     srcDir(file("src/commonMain/graphql/main"))
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 
   service("httpcache") {
@@ -74,9 +73,8 @@ apollo {
     mapScalar("Point", "test.Point")
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 
   service("circular") {
@@ -91,9 +89,8 @@ apollo {
     generateOptionalOperationVariables.set(false)
 
     @OptIn(ApolloExperimental::class)
-    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin") {
-      argument("com.apollographql.cache.packageName", packageName.get())
-    }
+    plugin("com.apollographql.cache:normalized-cache-apollo-compiler-plugin")
+    pluginArgument("com.apollographql.cache.packageName", packageName.get())
   }
 
   service("fragmentnormalizer") {

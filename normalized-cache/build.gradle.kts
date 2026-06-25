@@ -18,7 +18,6 @@ kotlin {
       dependencies {
         api(libs.apollo.runtime)
         api(libs.apollo.mpp.utils)
-        implementation(libs.okio)
         api(libs.uuid)
         implementation(libs.atomicfu.library)
       }

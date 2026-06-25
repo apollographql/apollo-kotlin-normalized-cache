@@ -1,13 +1,23 @@
 [versions]
-kotlin-plugin = "2.2.21"
-android-plugin = "8.12.3"
-apollo = "4.4.2"
-okio = "3.9.0"
-atomicfu = "0.28.0" # Must be the same version as the one used by apollo-testing-support or native compilation will fail
-sqldelight = "2.1.0"
-androidx-sqlite = "2.6.1"
+#noinspection NewerVersionAvailable Use the same version as Apollo Kotlin
+kotlin-plugin = "2.3.10"
+#noinspection NewerVersionAvailable Let's stay on the 8.x line for now
+android-plugin = "8.13.2"
+apollo = "5.0.0"
+apollo-mockserver = "0.3.1"
+#noinspection NewerVersionAvailable Must be the same version as the one used by apollo-testing-support or native compilation will fail
+atomicfu = "0.28.0"
+sqldelight = "2.3.2"
+androidx-sqlite = "2.6.2"
 librarian = "0.2.2-SNAPSHOT-2cde396ec5d739d8857aa98f99885ba62ca1769a"
-kotlinx-coroutines = "1.10.2"
+kotlinx-coroutines = "1.11.0"
+develocity-gradle-plugin = "4.4.3" # Sync with settings.gradle.kts
+uuid = "0.8.4"
+truth = "1.4.5"
+turbine = "1.2.1"
+slf4j-nop = "2.0.18"
+androidx-startup-runtime = "1.2.0"
+kotlin-poet = "2.3.0"
 copyWebpackPlugin = "9.1.0"
 sqlJs = "1.8.0"
 
@@ -16,7 +26,7 @@ apollo-api = { group = "com.apollographql.apollo", name = "apollo-api", version.
 apollo-mpp-utils = { group = "com.apollographql.apollo", name = "apollo-mpp-utils", version.ref = "apollo" }
 apollo-testing-support = { group = "com.apollographql.apollo", name = "apollo-testing-support", version.ref = "apollo" }
 apollo-runtime = { group = "com.apollographql.apollo", name = "apollo-runtime", version.ref = "apollo" }
-apollo-mockserver = "com.apollographql.mockserver:apollo-mockserver:0.2.0"
+apollo-mockserver = { group = "com.apollographql.mockserver", name = "apollo-mockserver", version.ref = "apollo-mockserver" }
 apollo-ast = { group = "com.apollographql.apollo", name = "apollo-ast", version.ref = "apollo" }
 apollo-compiler = { group = "com.apollographql.apollo", name = "apollo-compiler", version.ref = "apollo" }
 apollo-cache = { group = "com.apollographql.apollo", name = "apollo-normalized-cache", version.ref = "apollo" }
@@ -24,32 +34,29 @@ apollo-cache-sqlite = { group = "com.apollographql.apollo", name = "apollo-norma
 apollo-plugin = { group = "com.apollographql.apollo", name = "apollo-gradle-plugin", version.ref = "apollo" }
 atomicfu-library = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "atomicfu" }
 atomicfu-plugin = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "atomicfu" }
-dgp = "com.gradle:develocity-gradle-plugin:4.3.2" # // sync with settings.gradle.kts
-kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test" } # the Kotlin plugin resolves the version
-kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit" } # the Kotlin plugin resolves the version
-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
-okio-nodefilesystem = { group = "com.squareup.okio", name = "okio-nodefilesystem", version.ref = "okio" }
-uuid = "com.benasher44:uuid:0.8.4"
+dgp = { group = "com.gradle", name = "develocity-gradle-plugin", version.ref = "develocity-gradle-plugin" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin-plugin" }
+kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin-plugin" }
+uuid = { group = "com.benasher44", name = "uuid", version.ref = "uuid" }
 sqldelight-android = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
 sqldelight-jvm = { group = "app.cash.sqldelight", name = "sqlite-driver", version.ref = "sqldelight" }
 sqldelight-native = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
 sqldelight-webworker = { group = "app.cash.sqldelight", name = "web-worker-driver", version.ref = "sqldelight" }
 sqldelight-runtime = { group = "app.cash.sqldelight", name = "runtime", version.ref = "sqldelight" }
-truth = "com.google.truth:truth:1.4.5"
-turbine = "app.cash.turbine:turbine:1.2.1"
-slf4j-nop = "org.slf4j:slf4j-nop:2.0.17"
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+slf4j-nop = { group = "org.slf4j", name = "slf4j-nop", version.ref = "slf4j-nop" }
 androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "androidx-sqlite" }
 androidx-sqlite-framework = { group = "androidx.sqlite", name = "sqlite-framework", version.ref = "androidx-sqlite" }
-androidx-startup-runtime = "androidx.startup:startup-runtime:1.2.0"
+androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidx-startup-runtime" }
 kotlin-stdlib-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-js", version.ref = "kotlin-plugin" }
 kotlin-stdlib-wasm-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-wasm-js", version.ref = "kotlin-plugin" }
-kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version = "2.2.0" }
+kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlin-poet" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-plugin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-librarian = { module = "com.gradleup.librarian:librarian-gradle-plugin", version.ref = "librarian"}
-android-plugin =  { module = "com.android.tools.build:gradle", version.ref = "android-plugin"}
-sqldelight-plugin = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight"}
-
+librarian = { group = "com.gradleup.librarian", name = "librarian-gradle-plugin", version.ref = "librarian" }
+android-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-plugin" }
+sqldelight-plugin = { group = "app.cash.sqldelight", name = "gradle-plugin", version.ref = "sqldelight" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-plugin" }
