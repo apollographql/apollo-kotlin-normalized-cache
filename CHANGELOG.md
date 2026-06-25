@@ -2,6 +2,16 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.5
+_2026-06-25_
+
+Maintenance release with several fixes related to the expiration feature.
+
+- [Fix] Expiration: arguments are ignored when looking up the received date in a Record (#357)
+- [Fix] Expiration: don't report missing fields as stale (#358)
+- [Fix] Expiration: do not compute staleness for synthetic values (#358)
+- [Improvement] Make `ApolloStore` honor `ApolloClient.storeReceivedDate` (#358)
+
 # v1.0.4
 _2026-06-15_
 
