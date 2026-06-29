@@ -205,7 +205,8 @@ private class AddKeyFieldsExecutableDocumentTransformProcessor(
     val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }.toSet()
     val fieldNamesToAdd = (parentTypeKeyFields - fieldNames)
 
-    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
+    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments (excluding the ones
+    // that are already selected)
     val inlineFragmentsToAdd = if (parentTypeKeyFields.isEmpty()) {
       val parentTypeDefinition = schema.typeDefinition(parentType)
       val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
