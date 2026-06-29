@@ -4,13 +4,16 @@ package com.apollographql.cache.apollocompilerplugin.internal
 
 import com.apollographql.apollo.annotations.ApolloExperimental
 import com.apollographql.apollo.annotations.ApolloInternal
+import com.apollographql.apollo.ast.GQLBooleanValue
 import com.apollographql.apollo.ast.GQLDocument
 import com.apollographql.apollo.ast.GQLField
 import com.apollographql.apollo.ast.GQLFragmentDefinition
 import com.apollographql.apollo.ast.GQLFragmentSpread
+import com.apollographql.apollo.ast.GQLHasDirectives
 import com.apollographql.apollo.ast.GQLInlineFragment
 import com.apollographql.apollo.ast.GQLInterfaceTypeDefinition
 import com.apollographql.apollo.ast.GQLNamedType
+import com.apollographql.apollo.ast.GQLObjectTypeDefinition
 import com.apollographql.apollo.ast.GQLOperationDefinition
 import com.apollographql.apollo.ast.GQLSelection
 import com.apollographql.apollo.ast.GQLUnionTypeDefinition
@@ -31,35 +34,124 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
       document: GQLDocument,
       extraFragmentDefinitions: List<GQLFragmentDefinition>,
   ): GQLDocument {
-    val keyFields = schema.getTypePolicies().mapValues { it.value.keyFields }
+    return AddKeyFieldsExecutableDocumentTransformProcessor(
+        schema = schema,
+        document = document,
+        extraFragmentDefinitions = extraFragmentDefinitions,
+    ).transform()
+  }
+}
+
+private class AddKeyFieldsExecutableDocumentTransformProcessor(
+    private val schema: Schema,
+    private val document: GQLDocument,
+    private val extraFragmentDefinitions: List<GQLFragmentDefinition>,
+) {
+  private val keyFields = schema.getTypePolicies().mapValues { it.value.keyFields }
+
+  private val fieldsWithTypeConditionsFragmentCache: MutableMap<String, Set<FieldWithTypeCondition>> = mutableMapOf()
+
+  fun transform(): GQLDocument {
     return document.copy(
         definitions = document.definitions.map {
           when (it) {
-            is GQLFragmentDefinition -> it.withRequiredFields(schema, keyFields)
-            is GQLOperationDefinition -> it.withRequiredFields(schema, keyFields)
+            is GQLFragmentDefinition -> it.withRequiredFields()
+            is GQLOperationDefinition -> it.withRequiredFields()
             else -> it
           }
         }
     )
   }
 
-  private fun GQLOperationDefinition.withRequiredFields(schema: Schema, keyFields: Map<String, List<String>>): GQLOperationDefinition {
+  private data class FieldWithTypeCondition(
+      val fieldName: String,
+      val typeCondition: String,
+  )
+
+  /**
+   * Get field names in the selections, associated with their type condition.
+   * For instance if [typeCondition] is `ParentType`, given:
+   * ```graphql
+   * a
+   * b @skip(if: true)
+   * ... on SomeType {
+   *   x
+   *   z
+   * }
+   * ```
+   * returns:
+   * - a: ParentType
+   * - x: SomeType
+   * - z: SomeType
+   */
+  private fun List<GQLSelection>.fieldsWithTypeConditions(typeCondition: String): Set<FieldWithTypeCondition> = flatMap { selection ->
+    when (selection) {
+      is GQLInlineFragment -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        selection.selections.fieldsWithTypeConditions(selection.typeCondition?.name ?: typeCondition)
+      }
+
+      is GQLFragmentSpread -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        selection.fieldsWithTypeConditions()
+      }
+
+      is GQLField -> if (selection.shouldIgnore()) {
+        emptyList()
+      } else {
+        listOf(
+            FieldWithTypeCondition(
+                fieldName = selection.name,
+                typeCondition = typeCondition
+            )
+        )
+      }
+    }
+  }.toSet()
+
+  private fun GQLFragmentSpread.fieldsWithTypeConditions(): Set<FieldWithTypeCondition> {
+    return fieldsWithTypeConditionsFragmentCache.getOrPut(name) {
+      val fragmentDefinition = (document.definitions.filterIsInstance<GQLFragmentDefinition>() + extraFragmentDefinitions)
+          .firstOrNull { it.name == name }
+          ?: return@getOrPut emptySet()
+      fragmentDefinition.selections.fieldsWithTypeConditions(fragmentDefinition.typeCondition.name)
+    }
+  }
+
+  /**
+   * Ignore when:
+   * - @skip(if: true)
+   * - @skip(if: $someVariable) (because we can't know)
+   * - @include(if: false)
+   * - @include(if: $someVariable) (because we can't know)
+   */
+  private fun GQLHasDirectives.shouldIgnore(): Boolean {
+    return directives.any { directive ->
+      directive.name == "skip" && run {
+        val value = directive.arguments.firstOrNull { it.name == "if" }?.value
+        value !is GQLBooleanValue || value.value
+      } || directive.name == "include" && run {
+        val value = directive.arguments.firstOrNull { it.name == "if" }?.value
+        value !is GQLBooleanValue || !value.value
+      }
+    }
+  }
+
+  private fun GQLOperationDefinition.withRequiredFields(): GQLOperationDefinition {
     val parentType = rootTypeDefinition(schema)!!.name
     return copy(
         selections = selections.withRequiredFields(
-            schema = schema,
-            keyFields = keyFields,
             parentType = parentType,
             isRoot = false,
         )
     )
   }
 
-  private fun GQLFragmentDefinition.withRequiredFields(schema: Schema, keyFields: Map<String, List<String>>): GQLFragmentDefinition {
+  private fun GQLFragmentDefinition.withRequiredFields(): GQLFragmentDefinition {
     return copy(
         selections = selections.withRequiredFields(
-            schema = schema,
-            keyFields = keyFields,
             parentType = typeCondition.name,
             isRoot = true,
         ),
@@ -72,8 +164,6 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
    */
   @OptIn(ApolloInternal::class)
   private fun List<GQLSelection>.withRequiredFields(
-      schema: Schema,
-      keyFields: Map<String, List<String>>,
       parentType: String,
       isRoot: Boolean,
   ): List<GQLSelection> {
@@ -85,8 +175,6 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
         is GQLInlineFragment -> {
           it.copy(
               selections = it.selections.withRequiredFields(
-                  schema = schema,
-                  keyFields = keyFields,
                   parentType = it.typeCondition?.name ?: parentType,
                   isRoot = false,
               )
@@ -94,11 +182,7 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
         }
 
         is GQLFragmentSpread -> it
-        is GQLField -> it.withRequiredFields(
-            schema = schema,
-            keyFields = keyFields,
-            parentType = parentType
-        )
+        is GQLField -> it.withRequiredFields(parentType = parentType)
       }
     }
 
@@ -121,7 +205,8 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
     val fieldNames = newSelections.filterIsInstance<GQLField>().map { it.responseName() }.toSet()
     val fieldNamesToAdd = (parentTypeKeyFields - fieldNames)
 
-    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments
+    // Unions and interfaces without key fields: add key fields of all possible types in inline fragments (excluding the ones
+    // that are already selected)
     val inlineFragmentsToAdd = if (parentTypeKeyFields.isEmpty()) {
       val parentTypeDefinition = schema.typeDefinition(parentType)
       val possibleTypes = if (parentTypeDefinition is GQLInterfaceTypeDefinition || parentTypeDefinition is GQLUnionTypeDefinition) {
@@ -129,10 +214,23 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
       } else {
         emptySet()
       }
+      var fieldsWithTypeConditions: Set<FieldWithTypeCondition>? = null
       possibleTypes
           .associateWith { possibleType -> keyFields[possibleType] ?: emptyList() }
           .mapNotNull { (possibleType, possibleTypeKeyFields) ->
-            val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames
+            if (possibleTypeKeyFields.isEmpty()) {
+              return@mapNotNull null
+            }
+            if (fieldsWithTypeConditions == null) {
+              fieldsWithTypeConditions = fieldsWithTypeConditions(parentType)
+            }
+            val possibleTypeWithParents =
+              (schema.typeDefinition(possibleType) as GQLObjectTypeDefinition).implementsInterfaces + possibleType
+            val possibleTypeAlreadySelectedFields = fieldsWithTypeConditions
+                .filter { it.typeCondition in possibleTypeWithParents }
+                .map { it.fieldName }
+                .toSet()
+            val fieldNamesToAddInInlineFragment = possibleTypeKeyFields - fieldNames - possibleTypeAlreadySelectedFields
             if (fieldNamesToAddInInlineFragment.isNotEmpty()) {
               GQLInlineFragment(
                   typeCondition = GQLNamedType(null, possibleType),
@@ -154,15 +252,9 @@ internal object AddKeyFieldsExecutableDocumentTransform : ExecutableDocumentTran
     return listOf(buildField("__typename")) + selectionsWithAdditions.filter { (it as? GQLField)?.name != "__typename" }
   }
 
-  private fun GQLField.withRequiredFields(
-      schema: Schema,
-      keyFields: Map<String, List<String>>,
-      parentType: String,
-  ): GQLField {
+  private fun GQLField.withRequiredFields(parentType: String): GQLField {
     val typeDefinition = definitionFromScope(schema, parentType) ?: return this
     val newSelectionSet = selections.withRequiredFields(
-        schema = schema,
-        keyFields = keyFields,
         parentType = typeDefinition.type.rawType().name,
         isRoot = true,
     )

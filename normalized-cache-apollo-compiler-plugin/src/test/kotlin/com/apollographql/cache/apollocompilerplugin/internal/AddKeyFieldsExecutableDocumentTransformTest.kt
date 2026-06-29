@@ -175,6 +175,1034 @@ class AddKeyFieldsExecutableDocumentTransformTest {
     checkTransform(schemaText, operationText, expected)
   }
 
+  // language=GraphQL
+  private val dontOverSelectSchemaText = """
+      type Query {
+        user: User
+      }
+            
+      interface Node @typePolicy(keyFields: "id") {
+        id: ID!
+      }
+            
+      union User = Person | Robot | Company
+      
+      type Person implements Node {
+        id: ID!
+        name: String!
+        friends: [Person!]!
+      }
+      
+      interface NodeWithDescription implements Node {
+        id: ID!
+        description: String!
+      }
+      
+      type Robot implements NodeWithDescription & Node {
+        id: ID!
+        name: String!
+        model: String!
+        description: String!
+      }
+      
+      type Company @typePolicy(keyFields: "id") {
+        name: String!
+        id: ID!
+      }
+    """.trimIndent()
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelect() {
+    // language=GraphQL
+    val operationText1 = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected1 = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationText1, expected1)
+
+    // language=GraphQL
+    val operationText2 = """
+      query GetUser {
+        user {
+          ... on Node {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected2 = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationText2, expected2)
+
+    // language=GraphQL
+    val operationText3 = """
+      query GetUser {
+        user {
+          ... on Node {
+            ...NodeIdFragment
+            ... on Node {
+              id
+            }
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expected3 = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node {
+            ...NodeIdFragment
+            ... on Node {
+              id
+            }
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationText3, expected3)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectSkipFragmentSpread() {
+    // language=GraphQL
+    val operationTextSkipFalse = """
+      query GetUser {
+        user {
+          ...NodeIdFragment @skip(if: false)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipFalse = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment @skip(if: false)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipFalse, expectedSkipFalse)
+
+    // language=GraphQL
+    val operationTextSkipTrue = """
+      query GetUser {
+        user {
+          ...NodeIdFragment @skip(if: true)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipTrue = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment @skip(if: true)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipTrue, expectedSkipTrue)
+
+    // language=GraphQL
+    val operationTextSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ...NodeIdFragment @skip(if: $variable)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ...NodeIdFragment @skip(if: $variable)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipVariable, expectedSkipVariable)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectSkipInlineFragment() {
+    // language=GraphQL
+    val operationTextSkipFalse = """
+      query GetUser {
+        user {
+          ... on Node @skip(if: false) {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipFalse = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node @skip(if: false) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipFalse, expectedSkipFalse)
+
+    // language=GraphQL
+    val operationTextSkipTrue = """
+      query GetUser {
+        user {
+          ... on Node @skip(if: true) {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipTrue = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node @skip(if: true) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipTrue, expectedSkipTrue)
+
+    // language=GraphQL
+    val operationTextSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ... on Node @skip(if: $variable) {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ... on Node @skip(if: $variable) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipVariable, expectedSkipVariable)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectSkipField() {
+    // language=GraphQL
+    val operationTextSkipFalse = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @skip(if: false)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipFalse = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @skip(if: false)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipFalse, expectedSkipFalse)
+
+    // language=GraphQL
+    val operationTextSkipTrue = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @skip(if: true)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipTrue = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @skip(if: true)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipTrue, expectedSkipTrue)
+
+    // language=GraphQL
+    val operationTextSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @skip(if: $variable)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedSkipVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @skip(if: $variable)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextSkipVariable, expectedSkipVariable)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectIncludeFragmentSpread() {
+    // language=GraphQL
+    val operationTextIncludeTrue = """
+      query GetUser {
+        user {
+          ...NodeIdFragment @include(if: true)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeTrue = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment @include(if: true)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeTrue, expectedIncludeTrue)
+
+    // language=GraphQL
+    val operationTextIncludeFalse = """
+      query GetUser {
+        user {
+          ...NodeIdFragment @include(if: false)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeFalse = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment @include(if: false)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeFalse, expectedIncludeFalse)
+
+    // language=GraphQL
+    val operationTextIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ...NodeIdFragment @include(if: $variable)
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ...NodeIdFragment @include(if: $variable)
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeVariable, expectedIncludeVariable)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectIncludeInlineFragment() {
+    // language=GraphQL
+    val operationTextIncludeTrue = """
+      query GetUser {
+        user {
+          ... on Node @include(if: true) {
+            id
+          } 
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeTrue = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node @include(if: true) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeTrue, expectedIncludeTrue)
+
+    // language=GraphQL
+    val operationTextIncludeFalse = """
+      query GetUser {
+        user {
+          ... on Node @include(if: false) {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeFalse = """
+      query GetUser {
+        user {
+          __typename
+          ... on Node @include(if: false) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeFalse, expectedIncludeFalse)
+
+    // language=GraphQL
+    val operationTextIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ... on Node @include(if: $variable) {
+            id
+          }
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ... on Node @include(if: $variable) {
+            id
+          }
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeVariable, expectedIncludeVariable)
+  }
+
+  @Test
+  fun keyFieldsOnUnionMembersDontOverSelectIncludeField() {
+    // language=GraphQL
+    val operationTextIncludeTrue = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @include(if: true)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeTrue = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @include(if: true)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeTrue, expectedIncludeTrue)
+
+    // language=GraphQL
+    val operationTextIncludeFalse = """
+      query GetUser {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @include(if: false)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeFalse = """
+      query GetUser {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @include(if: false)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeFalse, expectedIncludeFalse)
+
+    // language=GraphQL
+    val operationTextIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              name
+            }
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        id @include(if: $variable)
+      }
+    """.trimIndent()
+
+    // language=GraphQL
+    val expectedIncludeVariable = $$"""
+      query GetUser($variable: Boolean!) {
+        user {
+          __typename
+          ...NodeIdFragment
+          ... on Person {
+            friends {
+              __typename
+              name
+              id
+            }
+          }
+          ... on Person {
+            id
+          }
+          ... on Robot {
+            id
+          }
+          ... on Company {
+            id
+          }
+        }
+      }
+      
+      fragment NodeIdFragment on Node {
+        __typename
+        id @include(if: $variable)
+      }
+    """.trimIndent()
+    checkTransform(dontOverSelectSchemaText, operationTextIncludeVariable, expectedIncludeVariable)
+  }
+
   @Test
   fun keyFieldsOnInterfacePossibleTypes() {
     // language=GraphQL
@@ -344,9 +1372,7 @@ class AddKeyFieldsExecutableDocumentTransformTest {
 
     checkTransform(schemaText, operationText, expected)
   }
-
 }
-
 
 private fun checkTransform(schemaText: String, operationText: String, expected: String) {
   val schema = schemaText
