@@ -288,8 +288,7 @@ class CacheControlCacheResolver(
         if (staleDuration >= 0) isStale = true
       }
 
-      val valueExistsInCache = context.parent.containsKey(context.getFieldKey())
-      if (receivedDate == null && expirationDate == null && valueExistsInCache) {
+      if (receivedDate == null && expirationDate == null) {
         // We can't determine the field's staleness: consider it stale
         throw CacheMissException(
             key = context.parentKey.keyToString(),
