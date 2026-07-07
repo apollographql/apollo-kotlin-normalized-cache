@@ -358,8 +358,17 @@ interface KeyArgumentsProvider {
 class KeyArgumentsCacheResolver(
     private val keyArgumentsProvider: KeyArgumentsProvider,
     private val keyScope: CacheKey.Scope,
-    private val delegateResolver: CacheResolver = DefaultCacheResolver,
+    private val delegateResolver: CacheResolver,
 ) : CacheResolver {
+  constructor(
+      keyArgumentsProvider: KeyArgumentsProvider,
+      keyScope: CacheKey.Scope,
+  ) : this(
+      keyArgumentsProvider = keyArgumentsProvider,
+      keyScope = keyScope,
+      delegateResolver = DefaultCacheResolver
+  )
+
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
     if (context.parent.containsKey(fieldKey)) {
