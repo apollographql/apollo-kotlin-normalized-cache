@@ -353,12 +353,12 @@ interface KeyArgumentsProvider {
  * @param keyArgumentsProvider provides the key arguments for a given field
  * @param keyScope the scope of the computed cache keys. Use [CacheKey.Scope.TYPE] to namespace the keys by the schema type name, or
  * [CacheKey.Scope.SERVICE] if the ids are unique across the whole service.
- * @param defaultCacheResolver the default cache resolver that resolve missing key args fields.
+ * @param delegateResolver the default cache resolver that resolve missing key args fields.
  */
 class KeyArgumentsCacheResolver(
     private val keyArgumentsProvider: KeyArgumentsProvider,
     private val keyScope: CacheKey.Scope,
-    private val defaultCacheResolver: CacheResolver = DefaultCacheResolver,
+    private val delegateResolver: CacheResolver = DefaultCacheResolver,
 ) : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
@@ -366,13 +366,13 @@ class KeyArgumentsCacheResolver(
       return context.parent[fieldKey]
     }
     val keyArgs = keyArgumentsProvider.getKeyArguments(context.parentType, context.field)
-        .ifEmpty { return defaultCacheResolver.resolveField(context) }
+        .ifEmpty { return delegateResolver.resolveField(context) }
     val keyArgsWithValues = context.field.argumentValues(context.variables) { it.definition.name in keyArgs }
     // Keep the same order as defined in the field policy
     val keyArgsValues = keyArgs.map {
       if (!keyArgsWithValues.containsKey(it)) {
         // Missing key arg value
-        return defaultCacheResolver.resolveField(context)
+        return delegateResolver.resolveField(context)
       }
       keyArgsWithValues[it]
     }
