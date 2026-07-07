@@ -302,6 +302,7 @@ final class com.apollographql.cache.normalized.api/IdCacheKeyGenerator : com.apo
 
 final class com.apollographql.cache.normalized.api/KeyArgumentsCacheResolver : com.apollographql.cache.normalized.api/CacheResolver { // com.apollographql.cache.normalized.api/KeyArgumentsCacheResolver|null[0]
     constructor <init>(com.apollographql.cache.normalized.api/KeyArgumentsProvider, com.apollographql.cache.normalized.api/CacheKey.Scope) // com.apollographql.cache.normalized.api/KeyArgumentsCacheResolver.<init>|<init>(com.apollographql.cache.normalized.api.KeyArgumentsProvider;com.apollographql.cache.normalized.api.CacheKey.Scope){}[0]
+    constructor <init>(com.apollographql.cache.normalized.api/KeyArgumentsProvider, com.apollographql.cache.normalized.api/CacheKey.Scope, com.apollographql.cache.normalized.api/CacheResolver) // com.apollographql.cache.normalized.api/KeyArgumentsCacheResolver.<init>|<init>(com.apollographql.cache.normalized.api.KeyArgumentsProvider;com.apollographql.cache.normalized.api.CacheKey.Scope;com.apollographql.cache.normalized.api.CacheResolver){}[0]
 
     final fun resolveField(com.apollographql.cache.normalized.api/ResolverContext): kotlin/Any? // com.apollographql.cache.normalized.api/KeyArgumentsCacheResolver.resolveField|resolveField(com.apollographql.cache.normalized.api.ResolverContext){}[0]
 }

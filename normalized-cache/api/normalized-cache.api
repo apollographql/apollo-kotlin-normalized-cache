@@ -571,6 +571,7 @@ public final class com/apollographql/cache/normalized/api/IdCacheKeyGenerator : 
 
 public final class com/apollographql/cache/normalized/api/KeyArgumentsCacheResolver : com/apollographql/cache/normalized/api/CacheResolver {
 	public fun <init> (Lcom/apollographql/cache/normalized/api/KeyArgumentsProvider;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;)V
+	public fun <init> (Lcom/apollographql/cache/normalized/api/KeyArgumentsProvider;Lcom/apollographql/cache/normalized/api/CacheKey$Scope;Lcom/apollographql/cache/normalized/api/CacheResolver;)V
 	public fun resolveField (Lcom/apollographql/cache/normalized/api/ResolverContext;)Ljava/lang/Object;
 }
 
