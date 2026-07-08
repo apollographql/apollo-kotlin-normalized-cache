@@ -51,11 +51,11 @@ apollo {
 
 ## 📚 Documentation
 
-See the project website for documentation:<br/>
-[https://apollographql.github.io/apollo-kotlin-normalized-cache/](https://apollographql.github.io/apollo-kotlin-normalized-cache/)
+See the cache section of the Apollo Kotlin documentation:<br/>
+https://www.apollographql.com/docs/kotlin/caching/normalized-cache
 
 The Kdoc API reference can be found at:<br/>
-[https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc](https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc)
+https://apollographql.github.io/apollo-kotlin-normalized-cache/kdoc
 
 The migration guide if you're coming from the previous version:<br/>
 https://www.apollographql.com/docs/kotlin/caching/migration-guide
