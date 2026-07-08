@@ -16,7 +16,7 @@ kotlin {
 }
 
 android {
-  namespace = "com.apollographql.apollo.cache.normalized.sql"
+  namespace = "com.apollographql.cache.normalized.sql"
   compileSdk = 34
 
   defaultConfig {
