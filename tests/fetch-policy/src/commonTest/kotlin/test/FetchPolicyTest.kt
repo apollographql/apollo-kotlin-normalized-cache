@@ -16,6 +16,7 @@ import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
+import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.fetchFromCache
 import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
@@ -39,6 +40,8 @@ import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -90,6 +93,7 @@ class FetchPolicyTest {
                   val cacheResponse1 = awaitItem()
                   assertTrue(cacheResponse1.isFromCache)
                   assertIs<CacheMissException>(cacheResponse1.exception)
+                  assertNotNull(cacheResponse1.cacheInfo?.cacheMissException)
 
                   // 2. response from the network, with the error
                   val networkResponse1 = awaitItem()
@@ -104,6 +108,7 @@ class FetchPolicyTest {
                   assertTrue(cacheResponse2.isFromCache)
                   // GraphQL error is surfaced as an exception by default (serverErrorsAsException is true)
                   assertIs<ApolloGraphQLException>(cacheResponse2.exception)
+                  assertNull(cacheResponse2.cacheInfo?.cacheMissException)
 
                   // That wasn't a cache miss: expect no more emissions
                   withTurbineTimeout(200.milliseconds) {
