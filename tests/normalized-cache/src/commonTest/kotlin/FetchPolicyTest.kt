@@ -24,6 +24,7 @@ import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
+import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.isFromCache
@@ -407,6 +408,7 @@ class FetchPolicyTest {
     assertEquals(2, responses.size)
     assertNull(responses[0].data)
     assertIs<CacheMissException>(responses[0].exception)
+    assertNotNull(responses[0].cacheInfo?.cacheMissException)
     assertNotNull(responses[1].data)
     assertFalse(responses[1].isFromCache)
     assertEquals("R2-D2", responses[1].data?.hero?.name)

@@ -167,6 +167,7 @@ internal class DefaultCacheManager(
                     // Consider cached server errors as cache hits
                     .cacheHit(e !is CacheMissException)
                     .stale(e is CacheMissException && e.stale)
+                    .cacheMissException(e as? CacheMissException)
                     .build(),
             )
             .build()
