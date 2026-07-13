@@ -11,6 +11,7 @@ import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
+import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
@@ -18,6 +19,7 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.cacheInfo
 import com.apollographql.cache.normalized.fetchFromCache
+import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.isFromCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.refetchPolicyInterceptor
@@ -28,6 +30,7 @@ import com.apollographql.mockserver.MockRequestBase
 import com.apollographql.mockserver.MockResponse
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.MockServerHandler
+import com.apollographql.mockserver.enqueueString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -37,6 +40,7 @@ import okio.use
 import test.cache.Cache.cache
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
@@ -119,6 +123,74 @@ class FetchPolicyTest {
                 }
           }
     }
+  }
+
+  private lateinit var mockServer: MockServer
+
+  private fun setUp() {
+    mockServer = MockServer()
+  }
+
+  private fun tearDown() {
+    mockServer.close()
+  }
+
+  @Test
+  fun fetchPolicyQueryOverride() = runTest(before = { setUp() }, after = { tearDown() }) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+        {
+          "data":    {    
+            "me": {
+              "__typename": "User",
+              "id": "1",
+              "firstName": "John",
+              "lastName": "Smith"
+            }
+          }
+        }
+      """.trimIndent()
+    )
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cache(MemoryCacheFactory())
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .build()
+        .use { apolloClient ->
+          val networkResponse = apolloClient
+              .query(MeQuery())
+              .execute()
+          assertFalse(networkResponse.isFromCache)
+          assertEquals(
+              MeQuery.Data(
+                  MeQuery.Me(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                  ),
+              ),
+              networkResponse.data,
+          )
+
+          val cacheResponse = apolloClient
+              .query(MeQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertTrue(cacheResponse.isFromCache)
+          assertEquals(
+              MeQuery.Data(
+                  MeQuery.Me(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                  ),
+              ),
+              cacheResponse.data,
+          )
+        }
   }
 }
 
