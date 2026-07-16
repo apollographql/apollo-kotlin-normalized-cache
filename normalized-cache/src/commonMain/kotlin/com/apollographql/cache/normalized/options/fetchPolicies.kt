@@ -21,22 +21,28 @@ internal val <D : Operation.Data> ApolloRequest<D>.fetchPolicyInterceptor
   get() = executionContext[FetchPolicyContext]?.interceptor ?: DefaultFetchPolicyInterceptor
 
 /**
- * Sets the initial [FetchPolicy]
- * This only has effects for queries. Mutations and subscriptions always use [FetchPolicy.NetworkOnly]
+ * Sets the fetch policy interceptor.
+ * 
+ * This only has effects for queries. Mutations and subscriptions always use [FetchPolicy.NetworkOnly].
+ * This overrides any fetch policy set with [fetchPolicy]. 
+ * 
+ * Default: [DefaultFetchPolicyInterceptor]
  */
 fun <T> MutableExecutionOptions<T>.fetchPolicyInterceptor(interceptor: ApolloInterceptor) = addExecutionContext(
     FetchPolicyContext(interceptor),
 )
 
 /**
- * Sets the initial [FetchPolicy]
+ * Sets the [FetchPolicy].
  * This only has effects for queries. Mutations and subscriptions always use the network only.
- *
+ * This overrides any fetch policy interceptor set with [fetchPolicyInterceptor].
+ * 
  * Default: [FetchPolicy.CacheFirst]
  */
 @Suppress("UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.fetchPolicy(fetchPolicy: FetchPolicy): T {
   // Reset first
+  fetchPolicyInterceptor(DefaultFetchPolicyInterceptor)
   onlyIfCached(false)
   noCache(false)
   return when (fetchPolicy) {

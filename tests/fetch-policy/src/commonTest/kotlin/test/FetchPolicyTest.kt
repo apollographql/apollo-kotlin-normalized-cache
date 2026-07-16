@@ -192,6 +192,82 @@ class FetchPolicyTest {
           )
         }
   }
+
+  @Test
+  fun fetchPolicyQueryOverrideWithNetworkFirstClientDefault() = runTest(before = { setUp() }, after = { tearDown() }) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+        {
+          "data": {
+            "me": {
+              "__typename": "User",
+              "id": "1",
+              "firstName": "John",
+              "lastName": "Smith"
+            }
+          }
+        }
+      """.trimIndent()
+    )
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .cache(MemoryCacheFactory())
+        // Unlike CacheOnly/NetworkOnly/CacheFirst, NetworkFirst (and CacheAndNetwork) is interceptor-based: it puts a FetchPolicyContext in the client execution context
+        .fetchPolicy(FetchPolicy.NetworkFirst)
+        .build()
+        .use { apolloClient ->
+          val networkResponse = apolloClient
+              .query(MeQuery())
+              .execute()
+          assertFalse(networkResponse.isFromCache)
+          assertEquals(
+              MeQuery.Data(
+                  MeQuery.Me(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                  ),
+              ),
+              networkResponse.data,
+          )
+
+          // If the CacheOnly query below erroneously goes to the network, it receives this response, making the extra request visible to the assertions.
+          // Without a queued response, NetworkFirst would fall back to the cache on the failed network request and mask the bug.
+          mockServer.enqueueString(
+              // language=JSON
+              """
+              {
+                "data": {
+                  "me": {
+                    "__typename": "User",
+                    "id": "1",
+                    "firstName": "Jane",
+                    "lastName": "Doe"
+                  }
+                }
+              }
+            """.trimIndent()
+          )
+          val cacheResponse = apolloClient
+              .query(MeQuery())
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              .execute()
+          assertTrue(cacheResponse.isFromCache)
+          assertEquals(
+              MeQuery.Data(
+                  MeQuery.Me(
+                      __typename = "User",
+                      id = "1",
+                      firstName = "John",
+                      lastName = "Smith",
+                  ),
+              ),
+              cacheResponse.data,
+          )
+        }
+  }
 }
 
 /**
