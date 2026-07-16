@@ -19,24 +19,31 @@ internal val <T> MutableExecutionOptions<T>.refetchPolicyInterceptor
   get() = executionContext[RefetchPolicyContext]?.interceptor ?: DefaultFetchPolicyInterceptor
 
 /**
- * Sets the [FetchPolicy] used when watching queries and a cache change has been published.
+ * Sets the fetch policy interceptor used when watching queries and a cache change has been published.
+ * 
+ * This overrides any fetch policy set with [refetchPolicy].
  *
- * Default: [FetchPolicy.CacheOnly]
+ * Default: [DefaultFetchPolicyInterceptor]
  */
 fun <T> MutableExecutionOptions<T>.refetchPolicyInterceptor(interceptor: ApolloInterceptor) = addExecutionContext(
     RefetchPolicyContext(interceptor),
 )
 
 /**
- * Sets the [FetchPolicy] used when watching queries and a cache change has been published
+ * Sets the [FetchPolicy] used when watching queries and a cache change has been published.
+ * 
+ * This overrides any fetch policy interceptor set with [refetchPolicyInterceptor].
+ * 
+ * Default: [FetchPolicy.CacheOnly]
  */
 @Suppress("UNCHECKED_CAST")
 fun <T> MutableExecutionOptions<T>.refetchPolicy(fetchPolicy: FetchPolicy): T {
   // Reset first
+  refetchPolicyInterceptor(DefaultFetchPolicyInterceptor)
   refetchOnlyIfCached(false)
   refetchNoCache(false)
   return when (fetchPolicy) {
-    FetchPolicy.NetworkFirst ->refetchPolicyInterceptor(NetworkFirstInterceptor)
+    FetchPolicy.NetworkFirst -> refetchPolicyInterceptor(NetworkFirstInterceptor)
     FetchPolicy.CacheOnly -> refetchOnlyIfCached(true)
     FetchPolicy.NetworkOnly -> refetchNoCache(true)
     FetchPolicy.CacheFirst -> this as T
