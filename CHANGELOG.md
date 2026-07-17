@@ -2,6 +2,17 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.6
+_2026-07-17_
+
+- [Improvement] Avoid adding key fields that are already selected (#356)
+- [Improvement] Add default resolver as parameter to `KeyArgumentsCacheResolver` (#361)
+- [Fix] Update the apollo cache namespace (#362)
+- [Fix] Add `CacheMissException` when building `CacheInfo` (#363)
+- [Fix] Certain client-scoped `fetchPolicy` values not overridden by query-scoped ones (#365)
+
+Many thanks to @halberto-deezer, @rohandhruva, and @dhritzkiv for their contributions! 💜
+
 # v1.0.5
 _2026-06-25_
 
