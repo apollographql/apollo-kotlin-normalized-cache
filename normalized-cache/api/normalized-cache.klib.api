@@ -370,8 +370,10 @@ final class com.apollographql.cache.normalized.api/Record : kotlin.collections/M
 
     final fun containsKey(kotlin/String): kotlin/Boolean // com.apollographql.cache.normalized.api/Record.containsKey|containsKey(kotlin.String){}[0]
     final fun containsValue(kotlin/Any?): kotlin/Boolean // com.apollographql.cache.normalized.api/Record.containsValue|containsValue(kotlin.Any?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // com.apollographql.cache.normalized.api/Record.equals|equals(kotlin.Any?){}[0]
     final fun fieldKeys(): kotlin.collections/Set<kotlin/String> // com.apollographql.cache.normalized.api/Record.fieldKeys|fieldKeys(){}[0]
     final fun get(kotlin/String): kotlin/Any? // com.apollographql.cache.normalized.api/Record.get|get(kotlin.String){}[0]
+    final fun hashCode(): kotlin/Int // com.apollographql.cache.normalized.api/Record.hashCode|hashCode(){}[0]
     final fun isEmpty(): kotlin/Boolean // com.apollographql.cache.normalized.api/Record.isEmpty|isEmpty(){}[0]
     final fun mergeWith(com.apollographql.cache.normalized.api/Record): kotlin/Pair<com.apollographql.cache.normalized.api/Record, kotlin.collections/Set<kotlin/String>> // com.apollographql.cache.normalized.api/Record.mergeWith|mergeWith(com.apollographql.cache.normalized.api.Record){}[0]
     final fun referencedFields(): kotlin.collections/List<com.apollographql.cache.normalized.api/CacheKey> // com.apollographql.cache.normalized.api/Record.referencedFields|referencedFields(){}[0]
