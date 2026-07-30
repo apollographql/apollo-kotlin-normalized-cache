@@ -130,8 +130,10 @@ class MemoryCache(
           record.fieldKeys()
         } else {
           val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
-          recordsToInsert.add(mergedRecord)
-          lruCache[record.key] = mergedRecord
+          if (mergedRecord != existingRecord) {
+            recordsToInsert.add(mergedRecord)
+            lruCache[record.key] = mergedRecord
+          }
           changedKeys
         }
       }.toSet()
