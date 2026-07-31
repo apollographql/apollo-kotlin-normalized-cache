@@ -57,6 +57,24 @@ class Record(
     return result
   }
 
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is Record) return false
+
+    if (key != other.key) return false
+    if (fields != other.fields) return false
+    if (metadata != other.metadata) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = key.hashCode()
+    result = 31 * result + fields.hashCode()
+    result = 31 * result + metadata.hashCode()
+    return result
+  }
+
   companion object {
     internal fun changedKeys(record1: Record, record2: Record): Set<String> {
       check(record1.key == record2.key) {

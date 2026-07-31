@@ -696,6 +696,7 @@ public final class com/apollographql/cache/normalized/api/Record : java/util/Map
 	public fun containsKey (Ljava/lang/String;)Z
 	public fun containsValue (Ljava/lang/Object;)Z
 	public final fun entrySet ()Ljava/util/Set;
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun fieldKeys ()Ljava/util/Set;
 	public final fun get (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun get (Ljava/lang/String;)Ljava/lang/Object;
@@ -708,6 +709,7 @@ public final class com/apollographql/cache/normalized/api/Record : java/util/Map
 	public fun getSize ()I
 	public final fun getSizeInBytes ()I
 	public fun getValues ()Ljava/util/Collection;
+	public fun hashCode ()I
 	public fun isEmpty ()Z
 	public final fun keySet ()Ljava/util/Set;
 	public synthetic fun merge (Ljava/lang/Object;Ljava/lang/Object;Ljava/util/function/BiFunction;)Ljava/lang/Object;

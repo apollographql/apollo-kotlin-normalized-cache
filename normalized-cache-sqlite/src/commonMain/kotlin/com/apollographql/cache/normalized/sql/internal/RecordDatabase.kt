@@ -100,8 +100,8 @@ internal class RecordDatabase(
   /**
    * Must be called inside a transaction.
    */
-  suspend fun insertOrUpdateRecord(record: Record) {
-    recordQueries.deleteRecords(listOf(record.key.key))
+  suspend fun insertOrUpdateRecord(record: Record, deleteFirst: Boolean = true) {
+    if (deleteFirst) recordQueries.deleteRecords(listOf(record.key.key))
     val recordBytes = RecordSerializer.serialize(record)
     val updatedDate = currentTimeMillis()
     // Fast path for small records
