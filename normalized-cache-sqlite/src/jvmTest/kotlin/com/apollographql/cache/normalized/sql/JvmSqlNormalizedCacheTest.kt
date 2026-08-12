@@ -11,11 +11,30 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.sql.internal.RecordDatabase
 import com.apollographql.cache.normalized.testing.runTest
+import java.io.File
 import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class JvmSqlNormalizedCacheTest {
+  @Test
+  fun theDatabaseIsNotCreatedUntilTheCacheIs() {
+    val baseDir = File(System.getProperty("java.io.tmpdir"), "apollo-test-${System.nanoTime()}")
+    try {
+      val factory = SqlNormalizedCacheFactory(name = "test.db", baseDir = baseDir.path)
+
+      // Creating the factory must not touch the disk.
+      assertFalse(baseDir.exists(), "The base directory must not be created before NormalizedCacheFactory.create()")
+
+      factory.create()
+      assertTrue(baseDir.exists(), "The base directory must be created by NormalizedCacheFactory.create()")
+    } finally {
+      baseDir.deleteRecursively()
+    }
+  }
+
   @Test
   fun mergingIdenticalRecordIsANoOp() = runTest {
     val driver = SpyDriver(JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY, Properties()))
