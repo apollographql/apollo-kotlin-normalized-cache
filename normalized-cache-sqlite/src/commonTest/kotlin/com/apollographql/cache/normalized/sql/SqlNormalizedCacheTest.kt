@@ -142,6 +142,36 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
+  fun testMetadataKnownKeyAbbreviationOnlyAppliesToInnerMetadataKeys() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val fieldNameThatMatchesKnownMetadataKey = ApolloCacheHeaders.RECEIVED_DATE
+    val record = Record(
+        key = STANDARD_KEY,
+        fields = mapOf(
+            fieldNameThatMatchesKnownMetadataKey to "value",
+            "0" to "otherValue",
+        ),
+        metadata = mapOf(
+            fieldNameThatMatchesKnownMetadataKey to mapOf(
+                ApolloCacheHeaders.RECEIVED_DATE to 1L,
+                ApolloCacheHeaders.EXPIRATION_DATE to 2L,
+            ),
+            "0" to mapOf(
+                ApolloCacheHeaders.RECEIVED_DATE to 3L,
+            ),
+        ),
+    )
+
+    cache.merge(
+        record = record,
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    val loaded = requireNotNull(cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE))
+    assertEquals(record.metadata, loaded.metadata)
+  }
+
+  @Test
   fun testRecordMerge_noOldRecord() = runTest(before = { setUp() }, after = { tearDown() }) {
     val changedKeys = cache.merge(
         record = Record(
