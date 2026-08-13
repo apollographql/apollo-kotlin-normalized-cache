@@ -18,7 +18,18 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 
 internal class WatchContext(
+    /**
+     * The data to derive the initially watched keys from, for the overload that does not fetch.
+     */
     val data: Query.Data?,
+
+    /**
+     * Whether to execute the request once, with the fetch policy, before observing the cache.
+     *
+     * Doing this from the interceptor rather than as a separate execution means the operation goes
+     * through the interceptor chain once instead of twice.
+     */
+    val fetchInitialResponses: Boolean,
 ) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
     get() = Key
@@ -33,8 +44,8 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
 /**
  * Gets initial response(s) then observes the cache for any changes.
  *
- * The cache subscription is established before the initial fetch completes, so any external cache update made
- * after collecting the last initial response will be received.
+ * The cache subscription is established before the last initial response is collected, so any external cache update made
+ * after collecting it will be received.
  *
  * Note: when using [writeToCacheAsynchronously], the cache updates are postponed and behave as external cache updates. They may trigger emission. 
  *
@@ -46,53 +57,21 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
  * @see refetchPolicy
  */
 fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
-  return flow {
-    var lastResponse: ApolloResponse<D>? = null
-    var response: ApolloResponse<D>? = null
-
-    toFlow()
-        .collect {
-          response = it
-
-          if (it.isLast) {
-            if (lastResponse != null) {
-              /**
-               * If we ever come here it means some interceptors built a new Flow and forgot to reset the isLast flag
-               * Better safe than sorry: emit them when we realize that. This will introduce a delay in the response.
-               */
-              println("ApolloGraphQL: extra response received after the last one")
-              emit(lastResponse!!)
-            }
-            /**
-             * Remember the last response so that we can send it after we subscribe to the store
-             *
-             * This allows callers to use the last element as a synchronisation point to modify the store and still have the watcher
-             * receive subsequent updates
-             *
-             * See https://github.com/apollographql/apollo-kotlin/pull/3853
-             */
-            lastResponse = it
-          } else {
-            emit(it)
-          }
-        }
-
-
-    copy().fetchPolicyInterceptor(refetchPolicyInterceptor)
-        .noCache(refetchNoCache)
-        .onlyIfCached(refetchOnlyIfCached)
-        .watchInternal(response?.data)
-        .collect {
-          if (it.exception === WatcherSentinel) {
-            if (lastResponse != null) {
-              emit(lastResponse!!)
-              lastResponse = null
-            }
-          } else {
-            emit(it)
-          }
-        }
-  }
+  /**
+   * The initial responses are fetched by the interceptor, which subscribes to the cache right after
+   * and only then releases the last of them.
+   *
+   * Executing them here instead would mean a second trip through the interceptor chain to subscribe,
+   * and that last response would be withheld until the trip finished - delaying it by the teardown
+   * of the first flow, a dispatch, and a re-run of every interceptor ahead of the cache. Done from
+   * the interceptor, the wait is a [kotlinx.coroutines.flow.SharedFlow] subscription and nothing
+   * else, while the synchronisation point callers rely on is unchanged.
+   *
+   * See https://github.com/apollographql/apollo-kotlin/pull/3853
+   */
+  return copy()
+      .addExecutionContext(WatchContext(data = null, fetchInitialResponses = true))
+      .toFlow()
 }
 
 /**
@@ -108,5 +87,5 @@ fun <D : Query.Data> ApolloCall<D>.watch(data: D?): Flow<ApolloResponse<D>> {
  * The fetch policy set by [fetchPolicy] will be used.
  */
 internal fun <D : Query.Data> ApolloCall<D>.watchInternal(data: D?): Flow<ApolloResponse<D>> {
-  return copy().addExecutionContext(WatchContext(data)).toFlow()
+  return copy().addExecutionContext(WatchContext(data, fetchInitialResponses = false)).toFlow()
 }
