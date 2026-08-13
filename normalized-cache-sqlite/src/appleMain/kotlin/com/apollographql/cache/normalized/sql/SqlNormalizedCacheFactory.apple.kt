@@ -5,7 +5,9 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import app.cash.sqldelight.driver.native.wrapConnection
 import co.touchlab.sqliter.DatabaseConfiguration
+import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.sql.internal.RecordDatabase
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 
 /**
@@ -17,7 +19,11 @@ import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(createDriver(name, baseDir), name)
+): NormalizedCacheFactory = object : NormalizedCacheFactory() {
+  override fun create(): NormalizedCache {
+    return SqlNormalizedCache(RecordDatabase(createDriver(name, baseDir), name))
+  }
+}
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
 

@@ -2,6 +2,8 @@
 
 PUT_CHANGELOG_HERE
 
+- [Fix] `SqlNormalizedCacheFactory()` no longer touches the disk when called, fixing a StrictMode main thread disk read. The driver is now created in `NormalizedCacheFactory.create()` (#373)
+
 # v1.0.6
 _2026-07-17_
 
