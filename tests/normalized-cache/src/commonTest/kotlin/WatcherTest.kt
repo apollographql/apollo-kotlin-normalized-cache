@@ -62,6 +62,12 @@ class WatcherTest {
   private val episodeHeroNameChangedTwoData = EpisodeHeroNameQuery.Data(EpisodeHeroNameQuery.Hero("Droid", "ArTwo"))
 
   private val episodeHeroNameWithIdData = EpisodeHeroNameWithIdQuery.Data(EpisodeHeroNameWithIdQuery.Hero("Droid", "2001", "R2-D2"))
+  private val episodeHeroNameWithIdChangedData =
+    EpisodeHeroNameWithIdQuery.Data(EpisodeHeroNameWithIdQuery.Hero("Droid", "2001", "ArTwo"))
+
+  private val starshipByIdData = StarshipByIdQuery.Data(
+      StarshipByIdQuery.Starship("Starship", "Starship1", "SuperRocket", listOf(listOf(900.0, 800.0)))
+  )
 
 
   private val heroAndFriendsNamesWithIDsData = HeroAndFriendsNamesWithIDsQuery.Data(
@@ -312,6 +318,57 @@ class WatcherTest {
         .execute()
 
     channel.assertEmpty()
+
+    job.cancel()
+  }
+
+  /**
+   * The keys a watcher matches cache changes against come from the latest response it has seen, and
+   * they are only computed when a change actually needs them. Both of those have to keep holding
+   * across a refetch: a watcher that loses its keys would match every subsequent change.
+   */
+  @Test
+  fun watchedKeysStillFilterAfterARefetch() = runTest(before = { setUp() }) {
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+
+    // The first query should get a "R2-D2" name
+    val episodeHeroNameWithIdQuery = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    apolloClient.enqueueTestResponse(episodeHeroNameWithIdQuery, episodeHeroNameWithIdData)
+    val job = launch {
+      apolloClient.query(episodeHeroNameWithIdQuery).watch().collect {
+        channel.send(it.data)
+      }
+    }
+
+    // Cache miss is emitted first (null data)
+    assertNull(channel.awaitElement())
+    assertEquals(channel.awaitElement()?.hero?.name, "R2-D2")
+
+    // An overlapping query triggers a refetch, which is where the watched keys are refreshed
+    val heroAndFriendsNamesWithIDsQuery = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
+    apolloClient.enqueueTestResponse(heroAndFriendsNamesWithIDsQuery, heroAndFriendsNamesWithIDsNameChangedData)
+    apolloClient.query(heroAndFriendsNamesWithIDsQuery)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+
+    assertEquals(channel.awaitElement()?.hero?.name, "Artoo")
+
+    // A query sharing no key with the watched one is still filtered out after that refetch
+    val starshipByIdQuery = StarshipByIdQuery("Starship1")
+    apolloClient.enqueueTestResponse(starshipByIdQuery, starshipByIdData)
+    apolloClient.query(starshipByIdQuery)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+
+    channel.assertEmpty()
+
+    // ...while an overlapping one still reaches the watcher
+    apolloClient.enqueueTestResponse(episodeHeroNameWithIdQuery, episodeHeroNameWithIdChangedData)
+    apolloClient.query(episodeHeroNameWithIdQuery)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+
+    assertEquals(channel.awaitElement()?.hero?.name, "ArTwo")
 
     job.cancel()
   }

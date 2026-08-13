@@ -142,8 +142,22 @@ fun Record.expirationDate(field: String) = metadata[field]?.get(ApolloCacheHeade
  */
 typealias RecordValue = Any?
 
+/**
+ * Returns the set of all field keys of all the given records.
+ * A field key incorporates any GraphQL arguments in addition to the field name.
+ */
 fun Collection<Record>?.dependentKeys(): Set<String> {
-  return this?.flatMap {
-    it.fieldKeys()
-  }?.toSet() ?: emptySet()
+  if (this == null) {
+    return emptySet()
+  }
+  // Built in one pass: going through `fieldKeys()` would allocate a list and a set per record, plus
+  // a list holding every key, on top of the set actually returned. For a large operation that is
+  // thousands of throwaway collections.
+  return buildSet {
+    for (record in this@dependentKeys) {
+      for (fieldName in record.fields.keys) {
+        add(record.key.fieldKey(fieldName))
+      }
+    }
+  }
 }
