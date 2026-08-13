@@ -19,9 +19,9 @@ internal object RecordSerializer {
     val buffer = Buffer()
     buffer.writeMap(record.fields)
     buffer._writeInt(record.metadata.size)
-    for ((k, v) in record.metadata.mapKeys { (k, _) -> knownMetadataKeys[k] ?: k }) {
+    for ((k, v) in record.metadata) {
       buffer.writeString(k.shortenCacheKey())
-      buffer.writeMap(v)
+      buffer.writeMap(v.mapKeys { (metadataKey, _) -> knownMetadataKeys[metadataKey] ?: metadataKey })
     }
     return buffer.readByteArray()
   }
@@ -33,10 +33,10 @@ internal object RecordSerializer {
     val metadata = HashMap<String, Map<String, ApolloJsonElement>>(metadataSize).apply {
       repeat(metadataSize) {
         val k = buffer.readString().expandCacheKey()
-        val v = buffer.readMap()
+        val v = buffer.readMap().mapKeys { (metadataKey, _) -> knownMetadataKeysInverted[metadataKey] ?: metadataKey }
         put(k, v)
       }
-    }.mapKeys { (k, _) -> knownMetadataKeysInverted[k] ?: k }
+    }
     return Record(
         key = CacheKey(key),
         fields = fields,
