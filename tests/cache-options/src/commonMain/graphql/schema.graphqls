@@ -6,6 +6,7 @@ type Query {
   user(category: Category!): User
   someInt: Int
   someInt2: Int
+  car(carId: String!): Car
 }
 
 type User {
@@ -38,3 +39,10 @@ type EmployeeInfo {
 
 scalar Category
 scalar Json
+
+
+type Car {
+  id: String!
+  color: String!
+  doors: Int
+}

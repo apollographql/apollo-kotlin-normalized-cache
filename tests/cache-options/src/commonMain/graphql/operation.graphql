@@ -125,3 +125,18 @@ fragment UserFields on User {
     lastName
   }
 }
+
+query GetCar($carId:String!) {
+  car(carId: $carId) {
+    id
+    color
+    doors
+  }
+}
+
+query GetCarColor($carId:String!) {
+  car(carId: $carId) {
+    id
+    color
+  }
+}
