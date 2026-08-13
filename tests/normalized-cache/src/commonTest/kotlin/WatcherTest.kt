@@ -2,10 +2,14 @@ package test
 
 import app.cash.turbine.test
 import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
+import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.composeJsonResponse
 import com.apollographql.apollo.exception.ApolloNetworkException
 import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.interceptor.ApolloInterceptor
+import com.apollographql.apollo.interceptor.ApolloInterceptorChain
 import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestNetworkError
 import com.apollographql.apollo.testing.enqueueTestResponse
@@ -33,6 +37,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -371,6 +376,109 @@ class WatcherTest {
     assertEquals(channel.awaitElement()?.hero?.name, "ArTwo")
 
     job.cancel()
+  }
+
+  /**
+   * The initial fetch writes its response to the cache and publishes the changed keys. The watcher
+   * subscribes only once those responses are in, so it must not react to its own write.
+   */
+  @Test
+  fun initialFetchDoesNotTriggerTheWatcher() = runTest(before = { setUp() }) {
+    val query = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+
+    // The cache starts empty, so the initial fetch does change it
+    apolloClient.enqueueTestResponse(query, episodeHeroNameWithIdData)
+    val job = launch {
+      apolloClient.query(query).watch().collect {
+        channel.send(it.data)
+      }
+    }
+
+    // Cache miss is emitted first (null data)
+    assertNull(channel.awaitElement())
+    assertEquals(channel.awaitElement()?.hero?.name, "R2-D2")
+
+    channel.assertEmpty()
+
+    job.cancel()
+  }
+
+  /**
+   * The initial responses use the fetch policy while the refetches use the refetch policy, including
+   * when the two disagree: a NetworkOnly watch still refetches from the cache under the default
+   * CacheOnly refetch policy rather than going back to the network.
+   */
+  @Test
+  fun refetchUsesTheRefetchPolicyRatherThanTheFetchPolicy() = runTest(before = { setUp() }) {
+    val query = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+
+    apolloClient.enqueueTestResponse(query, episodeHeroNameWithIdData)
+    val job = launch {
+      apolloClient.query(query)
+          .fetchPolicy(FetchPolicy.NetworkOnly)
+          .watch().collect {
+            channel.send(it.data)
+          }
+    }
+
+    assertEquals(channel.awaitElement()?.hero?.name, "R2-D2")
+
+    // Write "Artoo" out of band. Only one response was enqueued, so a refetch that went to the
+    // network would fail instead of reading the cache.
+    cacheManager.writeOperation(
+        query,
+        EpisodeHeroNameWithIdQuery.Data(EpisodeHeroNameWithIdQuery.Hero("Droid", "2001", "Artoo")),
+        publish = true,
+    )
+
+    assertEquals(channel.awaitElement()?.hero?.name, "Artoo")
+
+    job.cancel()
+  }
+
+  /**
+   * The initial responses and the cache subscription come from a single execution of the interceptor
+   * chain, so interceptors sitting ahead of the cache run once rather than once per execution.
+   */
+  @Test
+  fun watchExecutesTheInterceptorChainOnce() = runTest {
+    var executions = 0
+    val countingInterceptor = object : ApolloInterceptor {
+      override fun <D : Operation.Data> intercept(
+          request: ApolloRequest<D>,
+          chain: ApolloInterceptorChain,
+      ): Flow<ApolloResponse<D>> {
+        executions++
+        return chain.proceed(request)
+      }
+    }
+    val cacheManager =
+      CacheManager(MemoryCacheFactory(), cacheKeyGenerator = IdCacheKeyGenerator(), cacheResolver = IdCacheResolver())
+    val apolloClient = ApolloClient.Builder()
+        .networkTransport(QueueTestNetworkTransport())
+        .cacheManager(cacheManager)
+        .addInterceptor(countingInterceptor)
+        .build()
+
+    val query = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+    apolloClient.enqueueTestResponse(query, episodeHeroNameWithIdData)
+    val job = launch {
+      apolloClient.query(query).watch().collect {
+        channel.send(it.data)
+      }
+    }
+
+    // Cache miss is emitted first (null data)
+    assertNull(channel.awaitElement())
+    assertEquals(channel.awaitElement()?.hero?.name, "R2-D2")
+
+    assertEquals(1, executions)
+
+    job.cancel()
+    apolloClient.close()
   }
 
   /**
