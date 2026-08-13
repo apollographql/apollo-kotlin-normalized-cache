@@ -1,5 +1,7 @@
 # Next version (unreleased)
 
+- Enable parallel sync for Tooling API clients (#380)
+
 PUT_CHANGELOG_HERE
 
 # v1.0.6
