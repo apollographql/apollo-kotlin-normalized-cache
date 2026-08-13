@@ -1,5 +1,8 @@
 # Next version (unreleased)
 
+- [Improvement] Derive the keys a watcher matches cache changes against lazily, keeping the re-normalization of the whole response off the path that delivers the initial responses of `watch` (#378)
+- [Improvement] Reduce allocations when deriving a watcher's dependent keys and matching them against a cache change (#378)
+
 PUT_CHANGELOG_HERE
 
 # v1.0.6
