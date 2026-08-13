@@ -355,16 +355,25 @@ internal class CacheBatchReader(
         .build()
   }
 
-  @Suppress("UNCHECKED_CAST")
+  /**
+   * The first [Error] in this value, or null if it holds none.
+   *
+   * Called for every field read, where the overwhelming majority of values are scalars holding no
+   * error at all, so it recurses rather than allocating a work queue to walk them with.
+   */
   internal fun Any?.firstError(): Error? {
-    val queue = ArrayDeque<Any?>()
-    queue.add(this)
-    while (queue.isNotEmpty()) {
-      when (val current = queue.removeFirst()) {
-        is Error -> return current
-        is List<*> -> queue.addAll(current)
-        // Embedded fields can be represented as Maps
-        is Map<*, *> -> queue.addAll(current.values)
+    when (this) {
+      is Error -> return this
+      is List<*> -> {
+        for (item in this) {
+          item.firstError()?.let { return it }
+        }
+      }
+      // Embedded fields can be represented as Maps
+      is Map<*, *> -> {
+        for (value in values) {
+          value.firstError()?.let { return it }
+        }
       }
     }
     return null

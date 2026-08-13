@@ -127,8 +127,9 @@ internal fun processErrors(
       }
       @Suppress("UNCHECKED_CAST")
       dataWithErrors as Map<String, Any?>
+      val fieldSelections = field.fieldSelections()
       dataWithErrors.mapValues { (key, value) ->
-        val selection = field.fieldSelection(key)
+        val selection = fieldSelections[key]
             ?: // Should never happen
             return@mapValues value
         when (value) {
@@ -197,23 +198,40 @@ internal fun processErrors(
 
 internal class OnErrorHaltException : Exception("A field resolved to an error and OnError is set to HALT")
 
-private fun CompiledSelection.fieldSelection(responseName: String): CompiledField? {
-  fun CompiledSelection.fieldSelections(): List<CompiledField> {
-    return when (this) {
-      is CompiledField -> selections.filterIsInstance<CompiledField>() + selections.filterIsInstance<CompiledFragment>()
-          .flatMap { it.fieldSelections() }
+/**
+ * Maps each response name this field selects to the selection it resolves to.
+ *
+ * Built once and reused for every key of the object: resolving one response name at a time re-flattens
+ * the whole selection set per key, which is quadratic in the number of fields selected.
+ */
+private fun CompiledField.fieldSelections(): Map<String, CompiledField> {
+  val fieldSelections = mutableMapOf<String, CompiledField>()
 
-      is CompiledFragment -> selections.filterIsInstance<CompiledField>() + selections.filterIsInstance<CompiledFragment>()
-          .flatMap { it.fieldSelections() }
+  fun collect(selections: List<CompiledSelection>) {
+    for (selection in selections) {
+      if (selection !is CompiledField) continue
+      val existing = fieldSelections[selection.responseName]
+      fieldSelections[selection.responseName] = if (existing == null) {
+        selection
+      } else {
+        // Fields can be selected multiple times, combine the selections
+        CompiledField.Builder(
+            name = existing.name,
+            type = existing.type,
+        )
+            .selections(existing.selections + selection.selections)
+            .build()
+      }
+    }
+    // Fragments are visited after the fields of the enclosing selection set, so that a field selected
+    // both directly and in a fragment keeps the direct selection's name and type.
+    for (selection in selections) {
+      if (selection is CompiledFragment) {
+        collect(selection.selections)
+      }
     }
   }
-  // Fields can be selected multiple times, combine the selections
-  return fieldSelections().filter { it.responseName == responseName }.reduceOrNull { acc, compiledField ->
-    CompiledField.Builder(
-        name = acc.name,
-        type = acc.type,
-    )
-        .selections(acc.selections + compiledField.selections)
-        .build()
-  }
+
+  collect(selections)
+  return fieldSelections
 }
