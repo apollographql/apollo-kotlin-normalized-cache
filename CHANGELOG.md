@@ -1,5 +1,7 @@
 # Next version (unreleased)
 
+- Enable parallel sync for Tooling API clients (#380)
+
 PUT_CHANGELOG_HERE
 
 - [Fix] `SqlNormalizedCacheFactory()` no longer touches the disk when called, fixing a StrictMode main thread disk read. The driver is now created in `NormalizedCacheFactory.create()` (#373)
