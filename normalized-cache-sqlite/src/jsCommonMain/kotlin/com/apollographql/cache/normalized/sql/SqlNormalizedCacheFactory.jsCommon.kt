@@ -1,7 +1,9 @@
 package com.apollographql.cache.normalized.sql
 
 import app.cash.sqldelight.driver.worker.createDefaultWebWorkerDriver
+import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.sql.internal.RecordDatabase
 
 /**
  * Returns a SqlNormalizedCacheFactory configured with the default driver which works with SQL.js.
@@ -14,7 +16,9 @@ import com.apollographql.cache.normalized.api.NormalizedCacheFactory
  *
  * See [the SQLDelight documentation](https://sqldelight.github.io/sqldelight/2.1.0/js_sqlite/sqljs_worker/).
  */
-actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory {
-  return SqlNormalizedCacheFactory(createDefaultWebWorkerDriver(), name = null)
+actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = object : NormalizedCacheFactory() {
+  override fun create(): NormalizedCache {
+    return SqlNormalizedCache(RecordDatabase(createDefaultWebWorkerDriver(), name = null))
+  }
 }
 

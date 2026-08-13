@@ -13,6 +13,7 @@ import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
+import com.apollographql.cache.normalized.testing.noExceptionsHeaders
 import com.apollographql.cache.normalized.testing.runTest
 import pagination.connection.UsersQuery
 import pagination.connection.cache.Cache
@@ -413,7 +414,7 @@ class ConnectionPaginationTest {
         data = UsersQuery.Data { users = null },
         errors = listOf(Error.Builder("An error occurred.").path(listOf("users")).build()),
     )
-    val responseFromStore = cacheManager.readOperation(query)
+    val responseFromStore = cacheManager.readOperation(query, cacheHeaders = noExceptionsHeaders)
     assertEquals(UsersQuery.Data { users = null }, responseFromStore.data)
     assertEquals(1, responseFromStore.errors?.size)
     assertEquals("An error occurred.", responseFromStore.errors?.firstOrNull()?.message)

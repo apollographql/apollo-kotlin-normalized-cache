@@ -1,5 +1,6 @@
 package test
 
+import app.cash.turbine.test
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.ApolloClient
 import com.apollographql.apollo.api.ApolloResponse
@@ -14,13 +15,18 @@ import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
+import com.apollographql.cache.normalized.errorsReplaceCachedValues
 import com.apollographql.cache.normalized.fetchPolicy
+import com.apollographql.cache.normalized.maxStale
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
+import com.apollographql.cache.normalized.memoryCacheOnly
 import com.apollographql.cache.normalized.options.cacheMissesAsException
 import com.apollographql.cache.normalized.options.serverErrorsAsException
+import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
 import com.apollographql.cache.normalized.testing.runTest
+import com.apollographql.cache.normalized.watch
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +40,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.time.Duration.Companion.days
 
 class CacheOptionsTest {
   private lateinit var mockServer: MockServer
@@ -986,6 +993,86 @@ class CacheOptionsTest {
     assertEquals(response.errors?.size, 1)
   }
 
+  // Taken from https://github.com/apollographql/apollo-kotlin-normalized-cache/issues/374
+  @Test
+  fun memoryCacheOnlyIsPropagated() = runTest(before = { setUp() }, after = { tearDown() }) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "car": {
+                "__typename": "Car",
+                "id": "1",
+                "color": "Red",
+                "doors": null
+              }
+            },
+            "errors": [
+              {
+                "message": "Doors does not exist",
+                "type": "DoorsNotFoundError",
+                "path": ["car", "doors"],
+                "extensions": {
+                  "type": "DoorsNotFoundError"
+                },
+                "nonStandardFields": {
+                  "type": "DoorsNotFoundError"
+                }
+              }
+            ]
+          }
+          """,
+    )
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "car": {
+                "__typename": "Car",
+                "id": "1",
+                "color": "Blue"
+              }
+            }
+          }
+          """,
+    )
+
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .storeReceivedDate(true)
+        .maxStale(14.days)
+        .cacheMissesAsException(true)
+        .serverErrorsAsException(false)
+        .errorsReplaceCachedValues(true)
+        .cacheManager(memoryThenSqlCacheManager)
+        .build()
+        .use { apolloClient ->
+          val networkRequest = apolloClient.query(GetCarQuery(carId = "1"))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .memoryCacheOnly(true)
+              .watch()
+
+          val updateColorRequest = apolloClient.query(GetCarColorQuery(carId = "1"))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+
+          networkRequest.test {
+            val item1 = awaitItem()
+            assertIs<ApolloResponse<GetCarQuery.Data>>(item1)
+            assertEquals("Red", item1.data?.car?.color)
+            // When
+            val updatedColorResponse = updateColorRequest.execute()
+            assertIs<ApolloResponse<GetCarColorQuery.Data>>(updatedColorResponse)
+            assertEquals("Blue", updatedColorResponse.data?.car?.color)
+            // Then
+            val item2 = awaitItem()
+            assertIs<ApolloResponse<GetCarQuery.Data>>(item2)
+            assertEquals("Blue", item2.data?.car?.color)
+            cancelAndIgnoreRemainingEvents()
+          }
+        }
+  }
 }
 
 private fun <D : Operation.Data> ApolloCall<D>.executeCacheAndNetwork(): Flow<ApolloResponse<D>> {

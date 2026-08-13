@@ -1,7 +1,9 @@
 package com.apollographql.cache.normalized.sql
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.sql.internal.RecordDatabase
 import java.io.File
 import java.util.Properties
 
@@ -13,7 +15,11 @@ import java.util.Properties
 fun SqlNormalizedCacheFactory(
     url: String,
     properties: Properties,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(url, properties), name = null)
+): NormalizedCacheFactory = object : NormalizedCacheFactory() {
+  override fun create(): NormalizedCache {
+    return SqlNormalizedCache(RecordDatabase(JdbcSqliteDriver(url, properties), name = null))
+  }
+}
 
 /**
  * @param name the name of the database or null for an in-memory database
@@ -24,7 +30,11 @@ fun SqlNormalizedCacheFactory(
 fun SqlNormalizedCacheFactory(
     name: String?,
     baseDir: String?,
-): NormalizedCacheFactory = SqlNormalizedCacheFactory(JdbcSqliteDriver(name.toUrl(baseDir), Properties()), name = name)
+): NormalizedCacheFactory = object : NormalizedCacheFactory() {
+  override fun create(): NormalizedCache {
+    return SqlNormalizedCache(RecordDatabase(JdbcSqliteDriver(name.toUrl(baseDir), Properties()), name = name))
+  }
+}
 
 actual fun SqlNormalizedCacheFactory(name: String?): NormalizedCacheFactory = SqlNormalizedCacheFactory(name, null)
 
