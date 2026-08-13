@@ -26,6 +26,7 @@ import com.apollographql.cache.normalized.options.cacheMissesAsException
 import com.apollographql.cache.normalized.options.serverErrorsAsException
 import com.apollographql.cache.normalized.testing.SqlNormalizedCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
+import com.apollographql.cache.normalized.testing.noExceptionsHeaders
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.mockserver.MockServer
 import com.apollographql.mockserver.enqueueString
@@ -769,7 +770,7 @@ class StoreErrorsTest {
             Error.Builder("'nickName' can't be reached").path(listOf("me", "nickName")).build(),
         ),
     )
-    val responseFromCache = cacheManager.readOperation(MeWithNickNameQuery())
+    val responseFromCache = cacheManager.readOperation(MeWithNickNameQuery(), cacheHeaders = noExceptionsHeaders)
     assertEquals(
         MeWithNickNameQuery.Data(
             MeWithNickNameQuery.Me(
@@ -904,4 +905,3 @@ val PartialCacheOnlyInterceptor = object : ApolloInterceptor {
     )
   }
 }
-

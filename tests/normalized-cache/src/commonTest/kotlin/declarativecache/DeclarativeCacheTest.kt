@@ -10,6 +10,7 @@ import com.apollographql.cache.normalized.api.ResolverContext
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.testing.assertErrorsEquals
+import com.apollographql.cache.normalized.testing.noExceptionsHeaders
 import com.apollographql.cache.normalized.testing.runTest
 import declarativecache.GetAuthorQuery
 import declarativecache.GetBookQuery
@@ -219,7 +220,7 @@ class DeclarativeCacheTest {
     // We query for 2 books but get only 1 from the backend
     cacheManager.writeOperation(GetBooksQuery(listOf("42", "43")), GetBooksQuery.Data(listOf(GetBooksQuery.Book(__typename = "Book", title = "Promo", isbn = "42"))))
 
-    val booksCacheResponse = cacheManager.readOperation(GetBooksQuery(listOf("42", "44")))
+    val booksCacheResponse = cacheManager.readOperation(GetBooksQuery(listOf("42", "44")), cacheHeaders = noExceptionsHeaders)
     assertNull(booksCacheResponse.data)
     assertErrorsEquals(
         listOf(

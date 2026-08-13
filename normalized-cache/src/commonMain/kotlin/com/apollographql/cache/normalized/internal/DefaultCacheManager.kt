@@ -141,8 +141,8 @@ internal class DefaultCacheManager(
       customScalarAdapters: CustomScalarAdapters,
       cacheHeaders: CacheHeaders,
   ): ApolloResponse<D> {
-    val cacheMissesAsException = cacheHeaders.headerValue(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION) == "true"
-    val serverErrorsAsException = cacheHeaders.headerValue(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION) == "true"
+    val cacheMissesAsException = (cacheHeaders.headerValue(ApolloCacheHeaders.CACHE_MISSES_AS_EXCEPTION) ?: "true") == "true"
+    val serverErrorsAsException = (cacheHeaders.headerValue(ApolloCacheHeaders.SERVER_ERRORS_AS_EXCEPTION) ?: "true") == "true"
     val variables = operation.variables(customScalarAdapters, true)
     val batchReaderData =
       try {
