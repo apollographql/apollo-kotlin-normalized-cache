@@ -17,20 +17,40 @@ import okio.utf8Size
 internal object RecordSerializer {
   fun serialize(record: Record): ByteArray {
     val buffer = Buffer()
-    buffer.writeMap(record.fields)
-    buffer._writeInt(record.metadata.size)
-    for ((k, v) in record.metadata) {
-      buffer.writeString(k.shortenCacheKey())
-      buffer.writeMetadataMap(v)
-    }
+    buffer.writeRecord(record)
     return buffer.readByteArray()
   }
 
-  fun deserialize(key: String, bytes: ByteArray): Record {
-    val buffer = Buffer().write(bytes)
+  /**
+   * The number of bytes [serialize] would return for [record], without allocating the [ByteArray] to
+   * hold them.
+   */
+  fun serializedSize(record: Record): Int {
+    val buffer = Buffer()
+    buffer.writeRecord(record)
+    return buffer.size.toInt()
+  }
+
+  private fun Buffer.writeRecord(record: Record) {
+    writeMap(record.fields)
+    _writeInt(record.metadata.size)
+    for ((k, v) in record.metadata) {
+      writeString(k.shortenCacheKey())
+      writeMetadataMap(v)
+    }
+  }
+
+  /**
+   * Reads a record from [buffer], consuming exactly the bytes [serialize] wrote for it.
+   *
+   * Taking the buffer rather than a [ByteArray] lets the caller stream rows straight into the
+   * deserializer: going through `readByteArray()` copies the bytes out of the buffer only for this
+   * method to copy them back into another one.
+   */
+  fun deserialize(key: String, buffer: Buffer): Record {
     val fields = buffer.readMap()
     val metadataSize = buffer._readInt()
-    val metadata = HashMap<String, Map<String, ApolloJsonElement>>(metadataSize).apply {
+    val metadata = HashMap<String, Map<String, ApolloJsonElement>>(mapCapacity(metadataSize)).apply {
       repeat(metadataSize) {
         val k = buffer.readString().expandCacheKey()
         val v = buffer.readMetadataMap()
@@ -44,6 +64,13 @@ internal object RecordSerializer {
         metadata = metadata
     )
   }
+
+  /**
+   * The capacity to give a [HashMap] that is about to receive [size] entries, so that it does not
+   * rehash on the way there. [HashMap] grows once it is [LOAD_FACTOR] full, so sizing it to [size]
+   * exactly rehashes every map of more than 3 entries.
+   */
+  private fun mapCapacity(size: Int): Int = (size / LOAD_FACTOR).toInt() + 1
 
   private fun Buffer.writeString(value: String) {
     _writeInt(value.utf8Size().toInt())
@@ -128,7 +155,7 @@ internal object RecordSerializer {
 
   private fun Buffer.readMap(): Map<String, RecordValue> {
     val size = _readInt()
-    return HashMap<String, RecordValue>(size).apply {
+    return HashMap<String, RecordValue>(mapCapacity(size)).apply {
       repeat(size) {
         put(readString(), readAny())
       }
@@ -152,7 +179,7 @@ internal object RecordSerializer {
 
   private fun Buffer.readMetadataMap(): Map<String, RecordValue> {
     val size = _readInt()
-    return HashMap<String, RecordValue>(size).apply {
+    return HashMap<String, RecordValue>(mapCapacity(size)).apply {
       repeat(size) {
         val key = readString()
         put(
@@ -278,8 +305,10 @@ internal object RecordSerializer {
 
         LIST -> {
           val size = _readInt()
-          0.until(size).map {
-            readAny()
+          ArrayList<RecordValue>(size).apply {
+            repeat(size) {
+              add(readAny())
+            }
           }
         }
 
@@ -322,6 +351,8 @@ internal object RecordSerializer {
     }
   }
 
+  private const val LOAD_FACTOR = 0.75
+
   private const val FIRST = 255 - 32
 
   private const val NULL = FIRST
@@ -353,11 +384,12 @@ internal object RecordSerializer {
   private const val mutationPrefixShort = "\u0001"
   private const val subscriptionPrefixShort = "\u0002"
 
+  // `replaceFirst` would scan for the prefix a second time, having just established it is there.
   private fun String.shortenCacheKey(): String {
     return if (startsWith(mutationPrefixLong)) {
-      replaceFirst(mutationPrefixLong, mutationPrefixShort)
+      mutationPrefixShort + substring(mutationPrefixLong.length)
     } else if (startsWith(subscriptionPrefixLong)) {
-      replaceFirst(subscriptionPrefixLong, subscriptionPrefixShort)
+      subscriptionPrefixShort + substring(subscriptionPrefixLong.length)
     } else {
       this
     }
@@ -365,9 +397,9 @@ internal object RecordSerializer {
 
   private fun String.expandCacheKey(): String {
     return if (startsWith(mutationPrefixShort)) {
-      replaceFirst(mutationPrefixShort, mutationPrefixLong)
+      mutationPrefixLong + substring(mutationPrefixShort.length)
     } else if (startsWith(subscriptionPrefixShort)) {
-      replaceFirst(subscriptionPrefixShort, subscriptionPrefixLong)
+      subscriptionPrefixLong + substring(subscriptionPrefixShort.length)
     } else {
       this
     }
