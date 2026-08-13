@@ -38,7 +38,13 @@ class Record(
    * A field key incorporates any GraphQL arguments in addition to the field name.
    */
   fun fieldKeys(): Set<String> {
-    return fields.keys.map { key.fieldKey(it) }.toSet()
+    // Built in one pass: `map {}.toSet()` would allocate a list holding every key on top of the set
+    // actually returned.
+    return buildSet(fields.size) {
+      for (fieldName in fields.keys) {
+        add(key.fieldKey(fieldName))
+      }
+    }
   }
 
   /**
@@ -80,15 +86,25 @@ class Record(
       check(record1.key == record2.key) {
         "Cannot compute changed keys on record with different keys: '${record1.key}' - '${record2.key}'"
       }
-      val keys1 = record1.fields.keys
-      val keys2 = record2.fields.keys
-      val intersection = keys1.intersect(keys2)
-
-      val changed = (keys1 - intersection) + (keys2 - intersection) + intersection.filter {
-        record1.fields[it] != record2.fields[it]
+      // Built in one pass: going through set arithmetic allocates an intersection, two differences,
+      // a filtered list and a mapped list before the set actually returned.
+      val fields1 = record1.fields
+      val fields2 = record2.fields
+      return buildSet {
+        for ((fieldName, value1) in fields1) {
+          val value2 = fields2[fieldName]
+          // Differing values mean the field changed, and so does a field missing from `fields2`. A
+          // null `value2` is ambiguous between the two, so `containsKey` is only needed then.
+          if (value1 != value2 || (value1 == null && !fields2.containsKey(fieldName))) {
+            add(record1.key.fieldKey(fieldName))
+          }
+        }
+        for (fieldName in fields2.keys) {
+          if (!fields1.containsKey(fieldName)) {
+            add(record1.key.fieldKey(fieldName))
+          }
+        }
       }
-
-      return changed.map { record1.key.fieldKey(it) }.toSet()
     }
   }
 }
@@ -98,19 +114,22 @@ fun Record.withDates(receivedDate: String?, expirationDate: String?): Record {
   if (receivedDate == null && expirationDate == null) {
     return this
   }
+  // The dates are the same for every field, so the map holding them is built once rather than per
+  // field.
+  val dates = buildMap<String, ApolloJsonElement>(2) {
+    receivedDate?.let {
+      put(ApolloCacheHeaders.RECEIVED_DATE, it.toLong())
+    }
+    expirationDate?.let {
+      put(ApolloCacheHeaders.EXPIRATION_DATE, it.toLong())
+    }
+  }
   return Record(
       key = key,
       fields = fields,
       mutationId = mutationId,
       metadata = metadata + fields.mapValues { (key, _) ->
-        metadata[key].orEmpty() + buildMap {
-          receivedDate?.let {
-            put(ApolloCacheHeaders.RECEIVED_DATE, it.toLong())
-          }
-          expirationDate?.let {
-            put(ApolloCacheHeaders.EXPIRATION_DATE, it.toLong())
-          }
-        }
+        metadata[key].orEmpty() + dates
       }
   )
 }

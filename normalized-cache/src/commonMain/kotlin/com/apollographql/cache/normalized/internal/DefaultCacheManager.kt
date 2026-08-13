@@ -298,12 +298,15 @@ internal class DefaultCacheManager(
       cacheHeaders: CacheHeaders,
       publish: Boolean,
   ): Set<String> {
+    // `merge` takes a `Collection`, and the values of a map keyed by cache key are already distinct:
+    // going through a `Set` would deep-hash every record of the response for nothing
+    // (`Record.hashCode` recurses through `fields` and `metadata`).
     val records = normalize(
         executable = operation,
         dataWithErrors = dataWithErrors,
         rootKey = operation.rootKey(),
         customScalarAdapters = customScalarAdapters,
-    ).values.toSet()
+    ).values
     return cache.merge(records, cacheHeaders, recordMerger).also { if (publish) publish(it) }
   }
 
