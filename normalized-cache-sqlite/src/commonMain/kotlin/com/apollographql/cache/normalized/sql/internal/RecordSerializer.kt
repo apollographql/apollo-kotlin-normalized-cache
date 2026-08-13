@@ -21,7 +21,7 @@ internal object RecordSerializer {
     buffer._writeInt(record.metadata.size)
     for ((k, v) in record.metadata) {
       buffer.writeString(k.shortenCacheKey())
-      buffer.writeMap(v.mapKeys { (metadataKey, _) -> knownMetadataKeys[metadataKey] ?: metadataKey })
+      buffer.writeMetadataMap(v)
     }
     return buffer.readByteArray()
   }
@@ -33,7 +33,7 @@ internal object RecordSerializer {
     val metadata = HashMap<String, Map<String, ApolloJsonElement>>(metadataSize).apply {
       repeat(metadataSize) {
         val k = buffer.readString().expandCacheKey()
-        val v = buffer.readMap().mapKeys { (metadataKey, _) -> knownMetadataKeysInverted[metadataKey] ?: metadataKey }
+        val v = buffer.readMetadataMap()
         put(k, v)
       }
     }
@@ -131,6 +131,38 @@ internal object RecordSerializer {
     return HashMap<String, RecordValue>(size).apply {
       repeat(size) {
         put(readString(), readAny())
+      }
+    }
+  }
+
+  // Encode certain known metadata keys as single byte strings to save space
+  private fun Buffer.writeMetadataMap(value: Map<String, RecordValue>) {
+    _writeInt(value.size)
+    for ((k, v) in value) {
+      writeString(
+          when (k) {
+            ApolloCacheHeaders.RECEIVED_DATE -> "0"
+            ApolloCacheHeaders.EXPIRATION_DATE -> "1"
+            else -> k
+          }
+      )
+      writeAny(v)
+    }
+  }
+
+  private fun Buffer.readMetadataMap(): Map<String, RecordValue> {
+    val size = _readInt()
+    return HashMap<String, RecordValue>(size).apply {
+      repeat(size) {
+        val key = readString()
+        put(
+            when (key) {
+              "0" -> ApolloCacheHeaders.RECEIVED_DATE
+              "1" -> ApolloCacheHeaders.EXPIRATION_DATE
+              else -> key
+            },
+            readAny()
+        )
       }
     }
   }
@@ -313,13 +345,6 @@ internal object RecordSerializer {
   private const val MAP_EMPTY = FIRST + 18
   private const val CACHE_KEY = FIRST + 19
   private const val ERROR = FIRST + 20
-
-  // Encode certain known metadata keys as single byte strings to save space
-  private val knownMetadataKeys = mapOf(
-      ApolloCacheHeaders.RECEIVED_DATE to "0",
-      ApolloCacheHeaders.EXPIRATION_DATE to "1",
-  )
-  private val knownMetadataKeysInverted = knownMetadataKeys.entries.associate { (k, v) -> v to k }
 
   private val mutationPrefixLong = CacheKey.MUTATION_ROOT.key + "."
   private val subscriptionPrefixLong = CacheKey.SUBSCRIPTION_ROOT.key + "."
