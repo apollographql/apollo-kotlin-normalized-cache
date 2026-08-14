@@ -11,30 +11,42 @@ import com.apollographql.cache.normalized.api.ApolloCacheHeaders
 import com.apollographql.cache.normalized.api.CacheHeaders
 import kotlin.time.Duration
 
+/**
+ * [CacheHeaders] carried by an [ExecutionContext].
+ *
+ * Several of these can coexist in one context — the client sets some, the call adds more — and they
+ * are merged when read, later ones winning. This is why every instance carries its own [key]:
+ * [ExecutionContext.plus] drops elements whose key is already present, so a shared key would let the
+ * headers of a call silently discard those of its client.
+ *
+ * Merging in [fold] instead does not work: [ExecutionContext.plus] only reaches an element's `fold`
+ * when it happens to sit at the far left of the combined context, so whether the headers merged
+ * depended on the order the options were set in.
+ */
 internal class CacheHeadersContext(val value: CacheHeaders) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
+  override val key: ExecutionContext.Key<*> = Key()
 
-  /**
-   * Merge the [CacheHeaders] instead of letting the right element replace the right element.
-   */
-  override fun <R> fold(initial: R, operation: (R, ExecutionContext.Element) -> R): R {
-    val existing = (initial as? ExecutionContext)?.get(Key)
-    val element = if (existing != null) CacheHeadersContext(existing.value + value) else this
-    return operation(initial, element)
+  private class Key : ExecutionContext.Key<CacheHeadersContext>
+}
+
+private fun ExecutionContext.foldCacheHeaders(): CacheHeaders {
+  var merged: CacheHeaders? = null
+  fold(Unit) { _, element ->
+    if (element is CacheHeadersContext) {
+      merged = merged?.plus(element.value) ?: element.value
+    }
   }
-
-  companion object Key : ExecutionContext.Key<CacheHeadersContext>
+  return merged ?: CacheHeaders.NONE
 }
 
 internal val ExecutionOptions.cacheHeaders: CacheHeaders
-  get() = (executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE)
+  get() = executionContext.foldCacheHeaders()
 
 fun <D : Operation.Data> ApolloResponse.Builder<D>.cacheHeaders(cacheHeaders: CacheHeaders) =
   addExecutionContext(CacheHeadersContext(cacheHeaders))
 
 val <D : Operation.Data> ApolloResponse<D>.cacheHeaders
-  get() = executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE
+  get() = executionContext.foldCacheHeaders()
 
 
 /**
@@ -48,7 +60,7 @@ fun <T> MutableExecutionOptions<T>.cacheHeaders(cacheHeaders: CacheHeaders) = ad
  * Add a cache header to be passed to your [com.apollographql.cache.normalized.api.NormalizedCache]
  */
 fun <T> MutableExecutionOptions<T>.addCacheHeader(key: String, value: String) = cacheHeaders(
-    cacheHeaders.newBuilder().addHeader(key, value).build()
+    CacheHeaders.Builder().addHeader(key, value).build()
 )
 
 /**
