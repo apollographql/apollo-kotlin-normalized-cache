@@ -3,6 +3,8 @@
 - [Improvement] Derive the keys a watcher matches cache changes against lazily, keeping the re-normalization of the whole response off the path that delivers the initial responses of `watch` (#378)
 - [Improvement] Reduce allocations when deriving a watcher's dependent keys and matching them against a cache change (#378)
 - Enable parallel sync for Tooling API clients (#380)
+- [Improvement] Reduce allocations when normalizing and when reading from the cache: stop rebuilding a field that is already the result of merging its group, memoize field keys, and intern the response paths the batch reader keys its data by (#383)
+- [Improvement] Reduce allocations and copies in the SQLite cache: stream records straight out of the query buffer, and slice large records instead of boxing them byte by byte (#383)
 
 PUT_CHANGELOG_HERE
 
