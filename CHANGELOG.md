@@ -3,6 +3,11 @@
 - [Improvement] Derive the keys a watcher matches cache changes against lazily, keeping the re-normalization of the whole response off the path that delivers the initial responses of `watch` (#378)
 - [Improvement] Reduce allocations when deriving a watcher's dependent keys and matching them against a cache change (#378)
 - Enable parallel sync for Tooling API clients (#380)
+- [Improvement] SQL cache: read a page of records by resuming from the last row read instead of skipping rows with `OFFSET`, which made `loadAllRecords()` and `dump()` re-walk every row already read (#384)
+- [Improvement] SQL cache: bind a padded number of parameters when reading and deleting records by key, so SQLite compiles a handful of statements instead of one per distinct number of keys (#384)
+- [Improvement] SQL cache: assemble records straight from the cursor, saving an object per row, a list to hold them, and two copies of every record read (#384)
+- [Improvement] SQL cache: replace a record with a statement that can be cached, and take the number of deleted rows from the delete itself instead of a `changes()` round trip (#384)
+- [Fix] SQL cache: a cascading `remove` reaching more keys than SQLite accepts parameters for reported deleting nothing (#384)
 
 PUT_CHANGELOG_HERE
 
