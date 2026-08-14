@@ -24,6 +24,7 @@ import com.apollographql.cache.normalized.api.EmptyEmbeddedFieldsProvider
 import com.apollographql.cache.normalized.api.EmptyMetadataGenerator
 import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
+import com.apollographql.cache.normalized.api.GlobalMaxAgeProvider
 import com.apollographql.cache.normalized.api.MaxAgeContext
 import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.MetadataGenerator
@@ -48,6 +49,18 @@ internal class Normalizer(
     private val maxAgeProvider: MaxAgeProvider,
 ) {
   private val records = mutableMapOf<CacheKey, Record>()
+
+  /**
+   * The max age of every field, when [maxAgeProvider] gives them all the same one - which is what
+   * [DefaultMaxAgeProvider] does, so this is the usual case. The provider then ignores the field path,
+   * and the path is not built at all: it holds a [MaxAgeContext.Field] per level, each of which walks
+   * its type's interface hierarchy.
+   */
+  private val globalMaxAge: Duration? = if (maxAgeProvider is GlobalMaxAgeProvider) {
+    maxAgeProvider.getMaxAge(MaxAgeContext(emptyList()))
+  } else {
+    null
+  }
 
   /**
    * Field keys, indexed by parent type name then by field. Computing one encodes the field's arguments
@@ -155,7 +168,7 @@ internal class Normalizer(
           path = base?.append(fieldKey) ?: CacheKey(fieldKey),
           isEmbedded = embeddedFieldsProvider.isEmbedded(EmbeddedFieldsContext(obj = obj, parentType = parentType, field = mergedField)),
       )
-      val maxAge = maxAgeProvider.getMaxAge(MaxAgeContext(newFieldPath.map { it.toMaxAgeField() }))
+      val maxAge = globalMaxAge ?: maxAgeProvider.getMaxAge(MaxAgeContext(newFieldPath.map { it.toMaxAgeField() }))
       if (maxAge == Duration.ZERO) {
         // This field should not be stored, do not include it in the record.
         return@mapNotNull null

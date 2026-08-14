@@ -5,6 +5,7 @@
 - Enable parallel sync for Tooling API clients (#380)
 - [Improvement] Reduce allocations when normalizing and when reading from the cache: stop rebuilding a field that is already the result of merging its group, memoize field keys, and intern the response paths the batch reader keys its data by (#383)
 - [Improvement] Reduce allocations and copies in the SQLite cache: stream records straight out of the query buffer, and slice large records instead of boxing them byte by byte (#383)
+- [Improvement] Don't build the max age field path when the `MaxAgeProvider` is a `GlobalMaxAgeProvider`, which ignores it (#383)
 
 PUT_CHANGELOG_HERE
 

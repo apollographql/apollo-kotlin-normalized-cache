@@ -16,6 +16,7 @@ import com.apollographql.cache.normalized.storeExpirationDate
 import com.apollographql.cache.normalized.storeReceivedDate
 import okio.Buffer
 import kotlin.jvm.JvmSuppressWildcards
+import kotlin.time.Duration
 
 /**
  * Controls how fields are resolved from the cache.
@@ -247,6 +248,17 @@ class CacheControlCacheResolver(
       delegateResolver = FieldPolicyCacheResolver(fieldPolicies = fieldPolicies, keyScope = CacheKey.Scope.TYPE),
   )
 
+  /**
+   * The max age of every field, when [maxAgeProvider] gives them all the same one. The provider then
+   * ignores the field path, and the path is not built at all: it holds a [MaxAgeContext.Field] per
+   * level, each of which walks its type's interface hierarchy.
+   */
+  private val globalMaxAge: Duration? = if (maxAgeProvider is GlobalMaxAgeProvider) {
+    maxAgeProvider.getMaxAge(MaxAgeContext(emptyList()))
+  } else {
+    null
+  }
+
   override fun resolveField(context: ResolverContext): Any? {
     val value = delegateResolver.resolveField(context)
     if (value.isSyntheticValue) {
@@ -263,10 +275,9 @@ class CacheControlCacheResolver(
       val currentDate = context.cacheHeaders.headerValue(ApolloCacheHeaders.CURRENT_DATE)?.toLongOrNull() ?: (currentTimeMillis() / 1000)
       if (receivedDate != null) {
         val age = currentDate - receivedDate
-        val fieldPath = context.path.map {
-          it.toMaxAgeField()
-        }
-        val maxAge = maxAgeProvider.getMaxAge(MaxAgeContext(fieldPath)).inWholeSeconds
+        val maxAge = (
+            globalMaxAge ?: maxAgeProvider.getMaxAge(MaxAgeContext(context.path.map { it.toMaxAgeField() }))
+            ).inWholeSeconds
         val staleDuration = age - maxAge
         val maxStale = context.cacheHeaders.headerValue(ApolloCacheHeaders.MAX_STALE)?.toLongOrNull() ?: 0L
         if (staleDuration >= maxStale) {
