@@ -49,3 +49,42 @@ query TwoFields($details: Boolean!) {
   ...userId
   ...userName
 }
+
+# The only selection of `user` carries a condition, so it is not shared with anything: it must still
+# be normalized with its condition cleared, like a field merged out of several selections.
+query LoneConditionalField($details: Boolean!) {
+  user @include(if: $details) {
+    id
+    name
+  }
+}
+
+# Both selections of `user` carry the same condition, so they merge into one field.
+query TwoConditionalFields($details: Boolean!) {
+  user @include(if: $details) {
+    id
+  }
+  user @include(if: $details) {
+    name
+  }
+}
+
+# A field with arguments, selected on every object of a list: its key is the same for all of them.
+query UsersWithAvatars($size: Int!) {
+  users {
+    id
+    avatar(size: $size)
+  }
+}
+
+# `id` and `name` are selected on two different parent types.
+query UserAndCompany {
+  user {
+    id
+    name
+  }
+  company {
+    id
+    name
+  }
+}

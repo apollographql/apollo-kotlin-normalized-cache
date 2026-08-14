@@ -1,5 +1,7 @@
 type Query {
   user: User!
+  users: [User!]!
+  company: Company!
   a0(b: B): Int
   a1(b: B = {}): Int
   a2(b: B = {c: 2}): Int
@@ -14,4 +16,10 @@ type User {
   id: ID!
   name: String!
   email: String!
+  avatar(size: Int!): String!
+}
+
+type Company {
+  id: ID!
+  name: String!
 }
