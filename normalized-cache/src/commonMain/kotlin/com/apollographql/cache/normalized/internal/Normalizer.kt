@@ -49,6 +49,25 @@ internal class Normalizer(
 ) {
   private val records = mutableMapOf<CacheKey, Record>()
 
+  /**
+   * Field keys, indexed by parent type name then by field. Computing one encodes the field's arguments
+   * to JSON, and the same fields are normalized again for every object of a list.
+   *
+   * [CompiledField] has no `equals`, so the inner maps key on instance identity. Only fields that are
+   * shared across objects are put here - see [buildFields].
+   */
+  private val fieldKeys = mutableMapOf<String, MutableMap<CompiledField, String>>()
+
+  private fun memoizedFieldKey(parentTypeName: String, field: CompiledField): String {
+    val keys = fieldKeys.getOrPut(parentTypeName) { mutableMapOf() }
+    var fieldKey = keys[field]
+    if (fieldKey == null) {
+      fieldKey = fieldKeyGenerator.getFieldKey(FieldKeyContext(parentTypeName, field, variables))
+      keys[field] = fieldKey
+    }
+    return fieldKey
+  }
+
   fun normalize(
       map: DataWithErrors,
       selections: List<CompiledSelection>,
@@ -83,27 +102,43 @@ internal class Normalizer(
     val allFields = collectFields(selections, parentType.name, typename)
 
     val fields = obj.entries.mapNotNull { entry ->
-      val compiledFields = allFields.filter { it.responseName == entry.key }
-      if (compiledFields.isEmpty()) {
+      val compiledFields = allFields[entry.key]
+      if (compiledFields == null) {
         // If we come here, `obj` contains more data than the CompiledSelections can understand
         // This happened previously (see https://github.com/apollographql/apollo-kotlin/pull/3636)
         // It also happens if there's an always false @include directive (see https://github.com/apollographql/apollo-kotlin/issues/4772)
         // For all cache purposes, this is not part of the response and we therefore do not include this in the response
         return@mapNotNull null
       }
-      val includedFields = compiledFields.filter {
-        !it.shouldSkip(variableValues = variables.valueMap)
+      // A lone field with no condition to clear is already the result of merging its group, so it is
+      // normalized as is: rebuilding it would allocate a copy equal to it, once per object. It is also
+      // then the same instance for every object normalized against these selections, which is what
+      // makes its field key worth memoizing - a merged field is a new instance every time, so keeping
+      // its key would only retain the copy.
+      val sharedField = compiledFields.singleOrNull()?.takeIf { it.condition.isEmpty() }
+      val mergedField: CompiledField
+      val fieldKey: String
+      if (sharedField != null) {
+        if (sharedField.shouldSkip(variableValues = variables.valueMap)) {
+          // If the field is absent, we don't want to serialize "null" to the cache, do not include this field in the record.
+          return@mapNotNull null
+        }
+        mergedField = sharedField
+        fieldKey = memoizedFieldKey(parentType.name, sharedField)
+      } else {
+        val includedFields = compiledFields.filter {
+          !it.shouldSkip(variableValues = variables.valueMap)
+        }
+        if (includedFields.isEmpty()) {
+          // If the field is absent, we don't want to serialize "null" to the cache, do not include this field in the record.
+          return@mapNotNull null
+        }
+        mergedField = includedFields.first().newBuilder()
+            .selections(includedFields.flatMap { it.selections })
+            .condition(emptyList())
+            .build()
+        fieldKey = fieldKeyGenerator.getFieldKey(FieldKeyContext(parentType.name, mergedField, variables))
       }
-      if (includedFields.isEmpty()) {
-        // If the field is absent, we don't want to serialize "null" to the cache, do not include this field in the record.
-        return@mapNotNull null
-      }
-      val mergedField = includedFields.first().newBuilder()
-          .selections(includedFields.flatMap { it.selections })
-          .condition(emptyList())
-          .build()
-
-      val fieldKey = fieldKeyGenerator.getFieldKey(FieldKeyContext(parentType.name, mergedField, variables))
 
       val base = if (key == CacheKey.QUERY_ROOT) {
         // If we're at the query root level, skip `QUERY_ROOT` altogether to save a few bytes.
@@ -244,14 +279,16 @@ internal class Normalizer(
   }
 
   private class CollectState {
-    val fields = mutableListOf<CompiledField>()
+    val fields = mutableMapOf<String, MutableList<CompiledField>>()
   }
 
   private fun collectFields(selections: List<CompiledSelection>, parentType: String, typename: String?, state: CollectState) {
     selections.forEach {
       when (it) {
         is CompiledField -> {
-          state.fields.add(it)
+          // Most response names are selected once, so the lists start at that size rather than at
+          // `ArrayList`'s default of 10.
+          state.fields.getOrPut(it.responseName) { ArrayList(1) }.add(it)
         }
 
         is CompiledFragment -> {
@@ -264,11 +301,15 @@ internal class Normalizer(
   }
 
   /**
+   * The fields selected on the object, indexed by response name. Indexing them as they are collected
+   * costs no more than the flat list this used to return and saves scanning that list once per key of
+   * the object being normalized.
+   *
    * @param typename the typename of the object. It might be null if the `__typename` field wasn't queried. If
    * that's the case, we will collect less fields than we should and records will miss some values leading to more
    * cache miss
    */
-  private fun collectFields(selections: List<CompiledSelection>, parentType: String, typename: String?): List<CompiledField> {
+  private fun collectFields(selections: List<CompiledSelection>, parentType: String, typename: String?): Map<String, List<CompiledField>> {
     val state = CollectState()
     collectFields(selections, parentType, typename, state)
     return state.fields
