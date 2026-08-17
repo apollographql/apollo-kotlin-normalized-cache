@@ -38,8 +38,6 @@ class Record(
    * A field key incorporates any GraphQL arguments in addition to the field name.
    */
   fun fieldKeys(): Set<String> {
-    // Built in one pass: `map {}.toSet()` would allocate a list holding every key on top of the set
-    // actually returned.
     return buildSet(fields.size) {
       for (fieldName in fields.keys) {
         add(key.fieldKey(fieldName))
@@ -83,18 +81,13 @@ class Record(
 
   companion object {
     internal fun changedKeys(record1: Record, record2: Record): Set<String> {
-      check(record1.key == record2.key) {
-        "Cannot compute changed keys on record with different keys: '${record1.key}' - '${record2.key}'"
-      }
-      // Built in one pass: going through set arithmetic allocates an intersection, two differences,
-      // a filtered list and a mapped list before the set actually returned.
       val fields1 = record1.fields
       val fields2 = record2.fields
       return buildSet {
         for ((fieldName, value1) in fields1) {
           val value2 = fields2[fieldName]
           // Differing values mean the field changed, and so does a field missing from `fields2`. A
-          // null `value2` is ambiguous between the two, so `containsKey` is only needed then.
+          // null `value2` is ambiguous between the two, so use `containsKey` to disambiguate.
           if (value1 != value2 || (value1 == null && !fields2.containsKey(fieldName))) {
             add(record1.key.fieldKey(fieldName))
           }
@@ -114,8 +107,6 @@ fun Record.withDates(receivedDate: String?, expirationDate: String?): Record {
   if (receivedDate == null && expirationDate == null) {
     return this
   }
-  // The dates are the same for every field, so the map holding them is built once rather than per
-  // field.
   val dates = buildMap<String, ApolloJsonElement>(2) {
     receivedDate?.let {
       put(ApolloCacheHeaders.RECEIVED_DATE, it.toLong())
@@ -169,9 +160,6 @@ fun Collection<Record>?.dependentKeys(): Set<String> {
   if (this == null) {
     return emptySet()
   }
-  // Built in one pass: going through `fieldKeys()` would allocate a list and a set per record, plus
-  // a list holding every key, on top of the set actually returned. For a large operation that is
-  // thousands of throwaway collections.
   return buildSet {
     for (record in this@dependentKeys) {
       for (fieldName in record.fields.keys) {

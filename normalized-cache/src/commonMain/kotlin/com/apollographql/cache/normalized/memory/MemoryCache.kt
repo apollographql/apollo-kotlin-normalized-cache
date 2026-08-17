@@ -122,8 +122,6 @@ class MemoryCache(
     return withLock {
       val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
       val recordsToInsert = mutableListOf<Record>()
-      // Accumulated in one pass: `flatMap {}.toSet()` would materialize every changed field key of
-      // every record in a list before building the set that is actually returned.
       val changedKeys = mutableSetOf<String>()
       for (incoming in records) {
         val record = incoming.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
