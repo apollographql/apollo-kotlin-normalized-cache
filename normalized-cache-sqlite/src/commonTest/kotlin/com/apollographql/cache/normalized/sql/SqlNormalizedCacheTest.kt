@@ -15,6 +15,7 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.sql.internal.RecordDatabase
+import com.apollographql.cache.normalized.sql.internal.parametersMax
 import com.apollographql.cache.normalized.testing.Platform
 import com.apollographql.cache.normalized.testing.fieldKey
 import com.apollographql.cache.normalized.testing.platform
@@ -360,6 +361,67 @@ class SqlNormalizedCacheTest {
     assertTrue(result)
     assertNull(cache.loadRecord(CacheKey("key1"), CacheHeaders.NONE))
     assertNull(cache.loadRecord(CacheKey("key2"), CacheHeaders.NONE))
+  }
+
+  @Test
+  fun testCascadeDeleteAcrossMoreKeysThanCanBeBound() = runTest(before = { setUp() }, after = { tearDown() }) {
+    // One record referencing more records than can be bound in one statement, so that the cascade walk
+    // has to look them up over several of them and carry what it has already visited across the batches.
+    // Capped because `parametersMax` is 32766 on recent Android versions, where creating that many
+    // records would dwarf the rest of the suite — the batching is exercised on the platforms whose limit
+    // is 999.
+    val referenceCount = minOf(parametersMax + 1, 1200)
+    val referencedKeys = List(referenceCount) { CacheKey("referenced-$it") }
+    cache.merge(
+        records = referencedKeys.map { key -> Record(key = key, fields = mapOf("field" to "value")) } + Record(
+            key = STANDARD_KEY,
+            fields = mapOf("references" to referencedKeys),
+        ),
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    assertEquals(referenceCount + 1, cache.remove(cacheKeys = listOf(STANDARD_KEY), cascade = true))
+    assertEquals(0, cache.loadAllRecords().toList().size)
+  }
+
+  @Test
+  fun testLoadAndRemoveSubsetsOfRecords() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val keys = List(5) { CacheKey("key-$it") }
+    cache.merge(
+        records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    // 3 keys is not one of the lengths the `IN` list is bound at, so the last one is repeated to fill it:
+    // neither the extra parameter nor the duplicate may change what is selected or deleted.
+    val subset = keys.take(3)
+    assertEquals(subset.toSet(), cache.loadRecords(subset, CacheHeaders.NONE).map { it.key }.toSet())
+    assertEquals(3, cache.remove(cacheKeys = subset, cascade = false))
+    assertEquals(keys.drop(3), cache.loadAllRecords().toList().map { it.key })
+  }
+
+  @Test
+  fun testLoadAllRecordsPagesOverAChunkedRecord() = runTest(before = { setUp() }, after = { tearDown() }) {
+    // `loadAllRecords` reads a page of rows at a time, and a record of more than a chunk spans several
+    // rows: keys sort in the order they are created here, so the large record's first chunk is the last
+    // row of the first page and its second chunk the first row of the next one.
+    val pageSize = 100
+    val largeRecordIndex = pageSize - 1
+    val largeField = "a".repeat(1_500_000)
+    val records = List(150) { index ->
+      Record(
+          key = CacheKey("key-${index.toString().padStart(3, '0')}"),
+          fields = mapOf("field" to if (index == largeRecordIndex) largeField else "value-$index"),
+      )
+    }
+    cache.merge(records = records, cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
+
+    val loaded = cache.loadAllRecords().toList()
+    assertEquals(records.map { it.key }, loaded.map { it.key })
+    assertEquals(largeField, loaded[largeRecordIndex].fields["field"])
+    assertEquals("value-149", loaded.last().fields["field"])
   }
 
   @Test

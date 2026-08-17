@@ -3,7 +3,9 @@ package com.apollographql.cache.normalized.sql.internal
 import app.cash.sqldelight.async.coroutines.await
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.SqlPreparedStatement
 import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.sql.internal.record.RecordQueries
@@ -15,6 +17,88 @@ import kotlinx.coroutines.sync.withLock
 import okio.Buffer
 
 private const val BLOB_CHUNK_SIZE = 1024 * 1024 // 1 MiB
+
+/**
+ * Assembles records out of the rows of the `record` table, whose chunks come contiguously and in chunk
+ * index order.
+ *
+ * Only a record serializing to more than [BLOB_CHUNK_SIZE] spans several rows, so the buffer usually
+ * holds a single chunk. It is reused across records, which keeps a read to one copy of each chunk and
+ * no allocation per record.
+ */
+private class RecordChunks {
+  private val buffer = Buffer()
+  private var key: String? = null
+
+  /**
+   * Adds a row, returning the record it completes, if it starts a new one.
+   */
+  fun add(key: String, chunk: ByteArray): Record? {
+    if (key == this.key) {
+      buffer.write(chunk)
+      return null
+    }
+    return takeRecord().also {
+      this.key = key
+      buffer.write(chunk)
+    }
+  }
+
+  /**
+   * Returns the record accumulated so far, if any, and forgets it.
+   *
+   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
+   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
+   * leftovers would corrupt every record read after it.
+   */
+  fun takeRecord(): Record? {
+    val key = key ?: return null
+    this.key = null
+    return try {
+      RecordSerializer.deserialize(key, buffer)
+    } finally {
+      buffer.clear()
+    }
+  }
+}
+
+/**
+ * Rounds a number of `IN` parameters up to the next power of two, capped at [parametersMax].
+ *
+ * A statement is compiled once per SQL string, and an `IN` list of a given length is its own string,
+ * so keeping to a handful of lengths keeps SQLite from parsing and compiling the same query again for
+ * every call that happens to pass a different number of keys. The list is filled up by repeating a
+ * key, which `IN` ignores, in exchange for binding up to twice as many parameters as there are keys.
+ */
+private fun paddedParameterCount(count: Int): Int {
+  var padded = 1
+  while (padded < count) {
+    padded = padded shl 1
+  }
+  return minOf(padded, parametersMax)
+}
+
+private fun bindParameters(count: Int): String {
+  return StringBuilder(2 * count + 1).apply {
+    append('(')
+    repeat(count) {
+      append(if (it == 0) "?" else ",?")
+    }
+    append(')')
+  }.toString()
+}
+
+private fun SqlPreparedStatement.bindKeys(keys: Collection<String>, parameterCount: Int) {
+  var index = 0
+  var lastKey: String? = null
+  for (key in keys) {
+    bindString(index++, key)
+    lastKey = key
+  }
+  while (index < parameterCount) {
+    bindString(index++, lastKey)
+  }
+}
 
 internal class RecordDatabase(
     private val driver: SqlDriver,
@@ -52,64 +136,71 @@ internal class RecordDatabase(
    * @param keys the keys of the records to select, size must be <= [parametersMax]
    */
   suspend fun selectRecords(keys: Collection<String>): List<Record> {
-    val rows = recordQueries.selectRecords(keys).awaitAsList()
-    val records = ArrayList<Record>(rows.size)
-    val buffer = Buffer()
-    var lastKey: String? = null
-    for (row in rows) {
-      val key = row.key
-      if (key != lastKey && lastKey != null) {
-        records.add(buffer.readRecord(lastKey))
-      }
-      buffer.write(row.record)
-      lastKey = key
-    }
-    if (lastKey != null) {
-      records.add(buffer.readRecord(lastKey))
-    }
-    return records
+    if (keys.isEmpty()) return emptyList()
+    val parameterCount = paddedParameterCount(keys.size)
+    val sql = "SELECT key, record FROM record WHERE key IN ${bindParameters(parameterCount)} ORDER BY key, chunk_index"
+    return driver.executeQuery(
+        identifier = sql.hashCode(),
+        sql = sql,
+        parameters = parameterCount,
+        binders = { bindKeys(keys, parameterCount) },
+        // The rows are read straight into records: collecting them into a list first allocates an object
+        // per chunk, and a list to hold them, for a result that is usually one record per row. The two
+        // branches are what doing that by hand costs — a synchronous driver invalidates the cursor as
+        // soon as the mapper returns, so its rows must be read without suspending, which is also how
+        // `awaitAsList` goes about it.
+        mapper = { cursor ->
+          val records = ArrayList<Record>(keys.size)
+          val chunks = RecordChunks()
+          fun readRow() {
+            chunks.add(key = cursor.getString(0)!!, chunk = cursor.getBytes(1)!!)?.let { records.add(it) }
+          }
+          when (val hasFirstRow = cursor.next()) {
+            is QueryResult.AsyncValue -> QueryResult.AsyncValue {
+              if (hasFirstRow.await()) {
+                readRow()
+                while (cursor.next().await()) readRow()
+              }
+              chunks.takeRecord()?.let { records.add(it) }
+              records
+            }
+
+            is QueryResult.Value -> {
+              if (hasFirstRow.value) {
+                readRow()
+                while (cursor.next().value) readRow()
+              }
+              chunks.takeRecord()?.let { records.add(it) }
+              QueryResult.Value(records)
+            }
+          }
+        },
+    ).await()
   }
 
   fun selectAllRecords(pageSize: Long = 100): Flow<Record> {
     return flow {
-      var offset = 0L
-      val buffer = Buffer()
-      var lastKey: String? = null
+      val chunks = RecordChunks()
+      // Sorts before any row, so the first page starts at the first one.
+      var lastKey = ""
+      var lastChunkIndex = -1L
       while (true) {
-        val rowPage = recordQueries.selectAllRecords(limit = pageSize, offset = offset).awaitAsList()
+        val rowPage = recordQueries.selectRecordsFrom(
+            lastKey = lastKey,
+            lastChunkIndex = lastChunkIndex,
+            limit = pageSize,
+        ).awaitAsList()
         for (row in rowPage) {
-          val key = row.key
-          if (key != lastKey && lastKey != null) {
-            emit(buffer.readRecord(lastKey))
-          }
-          buffer.write(row.record)
-          lastKey = key
+          chunks.add(key = row.key, chunk = row.record)?.let { emit(it) }
+          lastKey = row.key
+          lastChunkIndex = row.chunk_index
         }
 
         if (rowPage.size < pageSize) {
-          if (lastKey != null) {
-            emit(buffer.readRecord(lastKey))
-          }
+          chunks.takeRecord()?.let { emit(it) }
           break
         }
-        offset += pageSize
       }
-    }
-  }
-
-  /**
-   * Deserializes the record accumulated in this buffer and leaves the buffer empty, ready for the
-   * next one.
-   *
-   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
-   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
-   * leftovers would corrupt every record read after it.
-   */
-  private fun Buffer.readRecord(key: String): Record {
-    return try {
-      RecordSerializer.deserialize(key, this)
-    } finally {
-      clear()
     }
   }
 
@@ -117,7 +208,7 @@ internal class RecordDatabase(
    * Must be called inside a transaction.
    */
   suspend fun insertOrUpdateRecord(record: Record, deleteFirst: Boolean = true) {
-    if (deleteFirst) recordQueries.deleteRecords(listOf(record.key.key))
+    if (deleteFirst) recordQueries.deleteRecordByKey(record.key.key)
     val recordBytes = RecordSerializer.serialize(record)
     val updatedDate = currentTimeMillis()
     // Fast path for small records
@@ -150,9 +241,19 @@ internal class RecordDatabase(
 
   /**
    * @param keys the keys of the records to delete, size must be <= [parametersMax]
+   * @return the number of rows deleted
    */
-  suspend fun deleteRecords(keys: Collection<String>) {
-    recordQueries.deleteRecords(keys)
+  suspend fun deleteRecords(keys: Collection<String>): Long {
+    if (keys.isEmpty()) return 0
+    if (keys.size == 1) return recordQueries.deleteRecordByKey(keys.first())
+    val parameterCount = paddedParameterCount(keys.size)
+    val sql = "DELETE FROM record WHERE key IN ${bindParameters(parameterCount)}"
+    return driver.execute(
+        identifier = sql.hashCode(),
+        sql = sql,
+        parameters = parameterCount,
+        binders = { bindKeys(keys, parameterCount) },
+    ).await() + changes(recordQueries)
   }
 
   suspend fun deleteAllRecords() {
@@ -181,10 +282,6 @@ internal class RecordDatabase(
     driver.await(null, "VACUUM", 0)
   }
 
-  suspend fun changes(): Long {
-    return recordQueries.changes().awaitAsOne()
-  }
-
   suspend fun close() {
     if (!isInitialized) return
     driver.close()
@@ -194,22 +291,28 @@ internal class RecordDatabase(
   companion object {
     private val mutex = Mutex()
     private val boundNames = mutableSetOf<String>()
-
     suspend fun checkNotBound(name: String) {
       mutex.withLock {
         check(!boundNames.contains(name)) { "The file $name is already bound to another SqlNormalizedCache. Call SqlNormalizedCache.close() to release it." }
       }
     }
+
     suspend fun bind(name: String) {
       mutex.withLock {
         boundNames.add(name)
       }
     }
-
     suspend fun release(name: String) {
       mutex.withLock {
         boundNames.remove(name)
       }
     }
+
   }
 }
+
+/**
+ * On JS, [SqlDriver.execute] does not return the number of rows changed, so we must execute `changes`.
+ * On other platforms, this returns 0 and saves one query.
+ */
+internal expect suspend fun changes(recordQueries: RecordQueries): Long

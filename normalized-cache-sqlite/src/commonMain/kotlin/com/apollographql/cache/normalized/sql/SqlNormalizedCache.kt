@@ -121,14 +121,35 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  private suspend fun getReferencedKeysRecursively(
-      keys: Collection<String>,
-      visited: MutableSet<String> = mutableSetOf(),
-  ): Set<String> {
-    if (keys.isEmpty()) return emptySet()
-    val referencedKeys = recordDatabase.selectRecords(keys - visited).flatMap { it.referencedFields() }.map { it.key }.toSet()
-    visited += keys
-    return referencedKeys + getReferencedKeysRecursively(referencedKeys, visited)
+  /**
+   * Walks the records referenced by [keys], and the ones those reference, and so on, returning all the
+   * keys reached that way.
+   *
+   * Each key is looked up at most once, in batches of no more than [parametersMax] — a key referenced
+   * by many records, or a graph deeper than a few levels, is otherwise easy to come by.
+   */
+  private suspend fun getReferencedKeysRecursively(keys: Collection<String>): Set<String> {
+    val referencedKeys = mutableSetOf<String>()
+    val visited = mutableSetOf<String>()
+    var frontier: Collection<String> = keys
+    while (frontier.isNotEmpty()) {
+      // Before the lookups, so that a key of this level referenced by one of its own records is not
+      // looked up again on the next one.
+      visited.addAll(frontier)
+      val nextFrontier = mutableListOf<String>()
+      for (chunkedKeys in frontier.chunked(parametersMax)) {
+        for (record in recordDatabase.selectRecords(chunkedKeys)) {
+          for (field in record.referencedFields()) {
+            val key = field.key
+            if (referencedKeys.add(key) && key !in visited) {
+              nextFrontier.add(key)
+            }
+          }
+        }
+      }
+      frontier = nextFrontier
+    }
+    return referencedKeys
   }
 
   /**
@@ -141,8 +162,7 @@ class SqlNormalizedCache internal constructor(
       emptySet()
     }
     return (keys + referencedKeys).chunked(parametersMax).sumOf { chunkedKeys ->
-      recordDatabase.deleteRecords(chunkedKeys)
-      recordDatabase.changes().toInt()
+      recordDatabase.deleteRecords(chunkedKeys).toInt()
     }
   }
 
@@ -195,11 +215,14 @@ class SqlNormalizedCache internal constructor(
    */
   private suspend fun selectRecords(keys: Collection<CacheKey>): List<Record> {
     recordDatabase.init()
-    return keys
-        .map { it.key }
-        .chunked(parametersMax).flatMap { chunkedKeys ->
-          recordDatabase.selectRecords(chunkedKeys)
-        }
+    val stringKeys = keys.map { it.key }
+    return if (stringKeys.size <= parametersMax) {
+      recordDatabase.selectRecords(stringKeys)
+    } else {
+      stringKeys.chunked(parametersMax).flatMap { chunkedKeys ->
+        recordDatabase.selectRecords(chunkedKeys)
+      }
+    }
   }
 
   override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {

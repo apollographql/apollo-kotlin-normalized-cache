@@ -7,17 +7,19 @@ CREATE TABLE record (
 
 CREATE UNIQUE INDEX record_pk ON record(key, chunk_index);
 
-selectRecords:
-SELECT key, chunk_index, record FROM record WHERE key IN ? ORDER BY key, chunk_index;
-
-selectAllRecords:
-SELECT key, chunk_index, record FROM record ORDER BY key, chunk_index LIMIT :limit OFFSET :offset;
+-- Resumes from the last row read instead of skipping rows with OFFSET, which makes SQLite walk over
+-- every page already read before returning the next one. `lastKey` = '' and `lastChunkIndex` = -1
+-- sort before any row and so return the first page.
+selectRecordsFrom:
+SELECT key, chunk_index, record FROM record
+WHERE key > :lastKey OR (key = :lastKey AND chunk_index > :lastChunkIndex)
+ORDER BY key, chunk_index LIMIT :limit;
 
 insertOrUpdateRecord:
 INSERT INTO record (key, chunk_index, record, updated_date) VALUES (?, ?, ?, ?);
 
-deleteRecords:
-DELETE FROM record WHERE key IN ?;
+deleteRecordByKey:
+DELETE FROM record WHERE key = ?;
 
 deleteAllRecords:
 DELETE FROM record;
