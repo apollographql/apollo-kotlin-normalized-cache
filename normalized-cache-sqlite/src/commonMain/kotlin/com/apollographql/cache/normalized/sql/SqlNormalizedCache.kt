@@ -107,7 +107,7 @@ class SqlNormalizedCache internal constructor(
 
   override fun sizeOfRecord(record: Record): Int {
     val keySize = record.key.key.length
-    return keySize + RecordSerializer.serialize(record).size
+    return keySize + RecordSerializer.serializedSize(record)
   }
 
   override suspend fun size(): Long {
@@ -189,20 +189,22 @@ class SqlNormalizedCache internal constructor(
       val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
       recordDatabase.transaction {
         val existingRecords = selectRecords(records.map { it.key }).associateBy { it.key }
-        records.flatMap { record ->
-          val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+        val changed = mutableSetOf<String>()
+        for (incoming in records) {
+          val record = incoming.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
           val existingRecord = existingRecords[record.key]
           if (existingRecord == null) {
             recordDatabase.insertOrUpdateRecord(record, deleteFirst = false)
-            record.fieldKeys()
+            changed.addAll(record.fieldKeys())
           } else {
             val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
             if (mergedRecord.isNotEmpty() && mergedRecord != existingRecord) {
               recordDatabase.insertOrUpdateRecord(mergedRecord)
             }
-            changedKeys
+            changed.addAll(changedKeys)
           }
-        }.toSet()
+        }
+        changed
       }
     }
   }

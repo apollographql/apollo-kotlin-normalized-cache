@@ -1073,6 +1073,61 @@ class CacheOptionsTest {
           }
         }
   }
+
+  /**
+   * Setting a cache header on a call must not discard the ones set on the client: both end up in the
+   * same [com.apollographql.apollo.api.ExecutionContext] and have to be merged.
+   */
+  @Test
+  fun clientCacheHeadersSurviveCallCacheHeaders() = runTest(before = { setUp() }, after = { tearDown() }) {
+    mockServer.enqueueString(
+        // language=JSON
+        """
+          {
+            "data": {
+              "car": {
+                "__typename": "Car",
+                "id": "1",
+                "color": "Red",
+                "doors": null
+              }
+            },
+            "errors": [
+              {
+                "message": "Doors does not exist",
+                "path": ["car", "doors"]
+              }
+            ]
+          }
+          """,
+    )
+
+    ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .serverErrorsAsException(false)
+        .cacheManager(memoryThenSqlCacheManager)
+        .build()
+        .use { apolloClient ->
+          apolloClient.query(GetCarQuery(carId = "1"))
+              .fetchPolicy(FetchPolicy.NetworkOnly)
+              .execute()
+
+          val cacheResponse = apolloClient.query(GetCarQuery(carId = "1"))
+              .fetchPolicy(FetchPolicy.CacheOnly)
+              // A cache header of the call's own, which the client's must be merged with rather than
+              // replaced by.
+              .memoryCacheOnly(true)
+              .execute()
+
+          // serverErrorsAsException is false, so the stored error is in errors and not thrown
+          assertNull(cacheResponse.exception)
+          assertEquals("Red", cacheResponse.data?.car?.color)
+          assertErrorsEquals(
+              listOf(Error.Builder("Doors does not exist").path(listOf("car", "doors")).build()),
+              cacheResponse.errors,
+          )
+        }
+  }
 }
 
 private fun <D : Operation.Data> ApolloCall<D>.executeCacheAndNetwork(): Flow<ApolloResponse<D>> {

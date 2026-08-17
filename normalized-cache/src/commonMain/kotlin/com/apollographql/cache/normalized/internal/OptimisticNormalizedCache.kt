@@ -77,9 +77,11 @@ internal class OptimisticNormalizedCache(
   }
 
   fun addOptimisticUpdates(recordSet: Collection<Record>): Set<String> {
-    return recordSet.flatMap {
-      addOptimisticUpdate(it)
-    }.toSet()
+    return buildSet {
+      for (record in recordSet) {
+        addAll(addOptimisticUpdate(record))
+      }
+    }
   }
 
   fun addOptimisticUpdate(record: Record): Set<String> {

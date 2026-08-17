@@ -12,29 +12,27 @@ import com.apollographql.cache.normalized.api.CacheHeaders
 import kotlin.time.Duration
 
 internal class CacheHeadersContext(val value: CacheHeaders) : ExecutionContext.Element {
-  override val key: ExecutionContext.Key<*>
-    get() = Key
-
   /**
-   * Merge the [CacheHeaders] instead of letting the right element replace the right element.
+   * Each [CacheHeadersContext] gets a unique key, so headers are merged as expected.
    */
-  override fun <R> fold(initial: R, operation: (R, ExecutionContext.Element) -> R): R {
-    val existing = (initial as? ExecutionContext)?.get(Key)
-    val element = if (existing != null) CacheHeadersContext(existing.value + value) else this
-    return operation(initial, element)
-  }
+  override val key: ExecutionContext.Key<*> = Key()
 
-  companion object Key : ExecutionContext.Key<CacheHeadersContext>
+  private class Key : ExecutionContext.Key<CacheHeadersContext>
 }
 
+private fun ExecutionContext.mergedCacheHeaders(): CacheHeaders =
+  fold(CacheHeaders.NONE) { acc, element ->
+    if (element is CacheHeadersContext) acc + element.value else acc
+  }
+
 internal val ExecutionOptions.cacheHeaders: CacheHeaders
-  get() = (executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE)
+  get() = executionContext.mergedCacheHeaders()
 
 fun <D : Operation.Data> ApolloResponse.Builder<D>.cacheHeaders(cacheHeaders: CacheHeaders) =
   addExecutionContext(CacheHeadersContext(cacheHeaders))
 
 val <D : Operation.Data> ApolloResponse<D>.cacheHeaders
-  get() = executionContext[CacheHeadersContext]?.value ?: CacheHeaders.NONE
+  get() = executionContext.mergedCacheHeaders()
 
 
 /**
@@ -48,7 +46,7 @@ fun <T> MutableExecutionOptions<T>.cacheHeaders(cacheHeaders: CacheHeaders) = ad
  * Add a cache header to be passed to your [com.apollographql.cache.normalized.api.NormalizedCache]
  */
 fun <T> MutableExecutionOptions<T>.addCacheHeader(key: String, value: String) = cacheHeaders(
-    cacheHeaders.newBuilder().addHeader(key, value).build()
+    CacheHeaders.Builder().addHeader(key, value).build()
 )
 
 /**

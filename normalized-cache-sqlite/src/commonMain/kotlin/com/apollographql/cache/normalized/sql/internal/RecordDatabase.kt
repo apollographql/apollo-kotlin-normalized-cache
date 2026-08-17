@@ -210,6 +210,22 @@ internal class RecordDatabase(
   }
 
   /**
+   * Deserializes the record accumulated in this buffer and leaves the buffer empty, ready for the
+   * next one.
+   *
+   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
+   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
+   * leftovers would corrupt every record read after it.
+   */
+  private fun Buffer.readRecord(key: String): Record {
+    return try {
+      RecordSerializer.deserialize(key, this)
+    } finally {
+      clear()
+    }
+  }
+
+  /**
    * Must be called inside a transaction.
    */
   suspend fun insertOrUpdateRecord(record: Record, deleteFirst: Boolean = true) {
@@ -227,14 +243,20 @@ internal class RecordDatabase(
       return
     }
 
-    val chunks = recordBytes.asIterable().chunked(BLOB_CHUNK_SIZE)
-    for ((index, chunk) in chunks.withIndex()) {
+    // Slice the array directly: `asIterable().chunked()` would box every byte of the record into a
+    // `List<Byte>` and materialize all the chunks before the first insert, only to unbox them again.
+    var index = 0
+    var offset = 0
+    while (offset < recordBytes.size) {
+      val end = minOf(offset + BLOB_CHUNK_SIZE, recordBytes.size)
       recordQueries.insertOrUpdateRecord(
           key = record.key.key,
           chunk_index = index.toLong(),
-          record = chunk.toByteArray(),
+          record = recordBytes.copyOfRange(offset, end),
           updated_date = updatedDate,
       )
+      index++
+      offset = end
     }
   }
 

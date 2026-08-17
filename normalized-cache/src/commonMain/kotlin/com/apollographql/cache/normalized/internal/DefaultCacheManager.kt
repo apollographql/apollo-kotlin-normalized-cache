@@ -303,7 +303,7 @@ internal class DefaultCacheManager(
         dataWithErrors = dataWithErrors,
         rootKey = operation.rootKey(),
         customScalarAdapters = customScalarAdapters,
-    ).values.toSet()
+    ).values
     return cache.merge(records, cacheHeaders, recordMerger).also { if (publish) publish(it) }
   }
 

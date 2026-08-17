@@ -16,6 +16,7 @@ import com.apollographql.cache.normalized.storeExpirationDate
 import com.apollographql.cache.normalized.storeReceivedDate
 import okio.Buffer
 import kotlin.jvm.JvmSuppressWildcards
+import kotlin.time.Duration
 
 /**
  * Controls how fields are resolved from the cache.
@@ -204,11 +205,12 @@ private fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
 object DefaultCacheResolver : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
-    if (!context.parent.containsKey(fieldKey)) {
+    val value = context.parent[fieldKey]
+    if (value == null && !context.parent.containsKey(fieldKey)) {
       throw CacheMissException(context.parentKey.keyToString(), fieldKey)
     }
 
-    return context.parent[fieldKey]
+    return value
   }
 }
 
@@ -244,6 +246,15 @@ class CacheControlCacheResolver(
       delegateResolver = FieldPolicyCacheResolver(fieldPolicies = fieldPolicies, keyScope = CacheKey.Scope.TYPE),
   )
 
+  /**
+   * Optimization: when [maxAgeProvider] is [GlobalMaxAgeProvider] all fields have the same max age.
+   */
+  private val globalMaxAge: Duration? = if (maxAgeProvider is GlobalMaxAgeProvider) {
+    maxAgeProvider.maxAge
+  } else {
+    null
+  }
+
   override fun resolveField(context: ResolverContext): Any? {
     val value = delegateResolver.resolveField(context)
     if (value.isSyntheticValue) {
@@ -252,21 +263,21 @@ class CacheControlCacheResolver(
     }
     var isStale = false
     if (context.parent is Record) {
+      val fieldKey = context.getFieldKey()
       // Consider the client controlled max age
-      val receivedDate = context.parent.receivedDate(context.getFieldKey())
+      val receivedDate = context.parent.receivedDate(fieldKey)
       val currentDate = context.cacheHeaders.headerValue(ApolloCacheHeaders.CURRENT_DATE)?.toLongOrNull() ?: (currentTimeMillis() / 1000)
       if (receivedDate != null) {
         val age = currentDate - receivedDate
-        val fieldPath = context.path.map {
-          it.toMaxAgeField()
-        }
-        val maxAge = maxAgeProvider.getMaxAge(MaxAgeContext(fieldPath)).inWholeSeconds
+        val maxAge = (
+            globalMaxAge ?: maxAgeProvider.getMaxAge(MaxAgeContext(context.path.map { it.toMaxAgeField() }))
+            ).inWholeSeconds
         val staleDuration = age - maxAge
         val maxStale = context.cacheHeaders.headerValue(ApolloCacheHeaders.MAX_STALE)?.toLongOrNull() ?: 0L
         if (staleDuration >= maxStale) {
           throw CacheMissException(
               key = context.parentKey.keyToString(),
-              fieldName = context.getFieldKey(),
+              fieldName = fieldKey,
               stale = true,
           )
         }
@@ -274,14 +285,14 @@ class CacheControlCacheResolver(
       }
 
       // Consider the server controlled max age
-      val expirationDate = context.parent.expirationDate(context.getFieldKey())
+      val expirationDate = context.parent.expirationDate(fieldKey)
       if (expirationDate != null) {
         val staleDuration = currentDate - expirationDate
         val maxStale = context.cacheHeaders.headerValue(ApolloCacheHeaders.MAX_STALE)?.toLongOrNull() ?: 0L
         if (staleDuration >= maxStale) {
           throw CacheMissException(
               key = context.parentKey.keyToString(),
-              fieldName = context.getFieldKey(),
+              fieldName = fieldKey,
               stale = true,
           )
         }
@@ -292,7 +303,7 @@ class CacheControlCacheResolver(
         // We can't determine the field's staleness: consider it stale
         throw CacheMissException(
             key = context.parentKey.keyToString(),
-            fieldName = context.getFieldKey(),
+            fieldName = fieldKey,
             stale = true,
         )
       }
@@ -371,8 +382,9 @@ class KeyArgumentsCacheResolver(
 
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
-    if (context.parent.containsKey(fieldKey)) {
-      return context.parent[fieldKey]
+    val value = context.parent[fieldKey]
+    if (value != null || context.parent.containsKey(fieldKey)) {
+      return value
     }
     val keyArgs = keyArgumentsProvider.getKeyArguments(context.parentType, context.field)
         .ifEmpty { return delegateResolver.resolveField(context) }

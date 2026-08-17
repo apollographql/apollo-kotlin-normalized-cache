@@ -21,6 +21,65 @@ import com.apollographql.cache.normalized.cacheMissException
 import kotlin.jvm.JvmSuppressWildcards
 
 /**
+ * A node in the tree of response paths.
+ *
+ * The paths of a response all share prefixes, so they are interned into a tree rather than held as
+ * lists: appending a segment is a lookup on the parent node instead of a copy of the whole path, and
+ * keying a map on a path hashes an identity instead of walking its segments. Every path is also asked
+ * for more than once - the reader builds one per field of every object it reads, then walks them all
+ * again to assemble the result - and interning hands back the node built the first time instead of
+ * rebuilding the list.
+ *
+ * Two paths are the same node if and only if they have the same segments, which is what lets identity
+ * stand in for equality.
+ *
+ * [append] mutates the tree, so a tree belongs to the single read that builds it.
+ */
+internal class ResponsePath private constructor(
+    private val parent: ResponsePath?,
+    private val segment: Any?,
+) {
+  private var children: MutableMap<Any, ResponsePath>? = null
+
+  fun append(segment: Any): ResponsePath {
+    var children = this.children
+    if (children == null) {
+      // Only composite fields ever get children, so leaves carry no map at all.
+      children = mutableMapOf()
+      this.children = children
+    }
+    var child = children[segment]
+    if (child == null) {
+      child = ResponsePath(parent = this, segment = segment)
+      children[segment] = child
+    }
+    return child
+  }
+
+  /**
+   * This path as a list of segments, root first. Only needed to fill in the `path` of the errors
+   * reported for cache misses.
+   */
+  fun asList(): List<Any> {
+    val segments = mutableListOf<Any>()
+    var node: ResponsePath = this
+    while (true) {
+      val parent = node.parent ?: break
+      segments.add(node.segment!!)
+      node = parent
+    }
+    segments.reverse()
+    return segments
+  }
+
+  override fun toString(): String = asList().joinToString(".")
+
+  companion object {
+    fun root(): ResponsePath = ResponsePath(parent = null, segment = null)
+  }
+}
+
+/**
  * A resolver that solves the "N+1" problem by batching all SQL queries at a given depth.
  * It respects skip/include directives.
  */
@@ -50,18 +109,20 @@ internal class CacheBatchReader(
    */
   class PendingReference(
       val key: CacheKey,
-      val path: List<Any>,
+      val path: ResponsePath,
       val fieldPath: List<CompiledField>,
       val selections: List<CompiledSelection>,
       val parentType: String,
   )
+
+  private val rootPath = ResponsePath.root()
 
   /**
    * The objects read from the cache, as a `Map<String, Any?>` with only the fields that are selected and maybe some values changed.
    * Can also be an [Error] in case of a cache miss.
    * The key is the path to the object.
    */
-  private val data = mutableMapOf<List<Any>, Any>()
+  private val data = mutableMapOf<ResponsePath, Any>()
 
   /**
    * True if at least one of the resolved fields is stale
@@ -103,8 +164,21 @@ internal class CacheBatchReader(
   ): List<CompiledField> {
     val state = CollectState(variables)
     collect(selections, parentType, typename, state)
-    return state.fields.groupBy { (it.responseName) to it.condition }.values.map { fields ->
-      fields.first().newBuilder().selections(fields.flatMap { it.selections }).build()
+    val fields = state.fields
+    // Optimization: no need to merge when every field has its own response name.
+    val responseNames = HashSet<String>()
+    var hasSameResponseName = false
+    for (field in fields) {
+      if (!responseNames.add(field.responseName)) {
+        hasSameResponseName = true
+        break
+      }
+    }
+    if (!hasSameResponseName) {
+      return fields
+    }
+    return fields.groupBy { (it.responseName) to it.condition }.values.map { sameDirectives ->
+      sameDirectives.first().newBuilder().selections(sameDirectives.flatMap { it.selections }).build()
     }
   }
 
@@ -114,7 +188,7 @@ internal class CacheBatchReader(
             key = rootKey,
             selections = rootSelections,
             parentType = rootField.type.rawType().name,
-            path = emptyList(),
+            path = rootPath,
             fieldPath = listOf(rootField),
         ),
     )
@@ -150,6 +224,7 @@ internal class CacheBatchReader(
             return@mapNotNull null
           }
 
+          val valuePath = pendingReference.path.append(it.responseName)
           val value = try {
             cacheResolver.resolveField(
                 ResolverContext(
@@ -169,7 +244,7 @@ internal class CacheBatchReader(
               throw e
             } else {
               hasErrors = true
-              cacheMissError(e, pendingReference.path + it.responseName)
+              cacheMissError(e, valuePath)
             }
           }.also { value ->
             if (!hasErrors) {
@@ -183,7 +258,7 @@ internal class CacheBatchReader(
               }
             }
           }
-          value.registerCacheKeys(pendingReference.path + it.responseName, pendingReference.fieldPath + it, it.selections, it.type.rawType().name)
+          value.registerCacheKeys(valuePath, pendingReference.fieldPath + it, it.selections, it.type.rawType().name)
 
           it.responseName to value
         }.toMap()
@@ -209,6 +284,7 @@ internal class CacheBatchReader(
 
     return CacheBatchReaderData(
         data = data,
+        rootPath = rootPath,
         cacheHeaders = CacheHeaders.Builder().apply { if (isStale) addHeader(ApolloCacheHeaders.STALE, "true") }.build(),
         hasErrors = hasErrors,
     )
@@ -233,7 +309,7 @@ internal class CacheBatchReader(
    * The path leading to this value
    */
   private fun Any?.registerCacheKeys(
-      path: List<Any>,
+      path: ResponsePath,
       fieldPath: List<CompiledField>,
       selections: List<CompiledSelection>,
       parentType: String,
@@ -253,7 +329,7 @@ internal class CacheBatchReader(
 
       is List<*> -> {
         forEachIndexed { index, value ->
-          value.registerCacheKeys(path + index, fieldPath, selections, parentType)
+          value.registerCacheKeys(path.append(index), fieldPath, selections, parentType)
         }
       }
 
@@ -266,6 +342,7 @@ internal class CacheBatchReader(
             return@mapNotNull null
           }
 
+          val valuePath = path.append(it.responseName)
           val value = try {
             cacheResolver.resolveField(
                 ResolverContext(
@@ -285,26 +362,27 @@ internal class CacheBatchReader(
               throw e
             } else {
               hasErrors = true
-              cacheMissError(e, path + it.responseName)
+              cacheMissError(e, valuePath)
             }
           }
-          value.registerCacheKeys(path + it.responseName, fieldPath + it, it.selections, it.type.rawType().name)
+          value.registerCacheKeys(valuePath, fieldPath + it, it.selections, it.type.rawType().name)
         }
       }
     }
   }
 
   internal class CacheBatchReaderData(
-      private val data: Map<List<Any>, Any>,
+      private val data: Map<ResponsePath, Any>,
+      private val rootPath: ResponsePath,
       val cacheHeaders: CacheHeaders,
       val hasErrors: Boolean,
   ) {
     @Suppress("UNCHECKED_CAST")
     internal fun toMap(withErrors: Boolean = true): DataWithErrors {
-      return data[emptyList()].replaceCacheKeys(emptyList(), withErrors) as DataWithErrors
+      return data[rootPath].replaceCacheKeys(rootPath, withErrors) as DataWithErrors
     }
 
-    private fun Any?.replaceCacheKeys(path: List<Any>, withErrors: Boolean): Any? {
+    private fun Any?.replaceCacheKeys(path: ResponsePath, withErrors: Boolean): Any? {
       return when (this) {
         is CacheKey -> {
           data[path].replaceCacheKeys(path, withErrors)
@@ -312,14 +390,14 @@ internal class CacheBatchReader(
 
         is List<*> -> {
           mapIndexed { index, src ->
-            src.replaceCacheKeys(path + index, withErrors)
+            src.replaceCacheKeys(path.append(index), withErrors)
           }
         }
 
         is Map<*, *> -> {
           // This will traverse Map custom scalars but this is ok as it shouldn't contain any CacheKey
           mapValues {
-            it.value.replaceCacheKeys(path + (it.key as String), withErrors)
+            it.value.replaceCacheKeys(path.append(it.key as String), withErrors)
           }
         }
 
@@ -339,7 +417,7 @@ internal class CacheBatchReader(
     }
   }
 
-  private fun cacheMissError(exception: CacheMissException, path: List<Any>): Error {
+  private fun cacheMissError(exception: CacheMissException, path: ResponsePath): Error {
     val message = if (exception.fieldName == null) {
       "Object '${exception.key}' not found in the cache"
     } else {
@@ -350,21 +428,30 @@ internal class CacheBatchReader(
       }
     }
     return Error.Builder(message)
-        .path(path = path)
+        .path(path = path.asList())
         .cacheMissException(exception)
         .build()
   }
 
-  @Suppress("UNCHECKED_CAST")
+  /**
+   * The first [Error] in this value, or null if it holds none.
+   *
+   * Called for every field read, where the overwhelming majority of values are scalars holding no
+   * error at all, so it recurses rather than allocating a work queue to walk them with.
+   */
   internal fun Any?.firstError(): Error? {
-    val queue = ArrayDeque<Any?>()
-    queue.add(this)
-    while (queue.isNotEmpty()) {
-      when (val current = queue.removeFirst()) {
-        is Error -> return current
-        is List<*> -> queue.addAll(current)
-        // Embedded fields can be represented as Maps
-        is Map<*, *> -> queue.addAll(current.values)
+    when (this) {
+      is Error -> return this
+      is List<*> -> {
+        for (item in this) {
+          item.firstError()?.let { return it }
+        }
+      }
+      // Embedded fields can be represented as Maps
+      is Map<*, *> -> {
+        for (value in values) {
+          value.firstError()?.let { return it }
+        }
       }
     }
     return null

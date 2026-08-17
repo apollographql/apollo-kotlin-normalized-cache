@@ -8,6 +8,7 @@ import com.apollographql.cache.normalized.api.NormalizedCacheFactory
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.api.RecordMergerContext
+import com.apollographql.cache.normalized.api.fieldKey
 import com.apollographql.cache.normalized.api.withDates
 import com.apollographql.cache.normalized.api.withSizeInBytes
 import com.apollographql.cache.normalized.internal.withReentrantLock
@@ -121,22 +122,25 @@ class MemoryCache(
     return withLock {
       val existingRecords = loadRecords(records.map { it.key }, cacheHeaders).associateBy { it.key }
       val recordsToInsert = mutableListOf<Record>()
-      val changedKeys = records.flatMap { record ->
-        val record = record.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
+      val changedKeys = mutableSetOf<String>()
+      for (incoming in records) {
+        val record = incoming.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
         val existingRecord = existingRecords[record.key]
         if (existingRecord == null) {
           recordsToInsert.add(record)
           lruCache[record.key] = record
-          record.fieldKeys()
+          for (fieldName in record.fields.keys) {
+            changedKeys.add(record.key.fieldKey(fieldName))
+          }
         } else {
-          val (mergedRecord, changedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
+          val (mergedRecord, recordChangedKeys) = recordMerger.merge(RecordMergerContext(existing = existingRecord, incoming = record, cacheHeaders = cacheHeaders))
           if (mergedRecord != existingRecord) {
             recordsToInsert.add(mergedRecord)
             lruCache[record.key] = mergedRecord
           }
-          changedKeys
+          changedKeys.addAll(recordChangedKeys)
         }
-      }.toSet()
+      }
       nextCache?.merge(
           records = recordsToInsert,
           cacheHeaders = cacheHeaders.newBuilder()
