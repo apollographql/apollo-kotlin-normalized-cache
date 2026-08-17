@@ -45,6 +45,7 @@ final class com.apollographql.cache.normalized.sql.internal.record/RecordQueries
     constructor <init>(app.cash.sqldelight.db/SqlDriver) // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.<init>|<init>(app.cash.sqldelight.db.SqlDriver){}[0]
 
     final fun <#A1: kotlin/Any> selectRecordsFrom(kotlin/String, kotlin/Long, kotlin/Long, kotlin/Function3<kotlin/String, kotlin/Long, kotlin/ByteArray, #A1>): app.cash.sqldelight/Query<#A1> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.selectRecordsFrom|selectRecordsFrom(kotlin.String;kotlin.Long;kotlin.Long;kotlin.Function3<kotlin.String,kotlin.Long,kotlin.ByteArray,0:0>){0§<kotlin.Any>}[0]
+    final fun changes(): app.cash.sqldelight/ExecutableQuery<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.changes|changes(){}[0]
     final fun count(): app.cash.sqldelight/Query<kotlin/Long> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.count|count(){}[0]
     final fun selectRecordsFrom(kotlin/String, kotlin/Long, kotlin/Long): app.cash.sqldelight/Query<com.apollographql.cache.normalized.sql.internal.record/SelectRecordsFrom> // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.selectRecordsFrom|selectRecordsFrom(kotlin.String;kotlin.Long;kotlin.Long){}[0]
     final suspend fun deleteAllRecords(): kotlin/Long // com.apollographql.cache.normalized.sql.internal.record/RecordQueries.deleteAllRecords|deleteAllRecords(){}[0]

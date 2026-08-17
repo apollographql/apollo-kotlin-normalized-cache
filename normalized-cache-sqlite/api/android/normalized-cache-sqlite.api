@@ -61,6 +61,7 @@ public final class com/apollographql/cache/normalized/sql/internal/record/Record
 
 public final class com/apollographql/cache/normalized/sql/internal/record/RecordQueries : app/cash/sqldelight/SuspendingTransacterImpl {
 	public fun <init> (Lapp/cash/sqldelight/db/SqlDriver;)V
+	public final fun changes ()Lapp/cash/sqldelight/ExecutableQuery;
 	public final fun count ()Lapp/cash/sqldelight/Query;
 	public final fun deleteAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteRecordByKey (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
