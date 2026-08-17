@@ -165,10 +165,7 @@ internal class CacheBatchReader(
     val state = CollectState(variables)
     collect(selections, parentType, typename, state)
     val fields = state.fields
-    // Nothing to merge when every field has its own response name, which is the common shape. Each
-    // field is then a group of one and already its own merge result, so grouping would only allocate a
-    // Pair to hash it by, then a builder and a selection list to rebuild a copy equal to it - for
-    // every field of every object read.
+    // Optimization: no need to merge when every field has its own response name.
     val responseNames = HashSet<String>()
     var hasSameResponseName = false
     for (field in fields) {

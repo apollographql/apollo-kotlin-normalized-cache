@@ -200,9 +200,6 @@ internal class OnErrorHaltException : Exception("A field resolved to an error an
 
 /**
  * Maps each response name this field selects to the selection it resolves to.
- *
- * Built once and reused for every key of the object: resolving one response name at a time re-flattens
- * the whole selection set per key, which is quadratic in the number of fields selected.
  */
 private fun CompiledField.fieldSelections(): Map<String, CompiledField> {
   val fieldSelections = mutableMapOf<String, CompiledField>()

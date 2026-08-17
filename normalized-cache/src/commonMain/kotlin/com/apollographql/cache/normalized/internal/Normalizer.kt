@@ -123,11 +123,7 @@ internal class Normalizer(
         // For all cache purposes, this is not part of the response and we therefore do not include this in the response
         return@mapNotNull null
       }
-      // A lone field with no condition to clear is already the result of merging its group, so it is
-      // normalized as is: rebuilding it would allocate a copy equal to it, once per object. It is also
-      // then the same instance for every object normalized against these selections, which is what
-      // makes its field key worth memoizing - a merged field is a new instance every time, so keeping
-      // its key would only retain the copy.
+      // A lone field with no condition to clear is already the result of merging its group, so it is normalized as is.
       val sharedField = compiledFields.singleOrNull()?.takeIf { it.condition.isEmpty() }
       val mergedField: CompiledField
       val fieldKey: String
@@ -314,9 +310,7 @@ internal class Normalizer(
   }
 
   /**
-   * The fields selected on the object, indexed by response name. Indexing them as they are collected
-   * costs no more than the flat list this used to return and saves scanning that list once per key of
-   * the object being normalized.
+   * The fields selected on the object, indexed by response name.
    *
    * @param typename the typename of the object. It might be null if the `__typename` field wasn't queried. If
    * that's the case, we will collect less fields than we should and records will miss some values leading to more
