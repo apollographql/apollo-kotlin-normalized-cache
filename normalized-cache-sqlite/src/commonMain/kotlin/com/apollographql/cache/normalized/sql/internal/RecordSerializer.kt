@@ -22,8 +22,7 @@ internal object RecordSerializer {
   }
 
   /**
-   * The number of bytes [serialize] would return for [record], without allocating the [ByteArray] to
-   * hold them.
+   * The number of bytes [serialize] would return for [record].
    */
   fun serializedSize(record: Record): Int {
     val buffer = Buffer()
@@ -42,15 +41,11 @@ internal object RecordSerializer {
 
   /**
    * Reads a record from [buffer], consuming exactly the bytes [serialize] wrote for it.
-   *
-   * Taking the buffer rather than a [ByteArray] lets the caller stream rows straight into the
-   * deserializer: going through `readByteArray()` copies the bytes out of the buffer only for this
-   * method to copy them back into another one.
    */
   fun deserialize(key: String, buffer: Buffer): Record {
     val fields = buffer.readMap()
     val metadataSize = buffer._readInt()
-    val metadata = HashMap<String, Map<String, ApolloJsonElement>>(mapCapacity(metadataSize)).apply {
+    val metadata = HashMap<String, Map<String, ApolloJsonElement>>(mapCapacity(metadataSize), LOAD_FACTOR).apply {
       repeat(metadataSize) {
         val k = buffer.readString().expandCacheKey()
         val v = buffer.readMetadataMap()
@@ -67,8 +62,7 @@ internal object RecordSerializer {
 
   /**
    * The capacity to give a [HashMap] that is about to receive [size] entries, so that it does not
-   * rehash on the way there. [HashMap] grows once it is [LOAD_FACTOR] full, so sizing it to [size]
-   * exactly rehashes every map of more than 3 entries.
+   * rehash on the way there.
    */
   private fun mapCapacity(size: Int): Int = (size / LOAD_FACTOR).toInt() + 1
 
@@ -155,7 +149,7 @@ internal object RecordSerializer {
 
   private fun Buffer.readMap(): Map<String, RecordValue> {
     val size = _readInt()
-    return HashMap<String, RecordValue>(mapCapacity(size)).apply {
+    return HashMap<String, RecordValue>(mapCapacity(size), LOAD_FACTOR).apply {
       repeat(size) {
         put(readString(), readAny())
       }
@@ -179,7 +173,7 @@ internal object RecordSerializer {
 
   private fun Buffer.readMetadataMap(): Map<String, RecordValue> {
     val size = _readInt()
-    return HashMap<String, RecordValue>(mapCapacity(size)).apply {
+    return HashMap<String, RecordValue>(mapCapacity(size), LOAD_FACTOR).apply {
       repeat(size) {
         val key = readString()
         put(
@@ -351,7 +345,7 @@ internal object RecordSerializer {
     }
   }
 
-  private const val LOAD_FACTOR = 0.75
+  private const val LOAD_FACTOR = 0.75F
 
   private const val FIRST = 255 - 32
 
@@ -384,7 +378,6 @@ internal object RecordSerializer {
   private const val mutationPrefixShort = "\u0001"
   private const val subscriptionPrefixShort = "\u0002"
 
-  // `replaceFirst` would scan for the prefix a second time, having just established it is there.
   private fun String.shortenCacheKey(): String {
     return if (startsWith(mutationPrefixLong)) {
       mutationPrefixShort + substring(mutationPrefixLong.length)

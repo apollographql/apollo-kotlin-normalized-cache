@@ -169,8 +169,6 @@ class SqlNormalizedCache internal constructor(
       val expirationDate = cacheHeaders.headerValue(ApolloCacheHeaders.EXPIRATION_DATE)
       recordDatabase.transaction {
         val existingRecords = selectRecords(records.map { it.key }).associateBy { it.key }
-        // Accumulated in one pass: `flatMap {}.toSet()` would materialize every changed field key of
-        // every record in a list before building the set that is actually returned.
         val changed = mutableSetOf<String>()
         for (incoming in records) {
           val record = incoming.withDates(receivedDate = receivedDate, expirationDate = expirationDate)
