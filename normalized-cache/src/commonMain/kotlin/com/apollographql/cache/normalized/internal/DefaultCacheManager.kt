@@ -157,6 +157,7 @@ internal class DefaultCacheManager(
             fieldKeyGenerator = fieldKeyGenerator,
             cacheMissesAsException = cacheMissesAsException,
             serverErrorsAsException = serverErrorsAsException,
+            collectDependentKeys = cacheHeaders.headerValue(COLLECT_DEPENDENT_KEYS) == "true",
         ).collectData()
       } catch (e: ApolloException) {
         return ApolloResponse.Builder(operation, uuid4())
@@ -232,6 +233,9 @@ internal class DefaultCacheManager(
         .data(data)
         .errors(errors.takeIf { it.isNotEmpty() })
         .cacheHeaders(batchReaderData.cacheHeaders)
+        .apply {
+          batchReaderData.dependentKeys?.let { addExecutionContext(DependentKeysContext(it)) }
+        }
         .cacheInfo(
             CacheInfo.Builder()
                 .fromCache(true)

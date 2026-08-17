@@ -12,10 +12,12 @@ import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.CacheResolver
 import com.apollographql.cache.normalized.api.DataWithErrors
+import com.apollographql.cache.normalized.api.FieldKeyContext
 import com.apollographql.cache.normalized.api.FieldKeyGenerator
 import com.apollographql.cache.normalized.api.ReadOnlyNormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.ResolverContext
+import com.apollographql.cache.normalized.api.fieldKey
 import com.apollographql.cache.normalized.api.isRootKey
 import com.apollographql.cache.normalized.cacheMissException
 import kotlin.jvm.JvmSuppressWildcards
@@ -102,6 +104,11 @@ internal class CacheBatchReader(
      * If true, cached server errors throw [ApolloGraphQLException], otherwise they are returned inside the [DataWithErrors].
      */
     private val serverErrorsAsException: Boolean,
+
+    /**
+     * If true, [CacheBatchReaderData.dependentKeys] holds the field keys that were read.
+     */
+    private val collectDependentKeys: Boolean = false,
 ) {
   /**
    * @param key: the key of the record we need to fetch
@@ -135,6 +142,30 @@ internal class CacheBatchReader(
   private var hasErrors = false
 
   private val pendingReferences = mutableListOf<PendingReference>()
+
+  /**
+   * The field keys read, or null if they were not asked for.
+   */
+  private val dependentKeys: MutableSet<String>? = if (collectDependentKeys) mutableSetOf() else null
+
+  /**
+   * Field keys, indexed by parent type name then by field. Computing one encodes the field's arguments
+   * to JSON, and the objects of a list are all read with the same fields.
+   *
+   * [CompiledField] has no `equals`, so the inner maps key on instance identity. Only populated when
+   * [dependentKeys] is, as the field keys the resolver computes are its own.
+   */
+  private val fieldKeys = mutableMapOf<String, MutableMap<CompiledField, String>>()
+
+  private fun memoizedFieldKey(parentType: String, field: CompiledField): String {
+    val keys = fieldKeys.getOrPut(parentType) { mutableMapOf() }
+    var fieldKey = keys[field]
+    if (fieldKey == null) {
+      fieldKey = fieldKeyGenerator.getFieldKey(FieldKeyContext(parentType, field, variables))
+      keys[field] = fieldKey
+    }
+    return fieldKey
+  }
 
   private class CollectState(val variables: Executable.Variables) {
     val fields = mutableListOf<CompiledField>()
@@ -249,6 +280,8 @@ internal class CacheBatchReader(
             return@mapNotNull null
           }
 
+          dependentKeys?.add(record.key.fieldKey(memoizedFieldKey(pendingReference.parentType, it)))
+
           val valuePath = pendingReference.path.append(it.responseName)
           val value = try {
             cacheResolver.resolveField(
@@ -312,6 +345,7 @@ internal class CacheBatchReader(
         rootPath = rootPath,
         cacheHeaders = CacheHeaders.Builder().apply { if (isStale) addHeader(ApolloCacheHeaders.STALE, "true") }.build(),
         hasErrors = hasErrors,
+        dependentKeys = dependentKeys,
     )
   }
 
@@ -401,6 +435,11 @@ internal class CacheBatchReader(
       private val rootPath: ResponsePath,
       val cacheHeaders: CacheHeaders,
       val hasErrors: Boolean,
+
+      /**
+       * The field keys the data was read from, or null if the read was not asked to collect them.
+       */
+      val dependentKeys: Set<String>? = null,
   ) {
     @Suppress("UNCHECKED_CAST")
     internal fun toMap(withErrors: Boolean = true): DataWithErrors {

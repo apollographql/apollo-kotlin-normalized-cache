@@ -92,6 +92,18 @@ class WatcherTest {
       )
   )
 
+  /**
+   * Changes the name of `Human:1000`, which [heroAndFriendsNamesWithIDsData] has as a friend, and
+   * touches nothing else it holds: the hero here is that same friend, and its own friend is an
+   * entity of its own.
+   */
+  private val heroAndFriendsNamesWithIDsFriendNameChangedData = HeroAndFriendsNamesWithIDsQuery.Data(
+      HeroAndFriendsNamesWithIDsQuery.Hero("Human", "1000", "Luke Starkiller", listOf(
+          HeroAndFriendsNamesWithIDsQuery.Friend("Human", "1004", "Wilhuff Tarkin"),
+      )
+      )
+  )
+
   private fun myRunTest(block: suspend CoroutineScope.() -> Unit) {
     kotlinx.coroutines.test.runTest(timeout = 10.minutes) {
       withContext(Dispatchers.Default.limitedParallelism(1)) {
@@ -373,6 +385,48 @@ class WatcherTest {
         .execute()
 
     assertEquals("ArTwo", channel.awaitElement()?.hero?.name)
+
+    job.cancel()
+  }
+
+  /**
+   * A refetch served from the cache reports the keys it read, and the watcher uses those from then on.
+   * They have to cover the whole response and not just its root: an object reached through a list is
+   * as much part of what the watcher depends on as the root field is.
+   */
+  @Test
+  fun watchedKeysFromACacheReadCoverListedObjects() = runTest(before = { setUp() }) {
+    val channel = Channel<HeroAndFriendsNamesWithIDsQuery.Data?>()
+
+    val heroAndFriendsNamesWithIDsQuery = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
+    apolloClient.enqueueTestResponse(heroAndFriendsNamesWithIDsQuery, heroAndFriendsNamesWithIDsData)
+    val job = launch {
+      apolloClient.query(heroAndFriendsNamesWithIDsQuery).watch().collect {
+        channel.send(it.data)
+      }
+    }
+
+    // Cache miss is emitted first (null data)
+    assertNull(channel.awaitElement())
+    assertEquals("Luke Skywalker", channel.awaitElement()?.hero?.friends?.get(0)?.name)
+
+    // Changing the hero triggers a refetch, which is served from the cache and so is where the
+    // watched keys come from afterwards
+    val episodeHeroNameWithIdQuery = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    apolloClient.enqueueTestResponse(episodeHeroNameWithIdQuery, episodeHeroNameWithIdChangedData)
+    apolloClient.query(episodeHeroNameWithIdQuery)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+
+    assertEquals("ArTwo", channel.awaitElement()?.hero?.name)
+
+    // Changing one of the friends still reaches the watcher
+    apolloClient.enqueueTestResponse(HeroAndFriendsNamesWithIDsQuery(Episode.EMPIRE), heroAndFriendsNamesWithIDsFriendNameChangedData)
+    apolloClient.query(HeroAndFriendsNamesWithIDsQuery(Episode.EMPIRE))
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+
+    assertEquals("Luke Starkiller", channel.awaitElement()?.hero?.friends?.get(0)?.name)
 
     job.cancel()
   }
