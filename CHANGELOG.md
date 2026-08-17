@@ -2,6 +2,8 @@
 
 - [Improvement] Derive the keys a watcher matches cache changes against lazily, keeping the re-normalization of the whole response off the path that delivers the initial responses of `watch` (#378)
 - [Improvement] Reduce allocations when deriving a watcher's dependent keys and matching them against a cache change (#378)
+- [Improvement] `watch` now runs the operation through the interceptor chain once instead of twice. Its initial responses are fetched by the watcher interceptor, so the last of them no longer waits on a second execution of the chain to subscribe to the cache. Interceptors installed ahead of the cache run once per `watch` (#379)
+- [Fix] Cache headers set on the client are no longer discarded by a call that sets cache headers of its own. Whether the two were merged used to depend on the order the options were set in (#379)
 - Enable parallel sync for Tooling API clients (#380)
 
 PUT_CHANGELOG_HERE
