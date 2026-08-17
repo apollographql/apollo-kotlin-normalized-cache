@@ -9,13 +9,8 @@ import com.apollographql.apollo.api.ExecutionContext
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.Query
 import com.apollographql.cache.normalized.internal.WatcherSentinel
-import com.apollographql.cache.normalized.options.noCache
-import com.apollographql.cache.normalized.options.onlyIfCached
-import com.apollographql.cache.normalized.options.refetchNoCache
-import com.apollographql.cache.normalized.options.refetchOnlyIfCached
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
 
 internal class WatchContext(
     /**
@@ -75,17 +70,13 @@ fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
 }
 
 /**
- * Observes the cache for the given data. Unlike [watch], no initial request is executed on the network.
+ * Observes the cache for the given data. Unlike the version of `watch` that takes no argument,
+ * no initial request is executed on the network.
  * The fetch policy set by [fetchPolicy] will be used.
  */
 fun <D : Query.Data> ApolloCall<D>.watch(data: D?): Flow<ApolloResponse<D>> {
-  return watchInternal(data).filter { it.exception !== WatcherSentinel }
-}
-
-/**
- * Observes the cache for the given data. Unlike [watch], no initial request is executed on the network.
- * The fetch policy set by [fetchPolicy] will be used.
- */
-internal fun <D : Query.Data> ApolloCall<D>.watchInternal(data: D?): Flow<ApolloResponse<D>> {
-  return copy().addExecutionContext(WatchContext(data, fetchInitialResponses = false)).toFlow()
+  return copy()
+      .addExecutionContext(WatchContext(data, fetchInitialResponses = false))
+      .toFlow()
+      .filter { it.exception !== WatcherSentinel }
 }

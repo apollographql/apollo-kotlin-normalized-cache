@@ -128,7 +128,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
     return flow {
       /**
        * The last of the initial responses, withheld until the cache subscription is established so
-       * that callers can use it as a synchronisation point: modifying the store once it arrives is
+       * that callers can use it as a synchronization point: modifying the store once it arrives is
        * guaranteed to be observed. Subscribing first instead would make the watcher fire on the
        * initial fetch's own write.
        *
