@@ -307,6 +307,21 @@ internal class Normalizer(
   }
 
   /**
+   * Collected fields, indexed by the selections they were collected from, then by the `__typename` of
+   * the object they were collected for.
+   *
+   * Collecting walks the whole selection set, and tests every fragment against its possible types.
+   * The objects of a list all share the same selections, so the result is reused rather than
+   * collected again for each of them.
+   *
+   * A selection set belongs to exactly one parent type, so `parentType` is not part of the key.
+   * Neither [CompiledField] nor [CompiledFragment] overrides `equals`, which makes the outer lookup a
+   * shallow, identity-based comparison of the selections: it never descends into fragments.
+   */
+  private val collectedFields =
+    mutableMapOf<List<CompiledSelection>, MutableMap<String?, Map<String, List<CompiledField>>>>()
+
+  /**
    * The fields selected on the object, indexed by response name.
    *
    * @param typename the typename of the object. It might be null if the `__typename` field wasn't queried. If
@@ -314,9 +329,11 @@ internal class Normalizer(
    * cache miss
    */
   private fun collectFields(selections: List<CompiledSelection>, parentType: String, typename: String?): Map<String, List<CompiledField>> {
-    val state = CollectState()
-    collectFields(selections, parentType, typename, state)
-    return state.fields
+    return collectedFields.getOrPut(selections) { mutableMapOf() }.getOrPut(typename) {
+      val state = CollectState()
+      collectFields(selections, parentType, typename, state)
+      state.fields
+    }
   }
 }
 

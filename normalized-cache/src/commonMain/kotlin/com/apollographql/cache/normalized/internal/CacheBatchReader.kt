@@ -156,7 +156,32 @@ internal class CacheBatchReader(
     }
   }
 
+  /**
+   * Collected fields, indexed by the selections they were collected from, then by the `__typename` of
+   * the object they were collected for.
+   *
+   * Collecting walks the whole selection set, and tests every fragment against its possible types.
+   * The objects of a list all share the same selections, so the result is reused rather than
+   * collected again for each of them.
+   *
+   * A selection set belongs to exactly one parent type, so `parentType` is not part of the key.
+   * Neither [CompiledField] nor [CompiledFragment] overrides `equals`, which makes the outer lookup a
+   * shallow, identity-based comparison of the selections: it never descends into fragments.
+   */
+  private val collectedFields = mutableMapOf<List<CompiledSelection>, MutableMap<String?, List<CompiledField>>>()
+
   private fun collectAndMergeSameDirectives(
+      selections: List<CompiledSelection>,
+      parentType: String,
+      variables: Executable.Variables,
+      typename: String?,
+  ): List<CompiledField> {
+    return collectedFields.getOrPut(selections) { mutableMapOf() }.getOrPut(typename) {
+      collectAndMergeSameDirectivesUncached(selections, parentType, variables, typename)
+    }
+  }
+
+  private fun collectAndMergeSameDirectivesUncached(
       selections: List<CompiledSelection>,
       parentType: String,
       variables: Executable.Variables,
