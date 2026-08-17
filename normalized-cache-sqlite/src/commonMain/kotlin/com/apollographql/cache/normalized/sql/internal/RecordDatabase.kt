@@ -22,47 +22,42 @@ private const val BLOB_CHUNK_SIZE = 1024 * 1024 // 1 MiB
  * Assembles records out of the rows of the `record` table, whose chunks come contiguously and in chunk
  * index order.
  *
- * Only a record serializing to more than [BLOB_CHUNK_SIZE] spans several rows, which is rare enough
- * that the first chunk is kept as it came out of the cursor and copied into the buffer only if a
- * second one turns up: a record that fits in a single row is deserialized without being copied through
- * the buffer at all.
+ * Only a record serializing to more than [BLOB_CHUNK_SIZE] spans several rows, so the buffer usually
+ * holds a single chunk. It is reused across records, which keeps a read to one copy of each chunk and
+ * no allocation per record.
  */
 private class RecordChunks {
   private val buffer = Buffer()
   private var key: String? = null
-  private var firstChunk: ByteArray? = null
 
   /**
    * Adds a row, returning the record it completes, if it starts a new one.
    */
   fun add(key: String, chunk: ByteArray): Record? {
     if (key == this.key) {
-      firstChunk?.let {
-        buffer.write(it)
-        firstChunk = null
-      }
       buffer.write(chunk)
       return null
     }
     return takeRecord().also {
       this.key = key
-      firstChunk = chunk
+      buffer.write(chunk)
     }
   }
 
   /**
    * Returns the record accumulated so far, if any, and forgets it.
+   *
+   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
+   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
+   * leftovers would corrupt every record read after it.
    */
   fun takeRecord(): Record? {
     val key = key ?: return null
-    val firstChunk = firstChunk
     this.key = null
-    this.firstChunk = null
-    return if (firstChunk != null) {
-      RecordSerializer.deserialize(key, firstChunk)
-    } else {
-      // Leaves the buffer empty, ready for the next record.
-      RecordSerializer.deserialize(key, buffer.readByteArray())
+    return try {
+      RecordSerializer.deserialize(key, buffer)
+    } finally {
+      buffer.clear()
     }
   }
 }
@@ -206,22 +201,6 @@ internal class RecordDatabase(
           break
         }
       }
-    }
-  }
-
-  /**
-   * Deserializes the record accumulated in this buffer and leaves the buffer empty, ready for the
-   * next one.
-   *
-   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
-   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
-   * leftovers would corrupt every record read after it.
-   */
-  private fun Buffer.readRecord(key: String): Record {
-    return try {
-      RecordSerializer.deserialize(key, this)
-    } finally {
-      clear()
     }
   }
 
