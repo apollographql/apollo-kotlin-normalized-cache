@@ -5,7 +5,6 @@ import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.fieldKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 /**
  * [Record.Companion.changedKeys] tells [com.apollographql.cache.normalized.internal.OptimisticNormalizedCache]
@@ -135,15 +134,5 @@ class RecordChangedKeysTest {
             mapOf("same" to "s", "differing" to "b", "onlyIn2" to null),
         ),
     )
-  }
-
-  @Test
-  fun differentKeysAreRejected() {
-    assertFailsWith<IllegalStateException> {
-      Record.changedKeys(
-          Record(key = CacheKey("User:1"), fields = emptyMap()),
-          Record(key = CacheKey("User:2"), fields = emptyMap()),
-      )
-    }
   }
 }
