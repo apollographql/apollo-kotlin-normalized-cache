@@ -37,8 +37,6 @@ object DefaultRecordMerger : RecordMerger {
 
     for ((fieldKey, incomingFieldValue) in incoming.fields) {
       val existingFieldValue = existingFields[fieldKey]
-      // Only a null value is ambiguous between "absent" and "present and null", so `containsKey` is
-      // only needed then rather than for every field.
       val hasExistingFieldValue = existingFieldValue != null || existingFields.containsKey(fieldKey)
       if (hasExistingFieldValue && incomingFieldValue is Error && !errorsReplaceCachedValues) {
         continue
@@ -59,8 +57,6 @@ object DefaultRecordMerger : RecordMerger {
 }
 
 private fun Map<String, Map<String, ApolloJsonElement>>.mergedWith(incoming: Map<String, Map<String, ApolloJsonElement>>): Map<String, Map<String, ApolloJsonElement>> {
-  // Metadata is empty unless a MetadataGenerator is configured, which is the default. Short-circuit
-  // rather than copy a map to merge nothing into it.
   if (incoming.isEmpty()) return this
   if (isEmpty()) return incoming
   return toMutableMap().also { existing ->
@@ -109,8 +105,6 @@ class FieldRecordMerger(private val fieldMerger: FieldMerger) : RecordMerger {
 
     for ((fieldKey, incomingFieldValue) in incoming.fields) {
       val existingFieldValue = existingFields[fieldKey]
-      // Only a null value is ambiguous between "absent" and "present and null", so `containsKey` is
-      // only needed then rather than for every field.
       val hasExistingFieldValue = existingFieldValue != null || existingFields.containsKey(fieldKey)
       if (hasExistingFieldValue && incomingFieldValue is Error && !errorsReplaceCachedValues) {
         continue

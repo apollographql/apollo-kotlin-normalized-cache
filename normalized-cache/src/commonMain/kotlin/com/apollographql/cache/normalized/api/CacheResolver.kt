@@ -206,8 +206,6 @@ object DefaultCacheResolver : CacheResolver {
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
     val value = context.parent[fieldKey]
-    // Only a null value is ambiguous between a cache miss and a field whose value is null, so
-    // `containsKey` is only needed then rather than for every field.
     if (value == null && !context.parent.containsKey(fieldKey)) {
       throw CacheMissException(context.parentKey.keyToString(), fieldKey)
     }
@@ -249,12 +247,10 @@ class CacheControlCacheResolver(
   )
 
   /**
-   * The max age of every field, when [maxAgeProvider] gives them all the same one. The provider then
-   * ignores the field path, and the path is not built at all: it holds a [MaxAgeContext.Field] per
-   * level, each of which walks its type's interface hierarchy.
+   * Optimization: when [maxAgeProvider] is [GlobalMaxAgeProvider] all fields have the same max age.
    */
   private val globalMaxAge: Duration? = if (maxAgeProvider is GlobalMaxAgeProvider) {
-    maxAgeProvider.getMaxAge(MaxAgeContext(emptyList()))
+    maxAgeProvider.maxAge
   } else {
     null
   }
@@ -267,8 +263,6 @@ class CacheControlCacheResolver(
     }
     var isStale = false
     if (context.parent is Record) {
-      // Computed once: the default generator formats the field's arguments as JSON, which is more
-      // than we want to redo for each of the five places below that need the key.
       val fieldKey = context.getFieldKey()
       // Consider the client controlled max age
       val receivedDate = context.parent.receivedDate(fieldKey)
@@ -389,8 +383,6 @@ class KeyArgumentsCacheResolver(
   override fun resolveField(context: ResolverContext): Any? {
     val fieldKey = context.getFieldKey()
     val value = context.parent[fieldKey]
-    // Only a null value is ambiguous between a cache miss and a field whose value is null, so
-    // `containsKey` is only needed then rather than for every field.
     if (value != null || context.parent.containsKey(fieldKey)) {
       return value
     }
