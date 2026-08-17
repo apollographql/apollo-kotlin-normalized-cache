@@ -143,7 +143,6 @@ internal class RecordDatabase(
   suspend fun selectRecords(keys: Collection<String>): List<Record> {
     if (keys.isEmpty()) return emptyList()
     val parameterCount = paddedParameterCount(keys.size)
-    // The chunk index is what `ORDER BY` needs, not the caller, so it is left out of the projection.
     val sql = "SELECT key, record FROM record WHERE key IN ${bindParameters(parameterCount)} ORDER BY key, chunk_index"
     return driver.executeQuery(
         identifier = sql.hashCode(),

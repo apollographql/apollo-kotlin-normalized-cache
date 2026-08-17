@@ -162,7 +162,6 @@ class SqlNormalizedCache internal constructor(
       emptySet()
     }
     return (keys + referencedKeys).chunked(parametersMax).sumOf { chunkedKeys ->
-      // The statement reports how many rows it deleted, which saves asking `changes()` for it.
       recordDatabase.deleteRecords(chunkedKeys).toInt()
     }
   }
@@ -215,8 +214,6 @@ class SqlNormalizedCache internal constructor(
   private suspend fun selectRecords(keys: Collection<CacheKey>): List<Record> {
     recordDatabase.init()
     val stringKeys = keys.map { it.key }
-    // Reads are almost always well under the limit, and chunking one allocates a list of lists and a
-    // list to flatten them back into.
     return if (stringKeys.size <= parametersMax) {
       recordDatabase.selectRecords(stringKeys)
     } else {
