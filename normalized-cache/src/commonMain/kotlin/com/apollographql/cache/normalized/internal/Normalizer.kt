@@ -51,13 +51,10 @@ internal class Normalizer(
   private val records = mutableMapOf<CacheKey, Record>()
 
   /**
-   * The max age of every field, when [maxAgeProvider] gives them all the same one - which is what
-   * [DefaultMaxAgeProvider] does, so this is the usual case. The provider then ignores the field path,
-   * and the path is not built at all: it holds a [MaxAgeContext.Field] per level, each of which walks
-   * its type's interface hierarchy.
+   * Optimization: when [maxAgeProvider] is [GlobalMaxAgeProvider] all fields have the same max age.
    */
   private val globalMaxAge: Duration? = if (maxAgeProvider is GlobalMaxAgeProvider) {
-    maxAgeProvider.getMaxAge(MaxAgeContext(emptyList()))
+    maxAgeProvider.maxAge
   } else {
     null
   }
