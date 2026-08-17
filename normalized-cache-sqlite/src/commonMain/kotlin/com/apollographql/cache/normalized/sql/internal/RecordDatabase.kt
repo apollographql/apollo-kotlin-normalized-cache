@@ -252,7 +252,7 @@ internal class RecordDatabase(
         sql = sql,
         parameters = parameterCount,
         binders = { bindKeys(keys, parameterCount) },
-    ).await()
+    ).await() + changes(recordQueries)
   }
 
   suspend fun deleteAllRecords() {
@@ -290,22 +290,28 @@ internal class RecordDatabase(
   companion object {
     private val mutex = Mutex()
     private val boundNames = mutableSetOf<String>()
-
     suspend fun checkNotBound(name: String) {
       mutex.withLock {
         check(!boundNames.contains(name)) { "The file $name is already bound to another SqlNormalizedCache. Call SqlNormalizedCache.close() to release it." }
       }
     }
+
     suspend fun bind(name: String) {
       mutex.withLock {
         boundNames.add(name)
       }
     }
-
     suspend fun release(name: String) {
       mutex.withLock {
         boundNames.remove(name)
       }
     }
+
   }
 }
+
+/**
+ * On JS, [SqlDriver.execute] does not return the number of rows changed, so we must execute `changes`.
+ * On other platforms, this returns 0 and saves one query.
+ */
+internal expect suspend fun changes(recordQueries: RecordQueries): Long

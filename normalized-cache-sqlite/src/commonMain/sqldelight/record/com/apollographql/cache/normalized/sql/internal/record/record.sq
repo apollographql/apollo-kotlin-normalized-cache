@@ -30,5 +30,8 @@ SELECT count(*) FROM record;
 trimByUpdatedDate:
 DELETE FROM record WHERE key IN (SELECT key FROM record ORDER BY updated_date LIMIT ?);
 
+changes:
+SELECT changes();
+
 setCacheSize:
 PRAGMA cache_size = -8192;
