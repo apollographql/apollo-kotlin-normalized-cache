@@ -35,7 +35,7 @@ class MaxAgeContext(
 /**
  * A provider that returns a single max age for all types.
  */
-class GlobalMaxAgeProvider(private val maxAge: Duration) : MaxAgeProvider {
+class GlobalMaxAgeProvider(internal val maxAge: Duration) : MaxAgeProvider {
   override fun getMaxAge(maxAgeContext: MaxAgeContext): Duration = maxAge
 }
 

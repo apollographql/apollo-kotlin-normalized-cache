@@ -38,7 +38,11 @@ class Record(
    * A field key incorporates any GraphQL arguments in addition to the field name.
    */
   fun fieldKeys(): Set<String> {
-    return fields.keys.map { key.fieldKey(it) }.toSet()
+    return buildSet(fields.size) {
+      for (fieldName in fields.keys) {
+        add(key.fieldKey(fieldName))
+      }
+    }
   }
 
   /**
@@ -77,18 +81,23 @@ class Record(
 
   companion object {
     internal fun changedKeys(record1: Record, record2: Record): Set<String> {
-      check(record1.key == record2.key) {
-        "Cannot compute changed keys on record with different keys: '${record1.key}' - '${record2.key}'"
+      val fields1 = record1.fields
+      val fields2 = record2.fields
+      return buildSet {
+        for ((fieldName, value1) in fields1) {
+          val value2 = fields2[fieldName]
+          // Differing values mean the field changed, and so does a field missing from `fields2`. A
+          // null `value2` is ambiguous between the two, so use `containsKey` to disambiguate.
+          if (value1 != value2 || (value1 == null && !fields2.containsKey(fieldName))) {
+            add(record1.key.fieldKey(fieldName))
+          }
+        }
+        for (fieldName in fields2.keys) {
+          if (!fields1.containsKey(fieldName)) {
+            add(record1.key.fieldKey(fieldName))
+          }
+        }
       }
-      val keys1 = record1.fields.keys
-      val keys2 = record2.fields.keys
-      val intersection = keys1.intersect(keys2)
-
-      val changed = (keys1 - intersection) + (keys2 - intersection) + intersection.filter {
-        record1.fields[it] != record2.fields[it]
-      }
-
-      return changed.map { record1.key.fieldKey(it) }.toSet()
     }
   }
 }
@@ -98,19 +107,20 @@ fun Record.withDates(receivedDate: String?, expirationDate: String?): Record {
   if (receivedDate == null && expirationDate == null) {
     return this
   }
+  val dates = buildMap<String, ApolloJsonElement>(2) {
+    receivedDate?.let {
+      put(ApolloCacheHeaders.RECEIVED_DATE, it.toLong())
+    }
+    expirationDate?.let {
+      put(ApolloCacheHeaders.EXPIRATION_DATE, it.toLong())
+    }
+  }
   return Record(
       key = key,
       fields = fields,
       mutationId = mutationId,
       metadata = metadata + fields.mapValues { (key, _) ->
-        metadata[key].orEmpty() + buildMap {
-          receivedDate?.let {
-            put(ApolloCacheHeaders.RECEIVED_DATE, it.toLong())
-          }
-          expirationDate?.let {
-            put(ApolloCacheHeaders.EXPIRATION_DATE, it.toLong())
-          }
-        }
+        metadata[key].orEmpty() + dates
       }
   )
 }
@@ -150,9 +160,6 @@ fun Collection<Record>?.dependentKeys(): Set<String> {
   if (this == null) {
     return emptySet()
   }
-  // Built in one pass: going through `fieldKeys()` would allocate a list and a set per record, plus
-  // a list holding every key, on top of the set actually returned. For a large operation that is
-  // thousands of throwaway collections.
   return buildSet {
     for (record in this@dependentKeys) {
       for (fieldName in record.fields.keys) {

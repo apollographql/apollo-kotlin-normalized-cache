@@ -5,6 +5,9 @@
 - [Improvement] `watch` now runs the operation through the interceptor chain once instead of twice. Its initial responses are fetched by the watcher interceptor, so the last of them no longer waits on a second execution of the chain to subscribe to the cache. Interceptors installed ahead of the cache run once per `watch` (#379)
 - [Fix] Cache headers set on the client are no longer discarded by a call that sets cache headers of its own. Whether the two were merged used to depend on the order the options were set in (#379)
 - Enable parallel sync for Tooling API clients (#380)
+- [Improvement] Reduce allocations when normalizing and when reading from the cache: stop rebuilding a field that is already the result of merging its group, memoize field keys, and intern the response paths the batch reader keys its data by (#383)
+- [Improvement] Reduce allocations and copies in the SQLite cache: stream records straight out of the query buffer, and slice large records instead of boxing them byte by byte (#383)
+- [Improvement] Don't build the max age field path when the `MaxAgeProvider` is a `GlobalMaxAgeProvider`, which ignores it (#383)
 
 PUT_CHANGELOG_HERE
 

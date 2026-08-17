@@ -59,13 +59,13 @@ internal class RecordDatabase(
     for (row in rows) {
       val key = row.key
       if (key != lastKey && lastKey != null) {
-        records.add(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+        records.add(buffer.readRecord(lastKey))
       }
       buffer.write(row.record)
       lastKey = key
     }
     if (lastKey != null) {
-      records.add(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+      records.add(buffer.readRecord(lastKey))
     }
     return records
   }
@@ -80,7 +80,7 @@ internal class RecordDatabase(
         for (row in rowPage) {
           val key = row.key
           if (key != lastKey && lastKey != null) {
-            emit(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+            emit(buffer.readRecord(lastKey))
           }
           buffer.write(row.record)
           lastKey = key
@@ -88,12 +88,28 @@ internal class RecordDatabase(
 
         if (rowPage.size < pageSize) {
           if (lastKey != null) {
-            emit(RecordSerializer.deserialize(lastKey, buffer.readByteArray()))
+            emit(buffer.readRecord(lastKey))
           }
           break
         }
         offset += pageSize
       }
+    }
+  }
+
+  /**
+   * Deserializes the record accumulated in this buffer and leaves the buffer empty, ready for the
+   * next one.
+   *
+   * [RecordSerializer.deserialize] consumes exactly the bytes it wrote, but the buffer is reused
+   * across records, so it is cleared explicitly: were a record ever to deserialize short, the
+   * leftovers would corrupt every record read after it.
+   */
+  private fun Buffer.readRecord(key: String): Record {
+    return try {
+      RecordSerializer.deserialize(key, this)
+    } finally {
+      clear()
     }
   }
 
@@ -115,14 +131,20 @@ internal class RecordDatabase(
       return
     }
 
-    val chunks = recordBytes.asIterable().chunked(BLOB_CHUNK_SIZE)
-    for ((index, chunk) in chunks.withIndex()) {
+    // Slice the array directly: `asIterable().chunked()` would box every byte of the record into a
+    // `List<Byte>` and materialize all the chunks before the first insert, only to unbox them again.
+    var index = 0
+    var offset = 0
+    while (offset < recordBytes.size) {
+      val end = minOf(offset + BLOB_CHUNK_SIZE, recordBytes.size)
       recordQueries.insertOrUpdateRecord(
           key = record.key.key,
           chunk_index = index.toLong(),
-          record = chunk.toByteArray(),
+          record = recordBytes.copyOfRange(offset, end),
           updated_date = updatedDate,
       )
+      index++
+      offset = end
     }
   }
 

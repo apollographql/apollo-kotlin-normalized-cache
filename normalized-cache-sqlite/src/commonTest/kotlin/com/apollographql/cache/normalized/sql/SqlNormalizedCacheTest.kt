@@ -19,6 +19,7 @@ import com.apollographql.cache.normalized.testing.Platform
 import com.apollographql.cache.normalized.testing.fieldKey
 import com.apollographql.cache.normalized.testing.platform
 import com.apollographql.cache.normalized.testing.runTest
+import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -97,6 +98,72 @@ class SqlNormalizedCacheTest {
     assertNotNull(record)
     assertEquals(expected = "valueUpdated", actual = record.fields["fieldKey"])
     assertEquals(expected = true, actual = record.fields["newFieldKey"])
+  }
+
+  /**
+   * A record larger than the 1 MiB blob chunk size is stored as several rows and reassembled on read.
+   * The fast path that skips chunking altogether covers everything smaller, so these are the only
+   * records that go through the slicing loop.
+   */
+  @Test
+  fun testLargeRecordSpanningSeveralChunks() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val record = Record(
+        key = STANDARD_KEY,
+        fields = mapOf(
+            "before" to "value1",
+            // Long enough to need three chunks on its own.
+            "large" to "a".repeat(2 * BLOB_CHUNK_SIZE + 1),
+            "after" to "value2",
+        ),
+    )
+    cache.merge(record = record, cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
+
+    val loaded = assertNotNull(cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE))
+    assertEquals(record.fields, loaded.fields)
+  }
+
+  /**
+   * The read path accumulates the chunks of a record in a buffer it reuses for the next one, so a
+   * multi-chunk record read alongside others must not spill into them.
+   */
+  @Test
+  fun testLargeRecordLoadedAlongsideOthers() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val small1 = Record(key = CacheKey("small1"), fields = mapOf("field" to "value1"))
+    val large = Record(key = CacheKey("large"), fields = mapOf("field" to "b".repeat(BLOB_CHUNK_SIZE + 1)))
+    val small2 = Record(key = CacheKey("small2"), fields = mapOf("field" to "value2"))
+    cache.merge(records = listOf(small1, large, small2), cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
+
+    val loaded = cache.loadRecords(listOf(small1.key, large.key, small2.key), CacheHeaders.NONE).associateBy { it.key }
+    assertEquals(setOf(small1.key, large.key, small2.key), loaded.keys)
+    assertEquals(small1.fields, loaded.getValue(small1.key).fields)
+    assertEquals(large.fields, loaded.getValue(large.key).fields)
+    assertEquals(small2.fields, loaded.getValue(small2.key).fields)
+
+    val all = cache.loadAllRecords().toList().associateBy { it.key }
+    assertEquals(setOf(small1.key, large.key, small2.key), all.keys)
+    assertEquals(large.fields, all.getValue(large.key).fields)
+  }
+
+  /**
+   * Rewriting a record that used to span several chunks must not leave the extra rows behind, or the
+   * next read would append them to the new value.
+   */
+  @Test
+  fun testLargeRecordShrinks() = runTest(before = { setUp() }, after = { tearDown() }) {
+    cache.merge(
+        record = Record(key = STANDARD_KEY, fields = mapOf("field" to "c".repeat(2 * BLOB_CHUNK_SIZE))),
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+    // A different, small value for the same field: the merged record now fits in a single chunk.
+    cache.merge(
+        record = Record(key = STANDARD_KEY, fields = mapOf("field" to "small")),
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    val loaded = assertNotNull(cache.loadRecord(STANDARD_KEY, CacheHeaders.NONE))
+    assertEquals(mapOf("field" to "small"), loaded.fields)
   }
 
   @Test
@@ -438,5 +505,10 @@ class SqlNormalizedCacheTest {
   companion object {
     val STANDARD_KEY = CacheKey("key")
     val QUERY_ROOT_KEY = CacheKey.QUERY_ROOT
+
+    /**
+     * Mirrors `BLOB_CHUNK_SIZE` in `RecordDatabase`, which is private to it.
+     */
+    const val BLOB_CHUNK_SIZE = 1024 * 1024
   }
 }

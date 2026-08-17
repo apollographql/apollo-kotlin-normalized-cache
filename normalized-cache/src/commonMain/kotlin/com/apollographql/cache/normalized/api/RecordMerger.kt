@@ -32,14 +32,15 @@ object DefaultRecordMerger : RecordMerger {
     val incoming = context.incoming
     val errorsReplaceCachedValues = context.cacheHeaders.headerValue(ApolloCacheHeaders.ERRORS_REPLACE_CACHED_VALUES) == "true"
     val changedKeys = mutableSetOf<String>()
-    val mergedFields = existing.fields.toMutableMap()
+    val existingFields = existing.fields
+    val mergedFields = existingFields.toMutableMap()
 
     for ((fieldKey, incomingFieldValue) in incoming.fields) {
-      val hasExistingFieldValue = existing.fields.containsKey(fieldKey)
+      val existingFieldValue = existingFields[fieldKey]
+      val hasExistingFieldValue = existingFieldValue != null || existingFields.containsKey(fieldKey)
       if (hasExistingFieldValue && incomingFieldValue is Error && !errorsReplaceCachedValues) {
         continue
       }
-      val existingFieldValue = existing.fields[fieldKey]
       if (!hasExistingFieldValue || existingFieldValue != incomingFieldValue) {
         mergedFields[fieldKey] = incomingFieldValue
         changedKeys.add(existing.key.fieldKey(fieldKey))
@@ -56,6 +57,8 @@ object DefaultRecordMerger : RecordMerger {
 }
 
 private fun Map<String, Map<String, ApolloJsonElement>>.mergedWith(incoming: Map<String, Map<String, ApolloJsonElement>>): Map<String, Map<String, ApolloJsonElement>> {
+  if (incoming.isEmpty()) return this
+  if (isEmpty()) return incoming
   return toMutableMap().also { existing ->
     for ((incomingField, incomingMetadataForField) in incoming) {
       existing[incomingField] = existing[incomingField].orEmpty() + incomingMetadataForField
@@ -96,15 +99,16 @@ class FieldRecordMerger(private val fieldMerger: FieldMerger) : RecordMerger {
     val incoming = context.incoming
     val errorsReplaceCachedValues = context.cacheHeaders.headerValue(ApolloCacheHeaders.ERRORS_REPLACE_CACHED_VALUES) == "true"
     val changedKeys = mutableSetOf<String>()
-    val mergedFields = existing.fields.toMutableMap()
+    val existingFields = existing.fields
+    val mergedFields = existingFields.toMutableMap()
     val mergedMetadata = existing.metadata.toMutableMap()
 
     for ((fieldKey, incomingFieldValue) in incoming.fields) {
-      val hasExistingFieldValue = existing.fields.containsKey(fieldKey)
+      val existingFieldValue = existingFields[fieldKey]
+      val hasExistingFieldValue = existingFieldValue != null || existingFields.containsKey(fieldKey)
       if (hasExistingFieldValue && incomingFieldValue is Error && !errorsReplaceCachedValues) {
         continue
       }
-      val existingFieldValue = existing.fields[fieldKey]
       if (!hasExistingFieldValue) {
         mergedFields[fieldKey] = incomingFieldValue
         mergedMetadata[fieldKey] = incoming.metadata[fieldKey].orEmpty()

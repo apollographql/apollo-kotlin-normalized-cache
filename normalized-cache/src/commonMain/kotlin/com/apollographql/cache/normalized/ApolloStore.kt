@@ -18,6 +18,7 @@ import com.apollographql.cache.normalized.api.DataWithErrors
 import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.api.dependentKeys
 import com.apollographql.cache.normalized.api.rootKey
 import com.apollographql.cache.normalized.api.withErrors
 import com.benasher44.uuid.Uuid
@@ -518,7 +519,7 @@ private suspend fun <D : Executable.Data> ApolloStore.removeData(
         recordMerger = DefaultRecordMerger
     )
   }
-  return normalizationRecords.values.flatMap { it.fieldKeys() }.toSet().also { if (publish) publish(it) }
+  return normalizationRecords.values.dependentKeys().also { if (publish) publish(it) }
 }
 
 private val EmptyExecutionOptions = object : ExecutionOptions {
