@@ -14,8 +14,7 @@ internal const val COLLECT_DEPENDENT_KEYS = "collect-dependent-keys"
 /**
  * The field keys a response was read from.
  *
- * Only present on responses served by a cache read made with [COLLECT_DEPENDENT_KEYS], so a consumer
- * needs a fallback for the responses of a network fetch.
+ * Only present on responses served by a cache read made with [COLLECT_DEPENDENT_KEYS] set to true.
  */
 internal class DependentKeysContext(val dependentKeys: Set<String>) : ExecutionContext.Element {
   override val key: ExecutionContext.Key<*>
