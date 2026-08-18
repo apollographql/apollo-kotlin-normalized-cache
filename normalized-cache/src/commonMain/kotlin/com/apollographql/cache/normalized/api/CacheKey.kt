@@ -66,12 +66,8 @@ internal fun CacheKey.fieldKey(fieldName: String): String {
   return "${keyToString()}.$fieldName"
 }
 
-internal fun CacheKey.append(vararg keys: String): CacheKey {
-  var cacheKey: CacheKey = this
-  for (key in keys) {
-    cacheKey = CacheKey("${cacheKey.key}.$key")
-  }
-  return cacheKey
+internal fun CacheKey.append(key: String): CacheKey {
+  return CacheKey("${this.key}.$key")
 }
 
 internal fun Operation<*>.rootKey() = when (this) {

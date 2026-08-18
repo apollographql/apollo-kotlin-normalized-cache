@@ -13,6 +13,7 @@ import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.DefaultFetchPolicyInterceptor
 import com.apollographql.cache.normalized.FetchPolicyContext
 import com.apollographql.cache.normalized.RefetchPolicyContext
+import com.apollographql.cache.normalized.addCacheHeader
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.dependentKeys
 import com.apollographql.cache.normalized.api.withErrors
@@ -44,15 +45,16 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
     /**
      * The data whose dependent keys are watched, and the keys themselves.
      *
-     * Computing the keys normalizes the whole data again, which is significant work for large
-     * operations. The keys are only ever read to filter an incoming cache change, so they are
-     * computed on the first such change rather than up front.
+     * A response served from the cache reports the keys it was read from, which are the keys to
+     * watch, so there is nothing left to compute for it. A response from the network does not, and
+     * neither does the data given to `watch(data)`: those are normalized again to get their keys.
      *
-     * This matters because of when the work would otherwise happen: the last of the initial
-     * responses is withheld below until this interceptor has subscribed to
+     * Normalizing is significant work for large operations, and the keys are only ever read to
+     * filter an incoming cache change, so it is deferred to the first such change rather than done
+     * up front. This matters because of when the work would otherwise happen: the last of the
+     * initial responses is withheld below until this interceptor has subscribed to
      * [CacheManager.changedKeys], so anything done before subscribing delays that response reaching
-     * the caller. The same applies to the responses of a refetch, which is why those only record the
-     * data and leave the keys stale.
+     * the caller.
      */
     var dataToWatch: Operation.Data? = watchContext.data
     var errorsToWatch: List<Error>? = null
@@ -84,6 +86,13 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
     }
 
     /**
+     * The request, asking the cache reads it triggers to report the field keys they read.
+     */
+    val watchedRequest = request.newBuilder()
+        .addCacheHeader(COLLECT_DEPENDENT_KEYS, "true")
+        .build()
+
+    /**
      * The request used when the cache changes.
      *
      * `watch()` fetches its initial responses with the fetch policy and refetches with the refetch
@@ -91,7 +100,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
      * no initial fetch and keeps the fetch policy throughout.
      */
     val refetchRequest = if (watchContext.fetchInitialResponses) {
-      request.newBuilder()
+      watchedRequest.newBuilder()
           .addExecutionContext(
               FetchPolicyContext(request.executionContext[RefetchPolicyContext]?.interceptor ?: DefaultFetchPolicyInterceptor),
           )
@@ -99,13 +108,21 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
           .onlyIfCached(request.refetchOnlyIfCached)
           .build()
     } else {
-      request
+      watchedRequest
     }
 
     fun proceedRecordingData(request: ApolloRequest<D>): Flow<ApolloResponse<D>> {
       return chain.proceed(request)
           .onEach { response ->
-            if (response.data != null) {
+            val readKeys = response.executionContext[DependentKeysContext]?.dependentKeys
+            if (readKeys != null) {
+              // Read from the cache, which reported the keys it read: nothing left to compute, and no
+              // need to hold on to the data.
+              watchedKeys = readKeys
+              watchedKeysAreStale = false
+              dataToWatch = null
+              errorsToWatch = null
+            } else if (response.data != null) {
               dataToWatch = response.data
               errorsToWatch = response.errors
               watchedKeysAreStale = true
@@ -137,7 +154,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       var lastResponse: ApolloResponse<D>? = null
 
       if (watchContext.fetchInitialResponses) {
-        proceedRecordingData(request).collect { response ->
+        proceedRecordingData(watchedRequest).collect { response ->
           if (response.isLast) {
             /**
              * If we ever come here it means some interceptors built a new Flow and forgot to reset the isLast flag

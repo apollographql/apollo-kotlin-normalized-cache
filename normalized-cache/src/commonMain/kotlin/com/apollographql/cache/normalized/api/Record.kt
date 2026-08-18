@@ -160,7 +160,14 @@ fun Collection<Record>?.dependentKeys(): Set<String> {
   if (this == null) {
     return emptySet()
   }
-  return buildSet {
+  // Counting the fields first is a cheap pass that lets the set be sized up front. A large operation
+  // has thousands of field keys, and growing to them from the default capacity rehashes the set a
+  // dozen times over.
+  var fieldCount = 0
+  for (record in this) {
+    fieldCount += record.fields.size
+  }
+  return buildSet(fieldCount) {
     for (record in this@dependentKeys) {
       for (fieldName in record.fields.keys) {
         add(record.key.fieldKey(fieldName))
