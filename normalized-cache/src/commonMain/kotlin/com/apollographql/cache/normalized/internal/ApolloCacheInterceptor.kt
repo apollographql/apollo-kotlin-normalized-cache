@@ -76,7 +76,11 @@ internal class ApolloCacheInterceptor(
       } else {
         emptySet()
       }
-      cacheManager.publish(cacheKeys + extraKeys)
+      val publishedKeys = cacheKeys + extraKeys
+      // Recorded before publishing, so that a watcher collecting the event can already tell that it
+      // comes from a write of its own.
+      request.executionContext[PublishedKeysContext]?.record(publishedKeys)
+      cacheManager.publish(publishedKeys)
     }
   }
 
