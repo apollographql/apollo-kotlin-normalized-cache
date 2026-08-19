@@ -43,7 +43,7 @@ androidx-sqlite-framework = { group = "androidx.sqlite", name = "sqlite-framewor
 androidx-startup-runtime = "androidx.startup:startup-runtime:1.2.0"
 kotlin-stdlib-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-js", version.ref = "kotlin-plugin" }
 kotlin-stdlib-wasm-js = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-wasm-js", version.ref = "kotlin-plugin" }
-kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version = "2.2.0" }
+kotlin-poet = { group = "com.squareup", name = "kotlinpoet", version = "2.3.0" }
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-plugin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 librarian = { module = "com.gradleup.librarian:librarian-gradle-plugin", version.ref = "librarian"}
