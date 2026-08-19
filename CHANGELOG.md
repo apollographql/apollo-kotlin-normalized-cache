@@ -12,7 +12,7 @@
 - [Improvement] Reduce allocations and copies in the SQLite cache: stream records straight out of the query buffer, and slice large records instead of boxing them byte by byte (#383)
 - [Improvement] Don't build the max age field path when the `MaxAgeProvider` is a `GlobalMaxAgeProvider`, which ignores it (#383)
 - [Fix] Cache headers set on the client are no longer discarded by a call that sets cache headers of its own. Whether the two were merged used to depend on the order the options were set in (#379)
-- [Fix] `watch` no longer emits a second time for the cache write of its own initial fetch when using `writeToCacheAsynchronously`. That write lands after its response has been emitted and after the watcher has subscribed to the cache, so the watcher used to be notified of a change it had just made itself and refetched to emit data the caller already had. Cache changes made anywhere else still notify it
+- [Behavior change] `watch` no longer emits a second time for the cache write of its own initial fetch when using `writeToCacheAsynchronously`. That write lands after its response has been emitted and after the watcher has subscribed to the cache, so the watcher used to be notified of a change it had just made itself and refetched to emit data the caller already had. Cache changes made anywhere else still notify it (#387)
 - [Fix] SQL cache: a cascading `remove` reaching more keys than SQLite accepts parameters for reported deleting nothing (#384)
 
 PUT_CHANGELOG_HERE
