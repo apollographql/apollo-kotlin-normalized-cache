@@ -22,6 +22,7 @@ import com.apollographql.cache.normalized.options.onlyIfCached
 import com.apollographql.cache.normalized.options.refetchNoCache
 import com.apollographql.cache.normalized.options.refetchOnlyIfCached
 import com.apollographql.cache.normalized.watchContext
+import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.emitAll
@@ -93,11 +94,42 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
         .build()
 
     /**
+     * The keys published by the cache writes of the initial fetch, when those writes are
+     * asynchronous.
+     *
+     * Such a write lands after its response has been emitted and after the subscription below is
+     * established, so the watcher is notified of a change it has itself just made and would refetch
+     * to emit data it has already emitted. Its own notifications are recognized here and dropped.
+     *
+     * A synchronous write publishes before its response is emitted, which is before the subscription
+     * exists, so there is nothing to recognize and nothing to record.
+     */
+    val ownPublishedKeys = if (watchContext.fetchInitialResponses && request.writeToCacheAsynchronously) {
+      PublishedKeysContext()
+    } else {
+      null
+    }
+
+    /**
+     * The request used for the initial fetch.
+     */
+    val initialRequest = if (ownPublishedKeys == null) {
+      watchedRequest
+    } else {
+      watchedRequest.newBuilder()
+          .addExecutionContext(ownPublishedKeys)
+          .build()
+    }
+
+    /**
      * The request used when the cache changes.
      *
      * `watch()` fetches its initial responses with the fetch policy and refetches with the refetch
      * policy, so the latter has to be applied here rather than to the whole call. `watch(data)` has
      * no initial fetch and keeps the fetch policy throughout.
+     *
+     * A refetch does not report what it publishes: it runs while subscribed either way, so being
+     * notified of its own write is not specific to writing asynchronously and is left as is.
      */
     val refetchRequest = if (watchContext.fetchInitialResponses) {
       watchedRequest.newBuilder()
@@ -131,6 +163,10 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
     }
 
     fun isWatched(changedKeys: Set<*>): Boolean {
+      if (ownPublishedKeys?.consume(changedKeys) == true) {
+        // The initial fetch's own asynchronous write: its data has already been emitted.
+        return false
+      }
       if (changedKeys === CacheManager.ALL_KEYS) {
         // Matches regardless of the watched keys, so there is no need to compute them.
         return true
@@ -154,7 +190,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       var lastResponse: ApolloResponse<D>? = null
 
       if (watchContext.fetchInitialResponses) {
-        proceedRecordingData(watchedRequest).collect { response ->
+        proceedRecordingData(initialRequest).collect { response ->
           if (response.isLast) {
             /**
              * If we ever come here it means some interceptors built a new Flow and forgot to reset the isLast flag

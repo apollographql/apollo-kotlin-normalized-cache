@@ -7,7 +7,6 @@ import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Error
 import com.apollographql.apollo.api.Operation
-import com.apollographql.apollo.exception.ApolloGraphQLException
 import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.interceptor.ApolloInterceptor
 import com.apollographql.apollo.interceptor.ApolloInterceptorChain
@@ -45,7 +44,6 @@ import kotlin.test.assertFails
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -107,17 +105,83 @@ class FetchPolicyTest {
                       networkResponse1.errors
                   )
 
-                  // 3. with writeToCacheAsynchronously, when the network response is written to the cache, the watcher gets notified with the cache response
-                  val cacheResponse2 = awaitItem()
-                  assertTrue(cacheResponse2.isFromCache)
-                  // GraphQL error is surfaced as an exception by default (serverErrorsAsException is true)
-                  assertIs<ApolloGraphQLException>(cacheResponse2.exception)
-                  assertNull(cacheResponse2.cacheInfo?.cacheMissException)
-
-                  // That wasn't a cache miss: expect no more emissions
-                  withTurbineTimeout(200.milliseconds) {
+                  // With writeToCacheAsynchronously, the network response is written to the cache after being
+                  // emitted, and the watcher is not notified of that write of its own: the data it stored has
+                  // already been emitted.
+                  withTurbineTimeout(500.milliseconds) {
                     assertFails { awaitItem() }
                   }
+
+                  cancelAndIgnoreRemainingEvents()
+                }
+          }
+    }
+  }
+
+  @Test
+  fun writeToCacheAsyncWatcherIsNotifiedOfOtherWritesOnly() = runTest {
+    MockServer().use { mockServer ->
+      mockServer.enqueueString(
+          // language=JSON
+          """
+          {
+            "data": {
+              "me": {
+                "__typename": "User",
+                "id": "1",
+                "firstName": "John",
+                "lastName": "Smith"
+              }
+            }
+          }
+          """.trimIndent()
+      )
+      mockServer.enqueueString(
+          // language=JSON
+          """
+          {
+            "data": {
+              "me": {
+                "__typename": "User",
+                "id": "1",
+                "firstName": "Jane",
+                "lastName": "Doe"
+              }
+            }
+          }
+          """.trimIndent()
+      )
+      ApolloClient.Builder()
+          .serverUrl(mockServer.url())
+          .cache(AsyncCacheFactory(), writeToCacheAsynchronously = true)
+          .build()
+          .use { apolloClient ->
+            apolloClient.query(MeQuery())
+                .watch()
+                .test {
+                  // 1. response from the cache (cache miss)
+                  val cacheResponse = awaitItem()
+                  assertTrue(cacheResponse.isFromCache)
+                  assertIs<CacheMissException>(cacheResponse.exception)
+
+                  // 2. response from the network
+                  val networkResponse = awaitItem()
+                  assertFalse(networkResponse.isFromCache)
+                  assertEquals("John", networkResponse.data?.me?.firstName)
+
+                  // The initial fetch writes to the cache after emitting, and after this watcher has
+                  // subscribed to it. That write is the watcher's own: it does not emit for it.
+                  withTurbineTimeout(500.milliseconds) {
+                    assertFails { awaitItem() }
+                  }
+
+                  // A write made by anyone else still notifies it.
+                  apolloClient.query(MeQuery())
+                      .fetchPolicy(FetchPolicy.NetworkOnly)
+                      .execute()
+                  val cacheResponse2 = awaitItem()
+                  assertTrue(cacheResponse2.isFromCache)
+                  assertEquals("Jane", cacheResponse2.data?.me?.firstName)
 
                   cancelAndIgnoreRemainingEvents()
                 }
