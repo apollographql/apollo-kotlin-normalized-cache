@@ -1,23 +1,23 @@
 # Next version (unreleased)
 
-- [Improvement] Derive the keys a watcher matches cache changes against lazily, keeping the re-normalization of the whole response off the path that delivers the initial responses of `watch` (#378)
-- [Improvement] Reduce allocations when deriving a watcher's dependent keys and matching them against a cache change (#378)
-- [Improvement] `watch` now runs the operation through the interceptor chain once instead of twice. Its initial responses are fetched by the watcher interceptor, so the last of them no longer waits on a second execution of the chain to subscribe to the cache. Interceptors installed ahead of the cache run once per `watch` (#379)
-- [Improvement] Enable parallel sync for Tooling API clients (#380)
-- [Improvement] SQL cache: read a page of records by resuming from the last row read instead of skipping rows with `OFFSET`, which made `loadAllRecords()` and `dump()` re-walk every row already read (#384)
-- [Improvement] SQL cache: bind a padded number of parameters when reading and deleting records by key, so SQLite compiles a handful of statements instead of one per distinct number of keys (#384)
-- [Improvement] SQL cache: assemble records straight from the cursor, saving an object per row, a list to hold them, and two copies of every record read (#384)
-- [Improvement] SQL cache: replace a record with a statement that can be cached, and take the number of deleted rows from the delete itself instead of a `changes()` round trip (#384)
-- [Improvement] Reduce allocations when normalizing and when reading from the cache: stop rebuilding a field that is already the result of merging its group, memoize field keys, and intern the response paths the batch reader keys its data by (#383)
-- [Improvement] Reduce allocations and copies in the SQLite cache: stream records straight out of the query buffer, and slice large records instead of boxing them byte by byte (#383)
-- [Improvement] Don't build the max age field path when the `MaxAgeProvider` is a `GlobalMaxAgeProvider`, which ignores it (#383)
-- [Fix] Cache headers set on the client are no longer discarded by a call that sets cache headers of its own. Whether the two were merged used to depend on the order the options were set in (#379)
-- [Behavior change] `watch` no longer emits a second time for the cache write of its own initial fetch when using `writeToCacheAsynchronously`. That write lands after its response has been emitted and after the watcher has subscribed to the cache, so the watcher used to be notified of a change it had just made itself and refetched to emit data the caller already had. Cache changes made anywhere else still notify it (#387)
-- [Fix] SQL cache: a cascading `remove` reaching more keys than SQLite accepts parameters for reported deleting nothing (#384)
-
 PUT_CHANGELOG_HERE
 
-- [Fix] `SqlNormalizedCacheFactory()` no longer touches the disk when called, fixing a StrictMode main thread disk read. The driver is now created in `NormalizedCacheFactory.create()` (#373)
+# v1.0.6
+_2026-08-19_
+
+Several fixes and performance improvements in this release! Many thanks to @cfitamen-deezer, @simonlebras, and @AlexanderGH for their contributions! 💜
+
+- [Perf] Avoid inserting identical records (#371)
+- [Fix] Defer sqlite driver creation, fixing a StrictMode main thread disk read (#373)
+- [Fix] Merge headers in `CacheHeadersContext` (#381)
+- [Infra] Enable parallel sync (#380)
+- [Fix] Apply known key abbreviations to inner metadata keys (#382)
+- [Perf] Compute watcher dependent keys lazily instead of before subscribing (#378)
+- [Perf] Fetch the initial responses of `watch()` from the watcher interceptor (#379)
+- [Perf] Reduce allocations on the normalize, read, and SQLite paths (#383)
+- [Perf] Reduce I/O, statement compilation, and copies in the SQL cache (#384)
+- [Perf] Take a watcher's dependent keys from the read that served it (#385)
+- [Fix] Don't refetch a watcher for the asynchronous write of its own initial fetch (#387)
 
 # v1.0.6
 _2026-07-17_
