@@ -260,6 +260,43 @@ internal class RecordDatabase(
     recordQueries.deleteAllRecords()
   }
 
+  /**
+   * Walks every record in the cache, calling [action] once per batch of up to [pageSize] of them.
+   * Stops as soon as [action] returns `false`, including on the last, possibly shorter, batch.
+   */
+  internal suspend fun iterate(pageSize: Int, action: suspend (List<Record>) -> Boolean) {
+    val chunks = RecordChunks()
+    val batch = ArrayList<Record>(pageSize)
+    var lastKey = ""
+    var lastChunkIndex = -1L
+    val limit = pageSize.toLong()
+
+    while (true) {
+      val rowPage = recordQueries.selectRecordsFrom(
+          lastKey = lastKey,
+          lastChunkIndex = lastChunkIndex,
+          limit = limit,
+      ).awaitAsList()
+      for (row in rowPage) {
+        val record = chunks.add(key = row.key, chunk = row.record)
+        lastKey = row.key
+        lastChunkIndex = row.chunk_index
+        if (record != null) {
+          batch.add(record)
+          if (batch.size >= pageSize) {
+            if (!action(batch)) return
+            batch.clear()
+          }
+        }
+      }
+      if (rowPage.size < limit) {
+        chunks.takeRecord()?.let { batch.add(it) }
+        if (batch.isNotEmpty()) action(batch)
+        return
+      }
+    }
+  }
+
   suspend fun databaseSize(): Long {
     return executeQuery(
         driver = driver,

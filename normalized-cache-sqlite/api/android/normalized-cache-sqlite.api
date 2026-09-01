@@ -14,6 +14,7 @@ public final class com/apollographql/cache/normalized/sql/SqlNormalizedCache : c
 	public fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getNextCache ()Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;
+	public final fun iterate (ILkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
