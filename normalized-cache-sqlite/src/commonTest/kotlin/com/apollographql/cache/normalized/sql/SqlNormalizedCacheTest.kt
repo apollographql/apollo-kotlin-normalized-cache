@@ -425,6 +425,104 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
+  fun testForEachIteratesAllRecords() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val keys = List(5) { CacheKey("key-$it") }
+    cache.merge(
+        records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    val visited = mutableListOf<CacheKey>()
+    (cache as SqlNormalizedCache).forEach { record ->
+      visited.add(record.key)
+      SqlNormalizedCache.Action.Continue
+    }
+    assertEquals(keys.toSet(), visited.toSet())
+  }
+
+  @Test
+  fun testForEachDeletesWhileIterating() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val keys = List(10) { CacheKey("key-$it") }
+    cache.merge(
+        records = keys.map { key ->
+          val index = key.key.substringAfter("-").toInt()
+          Record(key = key, fields = mapOf("parity" to if (index % 2 == 0) "even" else "odd"))
+        },
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    (cache as SqlNormalizedCache).forEach { record ->
+      if (record.fields["parity"] == "even") SqlNormalizedCache.Action.Delete else SqlNormalizedCache.Action.Continue
+    }
+
+    val remainingKeys = cache.loadAllRecords().toList().map { it.key }.toSet()
+    val expectedKeys = keys.filter { it.key.substringAfter("-").toInt() % 2 != 0 }.toSet()
+    assertEquals(expectedKeys, remainingKeys)
+  }
+
+  @Test
+  fun testForEachDeletesAcrossSeveralBatches() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val keys = List(250) { CacheKey("key-${it.toString().padStart(3, '0')}") }
+    cache.merge(
+        records = keys.map { key ->
+          val index = key.key.substringAfter("-").toInt()
+          Record(key = key, fields = mapOf("parity" to if (index % 2 == 0) "even" else "odd"))
+        },
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    // 125 matches - more than one batch of 100 - so some are deleted mid-scan and the rest only once
+    // the scan reaches the end.
+    (cache as SqlNormalizedCache).forEach { record ->
+      if (record.fields["parity"] == "even") SqlNormalizedCache.Action.Delete else SqlNormalizedCache.Action.Continue
+    }
+
+    val remainingKeys = cache.loadAllRecords().toList().map { it.key }.toSet()
+    val expectedKeys = keys.filter { it.key.substringAfter("-").toInt() % 2 != 0 }.toSet()
+    assertEquals(expectedKeys, remainingKeys)
+  }
+
+  @Test
+  fun testForEachStops() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val keys = List(10) { CacheKey("key-${it.toString().padStart(2, '0')}") }
+    cache.merge(
+        records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
+        cacheHeaders = CacheHeaders.NONE,
+        recordMerger = DefaultRecordMerger,
+    )
+
+    val visited = mutableListOf<CacheKey>()
+    (cache as SqlNormalizedCache).forEach { record ->
+      if (visited.size == 3) {
+        SqlNormalizedCache.Action.Stop
+      } else {
+        visited.add(record.key)
+        SqlNormalizedCache.Action.Continue
+      }
+    }
+    assertEquals(3, visited.size)
+    // Nothing was deleted, and the scan didn't run to completion.
+    assertEquals(keys.toSet(), cache.loadAllRecords().toList().map { it.key }.toSet())
+  }
+
+  @Test
+  fun testForEachDeletesRecordSpanningSeveralChunks() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val large = Record(key = CacheKey("large"), fields = mapOf("field" to "a".repeat(2 * BLOB_CHUNK_SIZE + 1)))
+    val small = Record(key = CacheKey("small"), fields = mapOf("field" to "value"))
+    cache.merge(records = listOf(large, small), cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
+
+    (cache as SqlNormalizedCache).forEach { record ->
+      if (record.key == large.key) SqlNormalizedCache.Action.Delete else SqlNormalizedCache.Action.Continue
+    }
+
+    assertNull(cache.loadRecord(large.key, CacheHeaders.NONE))
+    assertNotNull(cache.loadRecord(small.key, CacheHeaders.NONE))
+  }
+
+  @Test
   fun testSizeOfRecord() = runTest {
     val expectedDouble = 1.23
     val expectedLongValue = Long.MAX_VALUE

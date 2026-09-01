@@ -8,6 +8,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import com.apollographql.apollo.mpp.currentTimeMillis
 import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.sql.SqlNormalizedCache
 import com.apollographql.cache.normalized.sql.internal.record.RecordQueries
 import com.apollographql.cache.normalized.sql.internal.record.SqlRecordDatabase
 import kotlinx.coroutines.flow.Flow
@@ -258,6 +259,53 @@ internal class RecordDatabase(
 
   suspend fun deleteAllRecords() {
     recordQueries.deleteAllRecords()
+  }
+
+  internal suspend fun forEachRecord(pageSize: Long = 100, deleteBatchSize: Int = 100, action: (Record) -> SqlNormalizedCache.Action) {
+    val chunks = RecordChunks()
+    val pendingDeletes = mutableListOf<String>()
+    var lastKey = ""
+    var lastChunkIndex = -1L
+
+    suspend fun flushDeletes() {
+      if (pendingDeletes.isEmpty()) return
+      deleteRecords(pendingDeletes)
+      pendingDeletes.clear()
+    }
+
+    suspend fun applyAction(action: SqlNormalizedCache.Action, record: Record): Boolean {
+      return when (action) {
+        SqlNormalizedCache.Action.Continue -> true
+        SqlNormalizedCache.Action.Delete -> {
+          pendingDeletes.add(record.key.key)
+          if (pendingDeletes.size >= deleteBatchSize) flushDeletes()
+          true
+        }
+        SqlNormalizedCache.Action.Stop -> false
+      }
+    }
+
+    while (true) {
+      val rowPage = recordQueries.selectRecordsFrom(
+          lastKey = lastKey,
+          lastChunkIndex = lastChunkIndex,
+          limit = pageSize,
+      ).awaitAsList()
+      for (row in rowPage) {
+        val record = chunks.add(key = row.key, chunk = row.record)
+        lastKey = row.key
+        lastChunkIndex = row.chunk_index
+        if (record != null && !applyAction(action(record), record)) {
+          flushDeletes()
+          return
+        }
+      }
+      if (rowPage.size < pageSize) {
+        chunks.takeRecord()?.let { applyAction(action(it), it) }
+        flushDeletes()
+        return
+      }
+    }
   }
 
   suspend fun databaseSize(): Long {

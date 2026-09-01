@@ -247,4 +247,26 @@ class SqlNormalizedCache internal constructor(
   override suspend fun close() {
     recordDatabase.close()
   }
+
+  /**
+   * Iterates over all the records in the cache.
+   *
+   * @param action the action to perform on each record.
+   */
+  suspend fun forEach(action: (Record) -> Action) {
+    try {
+      recordDatabase.init()
+      recordDatabase.forEachRecord(action = action)
+    } catch (t: Throwable) {
+      // Unable to iterate over the records in the database, it is possibly corrupted
+      apolloExceptionHandler(Exception("Unable to iterate over the records in the database", t))
+    }
+  }
+
+  enum class Action {
+    Continue,
+    Stop,
+    Delete
+  }
 }
+
