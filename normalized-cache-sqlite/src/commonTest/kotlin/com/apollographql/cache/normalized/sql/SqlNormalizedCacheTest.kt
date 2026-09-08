@@ -21,6 +21,7 @@ import com.apollographql.cache.normalized.testing.Platform
 import com.apollographql.cache.normalized.testing.fieldKey
 import com.apollographql.cache.normalized.testing.platform
 import com.apollographql.cache.normalized.testing.runTest
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -426,50 +427,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testIterateVisitsAllRecords() = runTest(before = { setUp() }, after = { tearDown() }) {
-    val keys = List(5) { CacheKey("key-$it") }
-    cache.merge(
-        records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
-        cacheHeaders = CacheHeaders.NONE,
-        recordMerger = DefaultRecordMerger,
-    )
-
-    val visited = mutableListOf<CacheKey>()
-    (cache as SqlNormalizedCache).iterate(pageSize = 2) { batch ->
-      visited.addAll(batch.map { it.key })
-      true
-    }
-    assertEquals(keys.toSet(), visited.toSet())
-  }
-
-  /**
-   * Records are delivered `pageSize` at a time, not all at once and not one at a time - the batch
-   * sizes are exactly what a caller would rely on to bound the work it does per call.
-   */
-  @Test
-  fun testIterateDeliversPageSizedBatches() = runTest(before = { setUp() }, after = { tearDown() }) {
-    val keys = List(250) { CacheKey("key-${it.toString().padStart(3, '0')}") }
-    cache.merge(
-        records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
-        cacheHeaders = CacheHeaders.NONE,
-        recordMerger = DefaultRecordMerger,
-    )
-
-    val batchSizes = mutableListOf<Int>()
-    (cache as SqlNormalizedCache).iterate(pageSize = 100) { batch ->
-      batchSizes.add(batch.size)
-      true
-    }
-    assertEquals(listOf(100, 100, 50), batchSizes)
-  }
-
-  /**
-   * `iterate` only hands out batches of records - deciding what to do with them, including deleting
-   * some, is entirely up to the caller. Here, the decision needs a field to be deserialized, which is
-   * exactly what a `WHERE` clause on the raw blob couldn't express.
-   */
-  @Test
-  fun testIterateThenDeleteMatchingRecords() = runTest(before = { setUp() }, after = { tearDown() }) {
+  fun testLoadAllRecordsThenDeleteMatchingRecords() = runTest(before = { setUp() }, after = { tearDown() }) {
     val keys = List(10) { CacheKey("key-$it") }
     cache.merge(
         records = keys.map { key ->
@@ -481,9 +439,8 @@ class SqlNormalizedCacheTest {
     )
 
     val toDelete = mutableListOf<CacheKey>()
-    (cache as SqlNormalizedCache).iterate(pageSize = 3) { batch ->
-      toDelete.addAll(batch.filter { it.fields["parity"] == "even" }.map { it.key })
-      true
+    cache.loadAllRecords(batchSize = 3).collect { record ->
+      if (record.fields["parity"] == "even") toDelete.add(record.key)
     }
     cache.remove(cacheKeys = toDelete, cascade = false)
 
@@ -497,17 +454,17 @@ class SqlNormalizedCacheTest {
    * have one field that was refreshed - and so carries a date - alongside another that was only ever
    * written as part of the initial payload and never got one. That per-field granularity is only
    * visible on a fully deserialized [Record], not something a `WHERE` clause on the raw blob could
-   * filter on - so finding fields missing one is exactly what `iterate` is for.
+   * filter on - so finding fields missing one requires reading every record.
    *
-   * Only the stale fields are dropped, the rest of the record is kept. Each page's trimmed records are
-   * written as soon as that page is processed, instead of collecting all of them for a single write at
-   * the end - so at most one page's worth is ever in memory. The write uses `SKIP_MERGE`, so it
-   * overwrites the stored record in place with exactly the trimmed fields, rather than a plain `merge`
-   * - which could only add or overwrite fields, never remove one that's absent from the incoming
-   * record - and without the extra read of the existing record a normal merge would do first.
+   * Only the stale fields are dropped, the rest of the record is kept. Each record is trimmed and
+   * written back as soon as it comes off the flow, rather than collecting all of them for a single
+   * write at the end. The write uses `SKIP_MERGE`, so it overwrites the stored record in place with
+   * exactly the trimmed fields, rather than a plain `merge` - which could only add or overwrite fields,
+   * never remove one that's absent from the incoming record - and without the extra read of the
+   * existing record a normal merge would do first.
    */
   @Test
-  fun testIterateDeletesRecordsWithoutAReceivedDate() = runTest(before = { setUp() }, after = { tearDown() }) {
+  fun testLoadAllRecordsDeletesFieldsWithoutAReceivedDate() = runTest(before = { setUp() }, after = { tearDown() }) {
     val withDate = List(3) { CacheKey("withDate-$it") }.map { key ->
       Record(
           key = key,
@@ -530,15 +487,12 @@ class SqlNormalizedCacheTest {
 
     val cacheHeaders = CacheHeaders.builder().addHeader(ApolloCacheHeaders.SKIP_MERGE, "true").build()
 
-    (cache as SqlNormalizedCache).iterate(pageSize = 2) { batch ->
-      val trimmedRecords = batch.mapNotNull { record ->
-        val unknownFields = record.fields.keys.filter { record.receivedDate(it) == null }.toSet()
-        if (unknownFields.isEmpty()) null else Record(key = record.key, fields = record.fields - unknownFields, metadata = record.metadata - unknownFields)
+    cache.loadAllRecords(batchSize = 2).collect { record ->
+      val unknownFields = record.fields.keys.filter { record.receivedDate(it) == null }.toSet()
+      if (unknownFields.isNotEmpty()) {
+        val trimmed = Record(key = record.key, fields = record.fields - unknownFields, metadata = record.metadata - unknownFields)
+        cache.merge(record = trimmed, cacheHeaders = cacheHeaders, recordMerger = DefaultRecordMerger)
       }
-      if (trimmedRecords.isNotEmpty()) {
-        cache.merge(records = trimmedRecords, cacheHeaders = cacheHeaders, recordMerger = DefaultRecordMerger)
-      }
-      true
     }
 
     val loaded = cache.loadRecords((withDate + withoutDate).map { it.key }, CacheHeaders.NONE).associateBy { it.key }
@@ -547,7 +501,7 @@ class SqlNormalizedCacheTest {
   }
 
   @Test
-  fun testIterateStops() = runTest(before = { setUp() }, after = { tearDown() }) {
+  fun testLoadAllRecordsCanBeStoppedEarly() = runTest(before = { setUp() }, after = { tearDown() }) {
     val keys = List(10) { CacheKey("key-${it.toString().padStart(2, '0')}") }
     cache.merge(
         records = keys.map { key -> Record(key = key, fields = mapOf("field" to key.key)) },
@@ -556,34 +510,27 @@ class SqlNormalizedCacheTest {
     )
 
     val visited = mutableListOf<CacheKey>()
-    (cache as SqlNormalizedCache).iterate(pageSize = 1) { batch ->
-      if (visited.size == 3) {
-        false
-      } else {
-        visited.addAll(batch.map { it.key })
-        true
-      }
-    }
+    cache.loadAllRecords(batchSize = 1).take(3).collect { visited.add(it.key) }
     assertEquals(3, visited.size)
+
     // Nothing was deleted, and the scan didn't run to completion.
-    assertEquals(keys.toSet(), cache.loadAllRecords().toList().map { it.key }.toSet())
+    val remainingKeys = mutableSetOf<CacheKey>()
+    cache.loadAllRecords().collect { remainingKeys.add(it.key) }
+    assertEquals(keys.toSet(), remainingKeys)
   }
 
   /**
-   * A record spanning several chunk rows is fully assembled into one [Record] before it is handed to a
-   * batch, even though reading it advances the cursor onto a different key's rows.
+   * A record spanning several chunk rows is fully assembled into one [Record] before it is emitted,
+   * even alongside other, unrelated records.
    */
   @Test
-  fun testIterateRecordSpanningSeveralChunks() = runTest(before = { setUp() }, after = { tearDown() }) {
+  fun testLoadAllRecordsRecordSpanningSeveralChunks() = runTest(before = { setUp() }, after = { tearDown() }) {
     val large = Record(key = CacheKey("large"), fields = mapOf("field" to "a".repeat(2 * BLOB_CHUNK_SIZE + 1)))
     val small = Record(key = CacheKey("small"), fields = mapOf("field" to "value"))
     cache.merge(records = listOf(large, small), cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
 
     val loaded = mutableMapOf<CacheKey, Record>()
-    (cache as SqlNormalizedCache).iterate(pageSize = 10) { batch ->
-      batch.forEach { loaded[it.key] = it }
-      true
-    }
+    cache.loadAllRecords(batchSize = 10).collect { record -> loaded[record.key] = record }
 
     assertEquals(large.fields, loaded.getValue(large.key).fields)
     assertEquals(small.fields, loaded.getValue(small.key).fields)

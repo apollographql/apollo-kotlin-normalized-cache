@@ -26,8 +26,15 @@ interface ReadOnlyNormalizedCache {
    * Returns a [Flow] emitting all records stored in this cache.
    *
    * Note: in case of chained caches, this does not return records from the next cache in the chain. See [nextCache].
+   *
+   * It is permitted to modify the cache (including deleting the emitted records) while the returned flow is being collected.
+   *
+   * @param batchSize size of the batch to load records from the underlying storage - hint that may be ignored depending on the implementation.
    */
-  suspend fun loadAllRecords(): Flow<Record>
+  suspend fun loadAllRecords(batchSize: Int = 100): Flow<Record>
+
+  @Deprecated(level = DeprecationLevel.HIDDEN, message = "Kept for binary compatibility. Use loadAllRecords(batchSize: Int) instead")
+  suspend fun loadAllRecords(): Flow<Record> = loadAllRecords(batchSize = 100)
 
   suspend fun dump(): Map<@JvmSuppressWildcards KClass<*>, Map<CacheKey, Record>>
 

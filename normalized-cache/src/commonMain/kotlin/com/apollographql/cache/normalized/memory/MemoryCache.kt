@@ -65,9 +65,12 @@ class MemoryCache(
     }
   }
 
-  override suspend fun loadAllRecords(): Flow<Record> {
+  override suspend fun loadAllRecords(batchSize: Int): Flow<Record> {
     return lruCache.asMap().values.asFlow()
   }
+
+  @Deprecated(level = DeprecationLevel.HIDDEN, message = "Kept for binary compatibility. Use loadAllRecords(batchSize: Int) instead")
+  override suspend fun loadAllRecords(): Flow<Record> = loadAllRecords(batchSize = 100)
 
   override suspend fun clearAll() {
     withLock {

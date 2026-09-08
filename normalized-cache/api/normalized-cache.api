@@ -652,6 +652,7 @@ public final class com/apollographql/cache/normalized/api/NormalizedCache$Compan
 public final class com/apollographql/cache/normalized/api/NormalizedCache$DefaultImpls {
 	public static fun close (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun getNextCache (Lcom/apollographql/cache/normalized/api/NormalizedCache;)Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;
+	public static synthetic fun loadAllRecords (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun size (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/Record;)I
 	public static fun trim (Lcom/apollographql/cache/normalized/api/NormalizedCache;JFLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -667,7 +668,9 @@ public abstract interface class com/apollographql/cache/normalized/api/ReadOnlyN
 	public fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getNextCache ()Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;
-	public abstract fun loadAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun loadAllRecords (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun loadAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun loadAllRecords$default (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun size (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -677,6 +680,8 @@ public abstract interface class com/apollographql/cache/normalized/api/ReadOnlyN
 public final class com/apollographql/cache/normalized/api/ReadOnlyNormalizedCache$DefaultImpls {
 	public static fun close (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun getNextCache (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;)Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;
+	public static synthetic fun loadAllRecords (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun loadAllRecords$default (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun size (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun sizeOfRecord (Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;Lcom/apollographql/cache/normalized/api/Record;)I
 }
@@ -811,7 +816,8 @@ public final class com/apollographql/cache/normalized/memory/MemoryCache : com/a
 	public fun dump (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getNextCache ()Lcom/apollographql/cache/normalized/api/NormalizedCache;
 	public synthetic fun getNextCache ()Lcom/apollographql/cache/normalized/api/ReadOnlyNormalizedCache;
-	public fun loadAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadAllRecords (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun loadAllRecords (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecord-7OwBRqc (Ljava/lang/String;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadRecords (Ljava/util/Collection;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun merge (Lcom/apollographql/cache/normalized/api/Record;Lcom/apollographql/cache/normalized/api/CacheHeaders;Lcom/apollographql/cache/normalized/api/RecordMerger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
