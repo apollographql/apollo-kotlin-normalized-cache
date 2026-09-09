@@ -8,11 +8,16 @@ import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.MaxAgeContext
 import com.apollographql.cache.normalized.api.MaxAgeProvider
 import com.apollographql.cache.normalized.api.NormalizedCache
+import com.apollographql.cache.normalized.api.ReadOnlyNormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordValue
 import com.apollographql.cache.normalized.api.expirationDate
 import com.apollographql.cache.normalized.api.fieldKey
 import com.apollographql.cache.normalized.api.receivedDate
+import com.apollographql.cache.normalized.internal.OptimisticNormalizedCache
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration
 
 @ApolloInternal
@@ -37,6 +42,20 @@ fun Map<CacheKey, Record>.getReachableCacheKeys(): Set<CacheKey> {
 @ApolloInternal
 suspend fun NormalizedCache.allRecords(): Map<CacheKey, Record> {
   return dump().values.fold(emptyMap()) { acc, map -> acc + map }
+}
+
+/**
+ * Emit records of this cache + of its chained caches.
+ */
+private fun NormalizedCache.loadAllRecordsChained(): Flow<Record> = flow {
+  var cache: ReadOnlyNormalizedCache? = this@loadAllRecordsChained
+  while (cache != null) {
+    // OptimisticNormalizedCache.loadAllRecords() already delegates to nextCache.loadAllRecords()
+    if (cache !is OptimisticNormalizedCache) {
+      emitAll(cache.loadAllRecords())
+    }
+    cache = cache.nextCache
+  }
 }
 
 /**
@@ -86,98 +105,89 @@ suspend fun NormalizedCache.removeStaleFields(
     maxStale: Duration = Duration.ZERO,
     clock: () -> Long = { currentTimeMillis() },
 ): RemovedFieldsAndRecords {
-  val allRecords = allRecords().toMutableMap()
-  return removeStaleFields(
-      allRecords = allRecords,
-      maxAgeProvider = maxAgeProvider,
-      maxStale = maxStale,
-      clock = clock,
+  val recordsToUpdate = mutableMapOf<CacheKey, Record>()
+  val removedFields = mutableSetOf<String>()
+  loadAllRecordsChained().collect { record ->
+    var recordCopy = record
+    for (field in record.fields) {
+      if (isFieldStale(field, record, maxAgeProvider, maxStale, clock)) {
+        recordCopy -= field.key
+        recordsToUpdate[record.key] = recordCopy
+        removedFields.add(record.key.fieldKey(field.key))
+      }
+    }
+  }
+  if (recordsToUpdate.isEmpty()) {
+    return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
+  }
+  remove(recordsToUpdate.keys, cascade = false)
+  val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
+  val nonEmptyRecords = recordsToUpdate.values - emptyRecords
+  if (nonEmptyRecords.isNotEmpty()) {
+    merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
+  }
+  return RemovedFieldsAndRecords(
+      removedFields = removedFields,
+      removedRecords = emptyRecords.map { it.key }.toSet(),
   )
 }
 
-private suspend fun NormalizedCache.removeStaleFields(
-    allRecords: MutableMap<CacheKey, Record>,
+/**
+ * Returns whether the field [fieldKey] of [record] is stale, considering both the client controlled max age
+ * (via [maxAgeProvider]) and the server controlled expiration date.
+ */
+private suspend fun NormalizedCache.isFieldStale(
+    field: Map.Entry<String, RecordValue>,
+    record: Record,
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration,
     clock: () -> Long,
-): RemovedFieldsAndRecords {
-  val recordsToUpdate = mutableMapOf<CacheKey, Record>()
-  val removedFields = mutableSetOf<String>()
-  for (record in allRecords.values.toList()) {
-    var recordCopy = record
-    for (field in record.fields) {
-      // Consider the client controlled max age
-      val receivedDate = record.receivedDate(field.key)
-      if (receivedDate != null) {
-        val currentDate = clock() / 1000
-        val age = currentDate - receivedDate
-        val maxAge = maxAgeProvider.getMaxAge(
-            MaxAgeContext(
-                listOf(
-                    MaxAgeContext.Field(
-                        name = "",
-                        type = MaxAgeContext.Type(
-                            name = record["__typename"] as? String ?: "",
-                            isComposite = true,
-                            implements = emptyList(),
-                        )
-                    ),
-                    MaxAgeContext.Field(
-                        name = field.key,
-                        type = MaxAgeContext.Type(
-                            name = field.value.guessType(allRecords),
-                            isComposite = field.value is CacheKey,
-                            implements = emptyList(),
-                        ),
-                    )
-                )
-            )
-        ).inWholeSeconds
-        val staleDuration = age - maxAge
-        if (staleDuration >= maxStale.inWholeSeconds) {
-          recordCopy -= field.key
-          recordsToUpdate[record.key] = recordCopy
-          removedFields.add(record.key.fieldKey((field.key)))
-          if (recordCopy.isEmptyRecord()) {
-            allRecords.remove(record.key)
-          } else {
-            allRecords[record.key] = recordCopy
-          }
-          continue
-        }
-      }
+): Boolean {
+  val (fieldKey, fieldValue) = field
 
-      // Consider the server controlled max age
-      val expirationDate = record.expirationDate(field.key)
-      if (expirationDate != null) {
-        val currentDate = clock() / 1000
-        val staleDuration = currentDate - expirationDate
-        if (staleDuration >= maxStale.inWholeSeconds) {
-          recordCopy -= field.key
-          recordsToUpdate[record.key] = recordCopy
-          removedFields.add(record.key.fieldKey(field.key))
-          if (recordCopy.isEmptyRecord()) {
-            allRecords.remove(record.key)
-          } else {
-            allRecords[record.key] = recordCopy
-          }
-        }
-      }
+  // Consider the client controlled max age
+  val receivedDate = record.receivedDate(fieldKey)
+  if (receivedDate != null) {
+    val currentDate = clock() / 1000
+    val age = currentDate - receivedDate
+    val maxAge = maxAgeProvider.getMaxAge(
+        MaxAgeContext(
+            listOf(
+                MaxAgeContext.Field(
+                    name = "",
+                    type = MaxAgeContext.Type(
+                        name = record["__typename"] as? String ?: "",
+                        isComposite = true,
+                        implements = emptyList(),
+                    ),
+                ),
+                MaxAgeContext.Field(
+                    name = fieldKey,
+                    type = MaxAgeContext.Type(
+                        name = guessType(fieldValue),
+                        isComposite = fieldValue is CacheKey,
+                        implements = emptyList(),
+                    ),
+                ),
+            ),
+        ),
+    ).inWholeSeconds
+    val staleDuration = age - maxAge
+    if (staleDuration >= maxStale.inWholeSeconds) {
+      return true
     }
   }
-  if (recordsToUpdate.isNotEmpty()) {
-    remove(recordsToUpdate.keys, cascade = false)
-    val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
-    val nonEmptyRecords = recordsToUpdate.values - emptyRecords
-    if (nonEmptyRecords.isNotEmpty()) {
-      merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
+
+  // Consider the server controlled max age
+  val expirationDate = record.expirationDate(fieldKey)
+  if (expirationDate != null) {
+    val currentDate = clock() / 1000
+    val staleDuration = currentDate - expirationDate
+    if (staleDuration >= maxStale.inWholeSeconds) {
+      return true
     }
-    return RemovedFieldsAndRecords(
-        removedFields = removedFields,
-        removedRecords = emptyRecords.map { it.key }.toSet()
-    )
   }
-  return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
+  return false
 }
 
 /**
@@ -230,19 +240,19 @@ private suspend fun NormalizedCache.removeDanglingReferences(allRecords: Mutable
     }
     allRemovedFields.addAll(removedFields)
   } while (removedFields.isNotEmpty())
-  if (recordsToUpdate.isNotEmpty()) {
-    remove(recordsToUpdate.keys, cascade = false)
-    val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
-    val nonEmptyRecords = recordsToUpdate.values - emptyRecords
-    if (nonEmptyRecords.isNotEmpty()) {
-      merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
-    }
-    return RemovedFieldsAndRecords(
-        removedFields = allRemovedFields,
-        removedRecords = emptyRecords.map { it.key }.toSet()
-    )
+  if (recordsToUpdate.isEmpty()) {
+    return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
   }
-  return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
+  remove(recordsToUpdate.keys, cascade = false)
+  val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
+  val nonEmptyRecords = recordsToUpdate.values - emptyRecords
+  if (nonEmptyRecords.isNotEmpty()) {
+    merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
+  }
+  return RemovedFieldsAndRecords(
+      removedFields = allRemovedFields,
+      removedRecords = emptyRecords.map { it.key }.toSet(),
+  )
 }
 
 /**
@@ -266,18 +276,19 @@ private fun RecordValue.isDanglingReference(allRecords: Map<CacheKey, Record>): 
 
 private fun Record.isEmptyRecord() = fields.isEmpty() || fields.size == 1 && fields.keys.first() == "__typename"
 
-private fun RecordValue.guessType(allRecords: Map<CacheKey, Record>): String {
-  return when (this) {
+private suspend fun NormalizedCache.guessType(value: RecordValue): String {
+  return when (value) {
     is List<*> -> {
-      val first = firstOrNull() ?: return ""
-      first.guessType(allRecords)
+      val first = value.firstOrNull() ?: return ""
+      guessType(first)
     }
 
     is CacheKey -> {
-      allRecords[this]?.get("__typename") as? String ?: ""
+      loadRecord(value, CacheHeaders.NONE)?.get("__typename") as? String ?: ""
     }
 
     else -> {
+      // We don't care about types of scalars, because it's not possible to configure a maxAge for them
       ""
     }
   }
@@ -307,13 +318,12 @@ suspend fun NormalizedCache.garbageCollect(
   val allRecords = allRecords().toMutableMap()
   return GarbageCollectResult(
       removedStaleFields = removeStaleFields(
-          allRecords = allRecords,
           maxAgeProvider = maxAgeProvider,
           maxStale = maxStale,
           clock = clock,
       ),
       removedDanglingReferences = removeDanglingReferences(allRecords),
-      removedUnreachableRecords = removeUnreachableRecords(allRecords)
+      removedUnreachableRecords = removeUnreachableRecords(allRecords),
   )
 }
 
