@@ -105,8 +105,10 @@ suspend fun NormalizedCache.removeStaleFields(
     maxStale: Duration = Duration.ZERO,
     clock: () -> Long = { currentTimeMillis() },
 ): RemovedFieldsAndRecords {
-  val recordsToUpdate = mutableMapOf<CacheKey, Record>()
+  val batchSize = 100
+  var recordsToUpdate = mutableMapOf<CacheKey, Record>()
   val removedFields = mutableSetOf<String>()
+  val removedRecords = mutableSetOf<CacheKey>()
   loadAllRecordsChained().collect { record ->
     var recordCopy = record
     for (field in record.fields) {
@@ -116,9 +118,25 @@ suspend fun NormalizedCache.removeStaleFields(
         removedFields.add(record.key.fieldKey(field.key))
       }
     }
+    if (recordsToUpdate.size >= batchSize) {
+      removedRecords += applyStaleFieldRemovals(recordsToUpdate)
+      recordsToUpdate = mutableMapOf()
+    }
   }
+  removedRecords += applyStaleFieldRemovals(recordsToUpdate)
+  return RemovedFieldsAndRecords(removedFields = removedFields, removedRecords = removedRecords)
+}
+
+/**
+ * Commit [recordsToUpdate] (the records with at least one stale field removed) to the cache.
+ * Records that were left empty are removed. The other ones replace the existing records
+ * (by removing + merging).
+ *
+ * @return the records that were removed.
+ */
+private suspend fun NormalizedCache.applyStaleFieldRemovals(recordsToUpdate: Map<CacheKey, Record>): Set<CacheKey> {
   if (recordsToUpdate.isEmpty()) {
-    return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
+    return emptySet()
   }
   remove(recordsToUpdate.keys, cascade = false)
   val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
@@ -126,10 +144,7 @@ suspend fun NormalizedCache.removeStaleFields(
   if (nonEmptyRecords.isNotEmpty()) {
     merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
   }
-  return RemovedFieldsAndRecords(
-      removedFields = removedFields,
-      removedRecords = emptyRecords.map { it.key }.toSet(),
-  )
+  return emptyRecords.map { it.key }.toSet()
 }
 
 /**
@@ -315,13 +330,14 @@ suspend fun NormalizedCache.garbageCollect(
     maxStale: Duration = Duration.ZERO,
     clock: () -> Long = { currentTimeMillis() },
 ): GarbageCollectResult {
+  val removedStaleFields = removeStaleFields(
+      maxAgeProvider = maxAgeProvider,
+      maxStale = maxStale,
+      clock = clock,
+  )
   val allRecords = allRecords().toMutableMap()
   return GarbageCollectResult(
-      removedStaleFields = removeStaleFields(
-          maxAgeProvider = maxAgeProvider,
-          maxStale = maxStale,
-          clock = clock,
-      ),
+      removedStaleFields = removedStaleFields,
       removedDanglingReferences = removeDanglingReferences(allRecords),
       removedUnreachableRecords = removeUnreachableRecords(allRecords),
   )
