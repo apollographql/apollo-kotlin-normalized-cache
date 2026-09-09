@@ -18,6 +18,7 @@ import com.apollographql.cache.normalized.internal.OptimisticNormalizedCache
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlin.jvm.JvmOverloads
 import kotlin.time.Duration
 
 @ApolloInternal
@@ -47,12 +48,12 @@ suspend fun NormalizedCache.allRecords(): Map<CacheKey, Record> {
 /**
  * Emit records of this cache + of its chained caches.
  */
-private fun NormalizedCache.loadAllRecordsChained(): Flow<Record> = flow {
+private fun NormalizedCache.loadAllRecordsChained(batchSize: Int): Flow<Record> = flow {
   var cache: ReadOnlyNormalizedCache? = this@loadAllRecordsChained
   while (cache != null) {
     // OptimisticNormalizedCache.loadAllRecords() already delegates to nextCache.loadAllRecords()
     if (cache !is OptimisticNormalizedCache) {
-      emitAll(cache.loadAllRecords())
+      emitAll(cache.loadAllRecords(batchSize))
     }
     cache = cache.nextCache
   }
@@ -100,16 +101,17 @@ suspend fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
  *
  * @return the fields and records that were removed.
  */
+@JvmOverloads
 suspend fun NormalizedCache.removeStaleFields(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    batchSize: Int = 100,
     clock: () -> Long = { currentTimeMillis() },
 ): RemovedFieldsAndRecords {
-  val batchSize = 100
   var recordsToUpdate = mutableMapOf<CacheKey, Record>()
   val removedFields = mutableSetOf<String>()
   val removedRecords = mutableSetOf<CacheKey>()
-  loadAllRecordsChained().collect { record ->
+  loadAllRecordsChained(batchSize).collect { record ->
     var recordCopy = record
     for (field in record.fields) {
       if (isFieldStale(field, record, maxAgeProvider, maxStale, clock)) {
@@ -209,12 +211,14 @@ private suspend fun NormalizedCache.isFieldStale(
  * Remove all stale fields in the store.
  * @see removeStaleFields
  */
+@JvmOverloads
 suspend fun ApolloStore.removeStaleFields(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    batchSize: Int = 100,
 ): RemovedFieldsAndRecords {
   return accessCache { cache ->
-    cache.removeStaleFields(maxAgeProvider, maxStale)
+    cache.removeStaleFields(maxAgeProvider = maxAgeProvider, maxStale = maxStale, batchSize = batchSize)
   }
 }
 
@@ -325,14 +329,17 @@ private operator fun Record.minus(key: String): Record {
  * @param maxAgeProvider the max age provider to use for [removeStaleFields]
  * @param maxStale the maximum staleness to use for [removeStaleFields]
  */
+@JvmOverloads
 suspend fun NormalizedCache.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    batchSize: Int = 100,
     clock: () -> Long = { currentTimeMillis() },
 ): GarbageCollectResult {
   val removedStaleFields = removeStaleFields(
       maxAgeProvider = maxAgeProvider,
       maxStale = maxStale,
+      batchSize = batchSize,
       clock = clock,
   )
   val allRecords = allRecords().toMutableMap()
@@ -350,9 +357,10 @@ suspend fun NormalizedCache.garbageCollect(
 suspend fun ApolloStore.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
+    batchSize: Int = 100,
 ): GarbageCollectResult {
   return accessCache { cache ->
-    cache.garbageCollect(maxAgeProvider, maxStale)
+    cache.garbageCollect(maxAgeProvider, maxStale, batchSize)
   }
 }
 
