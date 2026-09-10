@@ -140,7 +140,7 @@ class ReachableCacheKeysTest {
           )
 
           apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly).execute()
-          var reachableCacheKeys = cacheManager.accessCache { it.allRecords().getReachableCacheKeys() }
+          var reachableCacheKeys = cacheManager.accessCache { it.getReachableCacheKeys() }
           assertEquals(
               setOf(
                   CacheKey("QUERY_ROOT"),
@@ -161,7 +161,7 @@ class ReachableCacheKeysTest {
 
           // Remove User 43, now Repositories 5 and 6 should not be reachable / 7 should still be reachable
           cacheManager.remove(CacheKey("User:43"), cascade = false)
-          reachableCacheKeys = cacheManager.accessCache { it.allRecords().getReachableCacheKeys() }
+          reachableCacheKeys = cacheManager.accessCache { it.getReachableCacheKeys() }
           assertEquals(
               setOf(
                   CacheKey("QUERY_ROOT"),
@@ -183,7 +183,7 @@ class ReachableCacheKeysTest {
               CacheKey("Repository:500"),
               RepositoryFragment(id = "500", __typename = "Repository", starGazers = emptyList()),
           )
-          reachableCacheKeys = cacheManager.accessCache { it.allRecords().getReachableCacheKeys() }
+          reachableCacheKeys = cacheManager.accessCache { it.getReachableCacheKeys() }
           assertEquals(
               setOf(
                   CacheKey("QUERY_ROOT"),

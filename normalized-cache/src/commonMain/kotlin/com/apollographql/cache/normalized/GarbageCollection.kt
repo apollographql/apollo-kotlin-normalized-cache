@@ -22,22 +22,15 @@ import kotlin.jvm.JvmOverloads
 import kotlin.time.Duration
 
 @ApolloInternal
-fun Map<CacheKey, Record>.getReachableCacheKeys(): Set<CacheKey> {
-  fun Map<CacheKey, Record>.getReachableCacheKeys(roots: List<CacheKey>, reachableCacheKeys: MutableSet<CacheKey>) {
-    val records = roots.mapNotNull { this[it] }
-    val cacheKeysToCheck = mutableListOf<CacheKey>()
-    for (record in records) {
-      reachableCacheKeys.add(record.key)
-      cacheKeysToCheck.addAll(record.referencedFields() - reachableCacheKeys)
-    }
-    if (cacheKeysToCheck.isNotEmpty()) {
-      getReachableCacheKeys(cacheKeysToCheck, reachableCacheKeys)
-    }
+suspend fun NormalizedCache.getReachableCacheKeys(): Set<CacheKey> {
+  val reachableCacheKeys = mutableSetOf<CacheKey>()
+  var keysToVisit: Set<CacheKey> = setOf(CacheKey.QUERY_ROOT, CacheKey.MUTATION_ROOT, CacheKey.SUBSCRIPTION_ROOT)
+  while (keysToVisit.isNotEmpty()) {
+    val records = loadRecords(keysToVisit, CacheHeaders.NONE)
+    reachableCacheKeys += records.map { it.key }
+    keysToVisit = records.flatMap { it.referencedFields() }.toSet() - reachableCacheKeys
   }
-
-  return mutableSetOf<CacheKey>().also { reachableCacheKeys ->
-    getReachableCacheKeys(listOf(CacheKey.QUERY_ROOT, CacheKey.MUTATION_ROOT, CacheKey.SUBSCRIPTION_ROOT), reachableCacheKeys)
-  }
+  return reachableCacheKeys
 }
 
 @ApolloInternal
@@ -65,24 +58,36 @@ private fun NormalizedCache.loadAllRecordsChained(batchSize: Int): Flow<Record> 
  *
  * @return the cache keys that were removed.
  */
-suspend fun NormalizedCache.removeUnreachableRecords(): Set<CacheKey> {
-  val allRecords = allRecords()
-  return removeUnreachableRecords(allRecords)
-}
-
-private suspend fun NormalizedCache.removeUnreachableRecords(allRecords: Map<CacheKey, Record>): Set<CacheKey> {
-  val unreachableCacheKeys = allRecords.keys - allRecords.getReachableCacheKeys()
-  remove(unreachableCacheKeys, cascade = false)
-  return unreachableCacheKeys.toSet()
+@JvmOverloads
+suspend fun NormalizedCache.removeUnreachableRecords(batchSize: Int = 100): Set<CacheKey> {
+  val reachableCacheKeys = getReachableCacheKeys()
+  val cacheKeysToRemove = mutableListOf<CacheKey>()
+  val removedCacheKeys = mutableSetOf<CacheKey>()
+  loadAllRecordsChained(batchSize).collect { record ->
+    if (record.key !in reachableCacheKeys) {
+      cacheKeysToRemove.add(record.key)
+      if (cacheKeysToRemove.size >= batchSize) {
+        remove(cacheKeysToRemove, cascade = false)
+        removedCacheKeys += cacheKeysToRemove
+        cacheKeysToRemove.clear()
+      }
+    }
+  }
+  if (cacheKeysToRemove.isNotEmpty()) {
+    remove(cacheKeysToRemove, cascade = false)
+    removedCacheKeys += cacheKeysToRemove
+  }
+  return removedCacheKeys
 }
 
 /**
  * Remove all unreachable records in the store.
  * @see removeUnreachableRecords
  */
-suspend fun ApolloStore.removeUnreachableRecords(): Set<CacheKey> {
+@JvmOverloads
+suspend fun ApolloStore.removeUnreachableRecords(batchSize: Int = 100): Set<CacheKey> {
   return accessCache { cache ->
-    cache.removeUnreachableRecords()
+    cache.removeUnreachableRecords(batchSize = batchSize)
   }
 }
 
@@ -222,7 +227,7 @@ suspend fun ApolloStore.removeStaleFields(
     batchSize: Int = 100,
 ): RemovedFieldsAndRecords {
   return accessCache { cache ->
-    cache.removeStaleFields(maxAgeProvider = maxAgeProvider, maxStale = maxStale, batchSize = batchSize)
+    cache.removeStaleFields(maxAgeProvider, maxStale, batchSize)
   }
 }
 
@@ -338,18 +343,10 @@ suspend fun NormalizedCache.garbageCollect(
     batchSize: Int = 100,
     clock: () -> Long = { currentTimeMillis() },
 ): GarbageCollectResult {
-  val removedStaleFields = removeStaleFields(
-      maxAgeProvider = maxAgeProvider,
-      maxStale = maxStale,
-      batchSize = batchSize,
-      clock = clock,
-  )
-  val removedDanglingReferences = removeDanglingReferences(batchSize = batchSize)
-  val allRecords = allRecords().toMutableMap()
   return GarbageCollectResult(
-      removedStaleFields = removedStaleFields,
-      removedDanglingReferences = removedDanglingReferences,
-      removedUnreachableRecords = removeUnreachableRecords(allRecords),
+      removedStaleFields = removeStaleFields(maxAgeProvider, maxStale, batchSize, clock),
+      removedDanglingReferences = removeDanglingReferences(batchSize),
+      removedUnreachableRecords = removeUnreachableRecords(batchSize),
   )
 }
 
