@@ -277,10 +277,16 @@ suspend fun ApolloStore.removeDanglingReferences(batchSize: Int = 100): RemovedF
 private suspend fun NormalizedCache.isDanglingReference(value: RecordValue): Boolean {
   return when (value) {
     is CacheKey -> loadRecord(value, CacheHeaders.NONE) == null
-    is List<*> -> value.any { isDanglingReference(it) }
-    is Map<*, *> -> value.values.any { isDanglingReference(it) }
+    is List<*> -> isAnyDangling(value)
+    is Map<*, *> -> isAnyDangling(value.values)
     else -> false
   }
+}
+
+private suspend fun NormalizedCache.isAnyDangling(values: Collection<*>): Boolean {
+  val cacheKeys = values.filterIsInstance<CacheKey>()
+  val loadedKeys = if (cacheKeys.isEmpty()) emptySet() else loadRecords(cacheKeys, CacheHeaders.NONE).mapTo(mutableSetOf()) { it.key }
+  return values.any { if (it is CacheKey) it !in loadedKeys else isDanglingReference(it) }
 }
 
 private fun Record.isEmptyRecord() = fields.isEmpty() || fields.size == 1 && fields.keys.first() == "__typename"
