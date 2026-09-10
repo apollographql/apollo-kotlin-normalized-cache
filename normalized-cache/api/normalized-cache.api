@@ -232,16 +232,23 @@ public final class com/apollographql/cache/normalized/GarbageCollectResult {
 
 public final class com/apollographql/cache/normalized/GarbageCollectionKt {
 	public static final fun allRecords (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun garbageCollect (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect-1Y68eR8 (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect-1Y68eR8 (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun garbageCollect-1Y68eR8$default (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun garbageCollect-WPi__2c (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect-WPi__2c (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun garbageCollect-WPi__2c$default (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun garbageCollect-WPi__2c$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun garbageCollect-exY8QGI (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect-exY8QGI (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getReachableCacheKeys (Ljava/util/Map;)Ljava/util/Set;
+	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/ApolloStore;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/ApolloStore;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/api/NormalizedCache;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun removeDanglingReferences$default (Lcom/apollographql/cache/normalized/ApolloStore;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun removeDanglingReferences$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun removeStaleFields (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeStaleFields (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeStaleFields-1Y68eR8 (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/coroutines/Continuation;)Ljava/lang/Object;

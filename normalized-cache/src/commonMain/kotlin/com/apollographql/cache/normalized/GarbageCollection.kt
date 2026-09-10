@@ -121,22 +121,21 @@ suspend fun NormalizedCache.removeStaleFields(
       }
     }
     if (recordsToUpdate.size >= batchSize) {
-      removedRecords += applyStaleFieldRemovals(recordsToUpdate)
+      removedRecords += flushFieldRemovals(recordsToUpdate)
       recordsToUpdate = mutableMapOf()
     }
   }
-  removedRecords += applyStaleFieldRemovals(recordsToUpdate)
+  removedRecords += flushFieldRemovals(recordsToUpdate)
   return RemovedFieldsAndRecords(removedFields = removedFields, removedRecords = removedRecords)
 }
 
 /**
- * Commit [recordsToUpdate] (the records with at least one stale field removed) to the cache.
- * Records that were left empty are removed. The other ones replace the existing records
- * (by removing + merging).
+ * Saves [recordsToUpdate] (records with at least one field removed) to the cache.
+ * Records that were left empty are removed. The other ones replace the existing records (by removing + merging).
  *
  * @return the records that were removed.
  */
-private suspend fun NormalizedCache.applyStaleFieldRemovals(recordsToUpdate: Map<CacheKey, Record>): Set<CacheKey> {
+private suspend fun NormalizedCache.flushFieldRemovals(recordsToUpdate: Map<CacheKey, Record>): Set<CacheKey> {
   if (recordsToUpdate.isEmpty()) {
     return emptySet()
   }
@@ -237,63 +236,49 @@ suspend fun ApolloStore.removeStaleFields(
  *
  * @return the fields and records that were removed.
  */
-suspend fun NormalizedCache.removeDanglingReferences(): RemovedFieldsAndRecords {
-  val allRecords: MutableMap<CacheKey, Record> = allRecords().toMutableMap()
-  return removeDanglingReferences(allRecords)
-}
-
-private suspend fun NormalizedCache.removeDanglingReferences(allRecords: MutableMap<CacheKey, Record>): RemovedFieldsAndRecords {
-  val recordsToUpdate = mutableMapOf<CacheKey, Record>()
+@JvmOverloads
+suspend fun NormalizedCache.removeDanglingReferences(batchSize: Int = 100): RemovedFieldsAndRecords {
   val allRemovedFields = mutableSetOf<String>()
+  val allRemovedRecords = mutableSetOf<CacheKey>()
   do {
+    var recordsToUpdate = mutableMapOf<CacheKey, Record>()
     val removedFields = mutableSetOf<String>()
-    for (record in allRecords.values.toList()) {
+    loadAllRecordsChained(batchSize).collect { record ->
       var recordCopy = record
       for (field in record.fields) {
-        if (field.value.isDanglingReference(allRecords)) {
+        if (isDanglingReference(field.value)) {
           recordCopy -= field.key
           recordsToUpdate[record.key] = recordCopy
           removedFields.add(record.key.fieldKey(field.key))
-          if (recordCopy.isEmptyRecord()) {
-            allRecords.remove(record.key)
-          } else {
-            allRecords[record.key] = recordCopy
-          }
         }
       }
+      if (recordsToUpdate.size >= batchSize) {
+        allRemovedRecords += flushFieldRemovals(recordsToUpdate)
+        recordsToUpdate = mutableMapOf()
+      }
     }
-    allRemovedFields.addAll(removedFields)
+    allRemovedRecords += flushFieldRemovals(recordsToUpdate)
+    allRemovedFields += removedFields
   } while (removedFields.isNotEmpty())
-  if (recordsToUpdate.isEmpty()) {
-    return RemovedFieldsAndRecords(removedFields = emptySet(), removedRecords = emptySet())
-  }
-  remove(recordsToUpdate.keys, cascade = false)
-  val emptyRecords = recordsToUpdate.values.filter { it.isEmptyRecord() }.toSet()
-  val nonEmptyRecords = recordsToUpdate.values - emptyRecords
-  if (nonEmptyRecords.isNotEmpty()) {
-    merge(nonEmptyRecords, CacheHeaders.NONE, DefaultRecordMerger)
-  }
-  return RemovedFieldsAndRecords(
-      removedFields = allRemovedFields,
-      removedRecords = emptyRecords.map { it.key }.toSet(),
-  )
+  return RemovedFieldsAndRecords(removedFields = allRemovedFields, removedRecords = allRemovedRecords)
 }
 
 /**
  * Remove all dangling references in the store.
  * @see removeDanglingReferences
  */
-suspend fun ApolloStore.removeDanglingReferences(): RemovedFieldsAndRecords {
+@JvmOverloads
+suspend fun ApolloStore.removeDanglingReferences(batchSize: Int = 100): RemovedFieldsAndRecords {
   return accessCache { cache ->
-    cache.removeDanglingReferences()
+    cache.removeDanglingReferences(batchSize = batchSize)
   }
 }
 
-private fun RecordValue.isDanglingReference(allRecords: Map<CacheKey, Record>): Boolean {
-  return when (this) {
-    is CacheKey -> allRecords[this] == null
-    is List<*> -> any { it.isDanglingReference(allRecords) }
-    is Map<*, *> -> values.any { it.isDanglingReference(allRecords) }
+private suspend fun NormalizedCache.isDanglingReference(value: RecordValue): Boolean {
+  return when (value) {
+    is CacheKey -> loadRecord(value, CacheHeaders.NONE) == null
+    is List<*> -> value.any { isDanglingReference(it) }
+    is Map<*, *> -> value.values.any { isDanglingReference(it) }
     else -> false
   }
 }
@@ -353,10 +338,11 @@ suspend fun NormalizedCache.garbageCollect(
       batchSize = batchSize,
       clock = clock,
   )
+  val removedDanglingReferences = removeDanglingReferences(batchSize = batchSize)
   val allRecords = allRecords().toMutableMap()
   return GarbageCollectResult(
       removedStaleFields = removedStaleFields,
-      removedDanglingReferences = removeDanglingReferences(allRecords),
+      removedDanglingReferences = removedDanglingReferences,
       removedUnreachableRecords = removeUnreachableRecords(allRecords),
   )
 }
@@ -365,13 +351,15 @@ suspend fun NormalizedCache.garbageCollect(
  * Perform garbage collection on the store.
  * @see garbageCollect
  */
+@JvmOverloads
 suspend fun ApolloStore.garbageCollect(
     maxAgeProvider: MaxAgeProvider,
     maxStale: Duration = Duration.ZERO,
     batchSize: Int = 100,
+    clock: () -> Long = { currentTimeMillis() },
 ): GarbageCollectResult {
   return accessCache { cache ->
-    cache.garbageCollect(maxAgeProvider, maxStale, batchSize)
+    cache.garbageCollect(maxAgeProvider, maxStale, batchSize, clock)
   }
 }
 
