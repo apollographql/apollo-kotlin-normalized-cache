@@ -165,6 +165,11 @@ private suspend fun NormalizedCache.isFieldStale(
   // Consider the client controlled max age
   val receivedDate = record.receivedDate(fieldKey)
   if (receivedDate != null) {
+    val referencedType = guessType(fieldValue)
+    if (referencedType == null) {
+      // dangling reference: return true so it's removed
+      return true
+    }
     val currentDate = clock() / 1000
     val age = currentDate - receivedDate
     val maxAge = maxAgeProvider.getMaxAge(
@@ -181,7 +186,7 @@ private suspend fun NormalizedCache.isFieldStale(
                 MaxAgeContext.Field(
                     name = fieldKey,
                     type = MaxAgeContext.Type(
-                        name = guessType(fieldValue),
+                        name = referencedType,
                         isComposite = fieldValue is CacheKey,
                         implements = emptyList(),
                     ),
@@ -295,7 +300,13 @@ private fun RecordValue.isDanglingReference(allRecords: Map<CacheKey, Record>): 
 
 private fun Record.isEmptyRecord() = fields.isEmpty() || fields.size == 1 && fields.keys.first() == "__typename"
 
-private suspend fun NormalizedCache.guessType(value: RecordValue): String {
+/**
+ * Guesses the __typename of the record(s) referenced by [value].
+ *
+ * Returns `""` if [value] isn't a reference. Returns `null` if it is a reference but the referenced record can't be loaded (dangling
+ * reference) - it may have been removed earlier in the same [removeStaleFields] run.
+ */
+private suspend fun NormalizedCache.guessType(value: RecordValue): String? {
   return when (value) {
     is List<*> -> {
       val first = value.firstOrNull() ?: return ""
@@ -303,7 +314,7 @@ private suspend fun NormalizedCache.guessType(value: RecordValue): String {
     }
 
     is CacheKey -> {
-      loadRecord(value, CacheHeaders.NONE)?.get("__typename") as? String ?: ""
+      loadRecord(value, CacheHeaders.NONE)?.get("__typename") as? String
     }
 
     else -> {
