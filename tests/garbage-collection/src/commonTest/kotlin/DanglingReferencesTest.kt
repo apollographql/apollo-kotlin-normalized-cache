@@ -4,8 +4,11 @@ import com.apollographql.apollo.ApolloClient
 import com.apollographql.cache.normalized.CacheManager
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.allRecords
+import com.apollographql.cache.normalized.api.CacheHeaders
 import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.DefaultRecordMerger
 import com.apollographql.cache.normalized.api.FieldPolicyCacheResolver
+import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.TypePolicyCacheKeyGenerator
 import com.apollographql.cache.normalized.apolloStore
 import com.apollographql.cache.normalized.cacheManager
@@ -61,11 +64,11 @@ class DanglingReferencesTest {
           val removedFieldsAndRecords = apolloClient.apolloStore.removeDanglingReferences()
           assertEquals(
               setOf(CacheKey("Repository:0").fieldKey("starGazers")),
-              removedFieldsAndRecords.removedFields
+              removedFieldsAndRecords.removedFields,
           )
           assertEquals(
               emptySet(),
-              removedFieldsAndRecords.removedRecords
+              removedFieldsAndRecords.removedRecords,
           )
           allRecords = cacheManager.accessCache { it.allRecords() }
           assertFalse(allRecords[CacheKey("Repository:0")]!!.fields.containsKey("starGazers"))
@@ -112,7 +115,7 @@ class DanglingReferencesTest {
                   CacheKey("metaProjects").append("0", "0").fieldKey("type"),
                   CacheKey("QUERY_ROOT").fieldKey("metaProjects"),
               ),
-              removedFieldsAndRecords.removedFields
+              removedFieldsAndRecords.removedFields,
           )
           assertEquals(
               setOf(
@@ -120,7 +123,7 @@ class DanglingReferencesTest {
                   CacheKey("metaProjects").append("0", "0"),
                   CacheKey("QUERY_ROOT"),
               ),
-              removedFieldsAndRecords.removedRecords
+              removedFieldsAndRecords.removedRecords,
           )
           val allRecords = cacheManager.accessCache { it.allRecords() }
           assertFalse(allRecords.containsKey(CacheKey("QUERY_ROOT")))
@@ -128,6 +131,36 @@ class DanglingReferencesTest {
           assertFalse(allRecords.containsKey(CacheKey("metaProjects").append("0", "0", "type")))
         }
   }
+
+  @Test
+  fun deepMemory() =
+    deep(CacheManager(MemoryCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
+
+  @Test
+  fun deepSql() =
+    deep(CacheManager(SqlNormalizedCacheFactory(), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
+
+  @Test
+  fun deepChained() =
+    deep(CacheManager(MemoryCacheFactory().chain(SqlNormalizedCacheFactory()), cacheKeyGenerator = TypePolicyCacheKeyGenerator(Cache.typePolicies), cacheResolver = FieldPolicyCacheResolver(Cache.fieldPolicies)))
+
+  private fun deep(cacheManager: CacheManager) = runTest {
+    val chainLength = 50
+    cacheManager.clearAll()
+    cacheManager.accessCache { cache ->
+      val chain = buildList {
+        for (i in 0..<chainLength) {
+          val ref = if (i == chainLength - 1) CacheKey("missing") else CacheKey("R${i + 1}")
+          add(Record(key = CacheKey("R$i"), fields = mapOf("__typename" to "T", "next" to ref)))
+        }
+      }
+      cache.merge(chain, cacheHeaders = CacheHeaders.NONE, recordMerger = DefaultRecordMerger)
+      val result = cache.removeDanglingReferences(batchSize = 1)
+      assertEquals((0..<chainLength).map { CacheKey("R$it").fieldKey("next") }.toSet(), result.removedFields)
+      assertEquals((0..<chainLength).map { CacheKey("R$it") }.toSet(), result.removedRecords)
+    }
+  }
+
 
   // language=JSON
   private val REPOSITORY_LIST_RESPONSE = """
