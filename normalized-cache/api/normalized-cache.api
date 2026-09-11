@@ -242,7 +242,7 @@ public final class com/apollographql/cache/normalized/GarbageCollectionKt {
 	public static synthetic fun garbageCollect-WPi__2c$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun garbageCollect-exY8QGI (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun garbageCollect-exY8QGI (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun getReachableCacheKeys (Ljava/util/Map;)Ljava/util/Set;
+	public static final fun getReachableCacheKeys (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/ApolloStore;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/ApolloStore;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeDanglingReferences (Lcom/apollographql/cache/normalized/api/NormalizedCache;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -258,8 +258,12 @@ public final class com/apollographql/cache/normalized/GarbageCollectionKt {
 	public static synthetic fun removeStaleFields-WPi__2c$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JILkotlin/jvm/functions/Function0;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun removeStaleFields-exY8QGI (Lcom/apollographql/cache/normalized/ApolloStore;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeStaleFields-exY8QGI (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lcom/apollographql/cache/normalized/api/MaxAgeProvider;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun removeUnreachableRecords (Lcom/apollographql/cache/normalized/ApolloStore;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeUnreachableRecords (Lcom/apollographql/cache/normalized/ApolloStore;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun removeUnreachableRecords (Lcom/apollographql/cache/normalized/api/NormalizedCache;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun removeUnreachableRecords (Lcom/apollographql/cache/normalized/api/NormalizedCache;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun removeUnreachableRecords$default (Lcom/apollographql/cache/normalized/ApolloStore;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun removeUnreachableRecords$default (Lcom/apollographql/cache/normalized/api/NormalizedCache;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class com/apollographql/cache/normalized/MemoryCacheOnlyKt {
