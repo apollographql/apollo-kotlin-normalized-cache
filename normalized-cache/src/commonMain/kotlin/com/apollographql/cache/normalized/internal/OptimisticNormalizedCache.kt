@@ -27,9 +27,12 @@ internal class OptimisticNormalizedCache(
     }
   }
 
-  override suspend fun loadAllRecords(): Flow<Record> {
-    return nextCache.loadAllRecords()
+  override suspend fun loadAllRecords(batchSize: Int): Flow<Record> {
+    return nextCache.loadAllRecords(batchSize)
   }
+
+  @Deprecated(level = DeprecationLevel.HIDDEN, message = "Kept for binary compatibility. Use loadAllRecords(batchSize: Int) instead")
+  override suspend fun loadAllRecords(): Flow<Record> = loadAllRecords(batchSize = 100)
 
   override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
     return nextCache.merge(record, cacheHeaders, recordMerger)

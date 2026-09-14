@@ -39,16 +39,20 @@ class SqlNormalizedCache internal constructor(
     }
   }
 
-  override suspend fun loadAllRecords(): Flow<Record> {
+  override suspend fun loadAllRecords(batchSize: Int): Flow<Record> {
+    check(batchSize > 0) { "batchSize must be > 0" }
     return try {
       recordDatabase.init()
-      recordDatabase.selectAllRecords()
+      recordDatabase.selectAllRecords(batchSize.toLong())
     } catch (t: Throwable) {
       // Unable to clear the records from the database, it is possibly corrupted
       apolloExceptionHandler(Exception("Unable to read records from the database", t))
       emptyFlow()
     }
   }
+
+  @Deprecated(level = DeprecationLevel.HIDDEN, message = "Kept for binary compatibility. Use loadAllRecords(batchSize: Int) instead")
+  override suspend fun loadAllRecords(): Flow<Record> = loadAllRecords(batchSize = 100)
 
   override suspend fun clearAll() {
     try {
@@ -246,23 +250,6 @@ class SqlNormalizedCache internal constructor(
 
   override suspend fun close() {
     recordDatabase.close()
-  }
-
-  /**
-   * Iterates over all the records in the cache, in batches of up to [pageSize].
-   *
-   * @param pageSize the maximum number of records passed to [action] at a time.
-   * @param action called with each batch of records. Return `false` to stop iterating, `true` to keep
-   * going. Deleting or otherwise mutating records based on what is seen here is left to the caller.
-   */
-  suspend fun iterate(pageSize: Int, action: suspend (List<Record>) -> Boolean) {
-    try {
-      recordDatabase.init()
-      recordDatabase.iterate(pageSize = pageSize, action = action)
-    } catch (t: Throwable) {
-      // Unable to iterate over the records in the database, it is possibly corrupted
-      apolloExceptionHandler(Exception("Unable to iterate over the records in the database", t))
-    }
   }
 }
 

@@ -76,12 +76,15 @@ class ThreadTests {
       return delegate.loadRecords(keys, cacheHeaders)
     }
 
-    override suspend fun loadAllRecords(): Flow<Record> {
+    override suspend fun loadAllRecords(batchSize: Int): Flow<Record> {
       check(currentThreadId() != mainThreadId) {
         "Cache access on main thread"
       }
-      return delegate.loadAllRecords()
+      return delegate.loadAllRecords(batchSize)
     }
+
+    @Deprecated(level = DeprecationLevel.HIDDEN, message = "Kept for binary compatibility. Use loadAllRecords(batchSize: Int) instead")
+    override suspend fun loadAllRecords(): Flow<Record> = loadAllRecords(batchSize = 100)
 
     override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
       check(currentThreadId() != mainThreadId) {
