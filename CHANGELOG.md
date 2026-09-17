@@ -2,7 +2,12 @@
 
 PUT_CHANGELOG_HERE
 
-# v1.0.6
+# v1.0.8
+_2026-09-17_
+
+- [Perf] Use streaming/batched `loadAllRecords` in garbage collection (#400)
+
+# v1.0.7
 _2026-08-19_
 
 Several fixes and performance improvements in this release! Many thanks to @cfitamen-deezer, @simonlebras, and @AlexanderGH for their contributions! 💜
