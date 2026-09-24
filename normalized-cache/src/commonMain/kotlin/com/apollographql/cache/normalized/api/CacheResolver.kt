@@ -163,6 +163,8 @@ fun ResolverContext.getFieldKey(): String {
 /**
  * Returns the items in list fields in the parent matching the given name and key argument, keyed by the key argument value.
  *
+ * Only values present in [requestedKeyValues] are returned.
+ *
  * For example, if `parent` contains:
  * ```
  * someList({"ids": ["aaa", "bbb", "ccc"]}): [ a, b, c ]
@@ -171,30 +173,33 @@ fun ResolverContext.getFieldKey(): String {
  * otherField2: 123
  * ```
  *
- * and `field.name` is `someList`, calling `listItemsInParent(context, "ids")` will return:
+ * and `field.name` is `someList`, calling `listItemsInParent(context, "ids", setOf("bbb", "ccc", "ddd"))` will return:
  * ```
- * "aaa" to a
  * "bbb" to b
  * "ccc" to c
  * "ddd" to d
- * "eee" to e
  * ```
  *
  * Note: this relies on the default format of the field keys as per [DefaultFieldKeyGenerator].
  */
-private fun ResolverContext.listItemsInParent(keyArg: String): Map<Any?, Any?> {
+private fun ResolverContext.listItemsInParent(keyArg: String, requestedKeyValues: Set<Any?>): Map<Any?, Any?> {
+  if (requestedKeyValues.isEmpty() || parent.isEmpty()) return emptyMap()
   val keyPrefix = "${this.field.name}("
-  val filteredParent = this.parent.filterKeys { it.startsWith(keyPrefix) && it.contains("\"$keyArg\":") }
-  val items: Map<Any?, Any?> = filteredParent.map { (k, v) ->
-    val argumentsText = k.removePrefix(keyPrefix).removeSuffix(")")
+  val keyArgKey = "\"$keyArg\":"
+  val items = HashMap<Any?, Any?>(requestedKeyValues.size, 1f)
+  for ((key, value) in this.parent) {
+    if (!key.startsWith(keyPrefix) || !key.contains(keyArgKey)) {
+      continue
+    }
+    val argumentsText = key.removePrefix(keyPrefix).removeSuffix(")")
     val argumentsMap = Buffer().writeUtf8(argumentsText).jsonReader().buffer().root as Map<*, *>
     val keyValues = argumentsMap[keyArg] as List<*>
-    keyValues.mapIndexed { index, id ->
-      // Use Unit as a marker for missing values since null is a valid value
-      id to (v as List<*>).getOrElse(index) { }
-    }.toMap().filterValues({ it != Unit })
-  }.fold(emptyMap()) { acc, map ->
-    acc + map
+    val listValue = value as List<*>
+    keyValues.forEachIndexed { index, id ->
+      if (index < listValue.size && id in requestedKeyValues) {
+        items[id] = listValue[index]
+      }
+    }
   }
   return items
 }
@@ -408,7 +413,10 @@ class KeyArgumentsCacheResolver(
         if (keyArgsValues.size == 1) {
           val keyArgsValue = keyArgsValues.first() as? List<*>
           if (keyArgsValue != null) {
-            val listItemsInParent: Map<Any?, Any?> = context.listItemsInParent(keyArgs.first())
+            val listItemsInParent: Map<Any?, Any?> = context.listItemsInParent(
+                keyArg = keyArgs.first(),
+                requestedKeyValues = keyArgsValue.toSet(),
+            )
             return keyArgsValue.mapIndexed { index, value ->
               if (listItemsInParent.containsKey(value)) {
                 listItemsInParent[value]?.let {
