@@ -183,12 +183,12 @@ fun ResolverContext.getFieldKey(): String {
  * Note: this relies on the default format of the field keys as per [DefaultFieldKeyGenerator].
  */
 private fun ResolverContext.listItemsInParent(keyArg: String, requestedKeyValues: Set<Any?>): Map<Any?, Any?> {
-  if (requestedKeyValues.isEmpty()) return emptyMap()
-
+  if (requestedKeyValues.isEmpty() || parent.isEmpty()) return emptyMap()
   val keyPrefix = "${this.field.name}("
+  val keyArgKey = "\"$keyArg\":"
   val items = HashMap<Any?, Any?>(requestedKeyValues.size, 1f)
   for ((key, value) in this.parent) {
-    if (!key.startsWith(keyPrefix) || !key.contains("\"$keyArg\":")) {
+    if (!key.startsWith(keyPrefix) || !key.contains(keyArgKey)) {
       continue
     }
     val argumentsText = key.removePrefix(keyPrefix).removeSuffix(")")
