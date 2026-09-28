@@ -2,6 +2,12 @@
 
 PUT_CHANGELOG_HERE
 
+# v1.0.9
+_2026-09-28_
+
+- [Perf] Make `listItemsInParent` consume less memory (#402)
+
+
 # v1.0.8
 _2026-09-17_
 
