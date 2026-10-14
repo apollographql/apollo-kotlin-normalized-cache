@@ -8,9 +8,9 @@ import kotlinx.atomicfu.update
  * Collects the key sets that the cache writes of a request publish, so that the caller can tell a
  * cache change it caused itself apart from anyone else's.
  *
- * Only a watcher has a use for this, and only when its writes are asynchronous: a synchronous write
- * publishes before its response is emitted, which is before the watcher subscribes to
- * [com.apollographql.cache.normalized.CacheManager.changedKeys], so there is no event to tell apart.
+ * Only a watcher has a use for this, to ignore the writes of its initial fetch: when they are
+ * asynchronous, its subscription to [com.apollographql.cache.normalized.CacheManager.changedKeys] may
+ * receive them, and either way its [MissedChanges] may.
  *
  * Sets are matched by identity: each publication is its own event, even if two of them carry equal
  * keys.
@@ -37,6 +37,13 @@ internal class PublishedKeysContext : ExecutionContext.Element {
       if (consumed) recorded.filterIndexed { i, _ -> i != index } else recorded
     }
     return consumed
+  }
+
+  /**
+   * Whether [keys] is one of the recorded sets, which is kept.
+   */
+  fun contains(keys: Set<*>): Boolean {
+    return published.value.any { it === keys }
   }
 
   override val key: ExecutionContext.Key<*>
