@@ -39,6 +39,8 @@ import com.apollographql.cache.normalized.cacheMissException
 import com.apollographql.cache.normalized.options.CacheOnError
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -79,6 +81,22 @@ internal class DefaultCacheManager(
 
   override val changedKeys = changedKeysEvents.asSharedFlow()
 
+  /**
+   * Notified of each publication synchronously, before [changedKeys] emits it.
+   *
+   * Being synchronous, a listener cannot miss a publication made while it is registered, which a
+   * subscription to [changedKeys] does not guarantee until it is established.
+   */
+  private val publishListeners = atomic<List<PublishListener>>(emptyList())
+
+  internal fun addPublishListener(listener: PublishListener) {
+    publishListeners.update { it + listener }
+  }
+
+  internal fun removePublishListener(listener: PublishListener) {
+    publishListeners.update { it - listener }
+  }
+
   // Keeping this as lazy to avoid accessing the disk at initialization which usually happens on the main thread
   private val cache: NormalizedCache by lazy {
     if (enableOptimisticUpdates) {
@@ -93,6 +111,7 @@ internal class DefaultCacheManager(
       return
     }
 
+    publishListeners.value.forEach { it.onPublish(keys) }
     changedKeysEvents.emit(keys)
   }
 
