@@ -8,9 +8,9 @@ import kotlinx.atomicfu.update
  * Collects the key sets that the cache writes of a request publish, so that the caller can tell a
  * cache change it caused itself apart from anyone else's.
  *
- * Only a watcher has a use for this, and only when its writes are asynchronous: a synchronous write
- * publishes before its response is emitted, which is before the watcher subscribes to
- * [com.apollographql.cache.normalized.CacheManager.changedKeys], so there is no event to tell apart.
+ * Only a watcher has a use for this: it subscribes to
+ * [com.apollographql.cache.normalized.CacheManager.changedKeys] before its initial fetch, so it is
+ * notified of the writes of that fetch, whether they are synchronous or asynchronous.
  *
  * Sets are matched by identity: each publication is its own event, even if two of them carry equal
  * keys.

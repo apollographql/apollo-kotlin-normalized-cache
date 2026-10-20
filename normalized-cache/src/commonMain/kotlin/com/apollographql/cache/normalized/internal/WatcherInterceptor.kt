@@ -22,14 +22,14 @@ import com.apollographql.cache.normalized.options.onlyIfCached
 import com.apollographql.cache.normalized.options.refetchNoCache
 import com.apollographql.cache.normalized.options.refetchOnlyIfCached
 import com.apollographql.cache.normalized.watchContext
-import com.apollographql.cache.normalized.writeToCacheAsynchronously
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 
 internal val WatcherSentinel = DefaultApolloException("The watcher has started")
 
@@ -52,10 +52,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
      *
      * Normalizing is significant work for large operations, and the keys are only ever read to
      * filter an incoming cache change, so it is deferred to the first such change rather than done
-     * up front. This matters because of when the work would otherwise happen: the last of the
-     * initial responses is withheld below until this interceptor has subscribed to
-     * [CacheManager.changedKeys], so anything done before subscribing delays that response reaching
-     * the caller.
+     * up front, where it would delay the next response reaching the caller.
      */
     var dataToWatch: Operation.Data? = watchContext.data
     var errorsToWatch: List<Error>? = null
@@ -94,17 +91,13 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
         .build()
 
     /**
-     * The keys published by the cache writes of the initial fetch, when those writes are
-     * asynchronous.
+     * The keys published by the cache writes of the initial fetch.
      *
-     * Such a write lands after its response has been emitted and after the subscription below is
-     * established, so the watcher is notified of a change it has itself just made and would refetch
-     * to emit data it has already emitted. Its own notifications are recognized here and dropped.
-     *
-     * A synchronous write publishes before its response is emitted, which is before the subscription
-     * exists, so there is nothing to recognize and nothing to record.
+     * The subscription below is established before the initial fetch, so the watcher is notified of
+     * the changes the fetch makes itself and would refetch to emit data it has already emitted. Its
+     * own notifications are recognized here and dropped.
      */
-    val ownPublishedKeys = if (watchContext.fetchInitialResponses && request.writeToCacheAsynchronously) {
+    val ownPublishedKeys = if (watchContext.fetchInitialResponses) {
       PublishedKeysContext()
     } else {
       null
@@ -178,58 +171,49 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       return (changedKeys as Set<String>).anyIntersection(watched)
     }
 
-    return flow {
+    return channelFlow {
       /**
-       * The last of the initial responses, withheld until the cache subscription is established so
-       * that callers can use it as a synchronization point: modifying the store once it arrives is
-       * guaranteed to be observed. Subscribing first instead would make the watcher fire on the
-       * initial fetch's own write.
+       * Subscribed before the initial fetch, so that the changes made while it is in flight are not
+       * missed, for example an optimistic mutation started between the cache and network
+       * responses of [com.apollographql.cache.normalized.FetchPolicy.CacheAndNetwork]. It also keeps
+       * the synchronization point callers rely on: modifying the store once the last initial
+       * response has arrived is guaranteed to be observed.
        *
        * See https://github.com/apollographql/apollo-kotlin/pull/3853
+       *
+       * Collected undispatched, so that the subscription is established before `launch` returns
+       * rather than after a dispatch. Buffered without limit, so that cache writers are not
+       * suspended while the watcher is busy fetching.
        */
-      var lastResponse: ApolloResponse<D>? = null
+      val changes = Channel<Set<*>>(Channel.UNLIMITED)
+      val subscribed = CompletableDeferred<Unit>()
+      launch(start = CoroutineStart.UNDISPATCHED) {
+        cacheManager.changedKeys
+            .onSubscription { subscribed.complete(Unit) }
+            .collect { changes.send(it) }
+      }
+      subscribed.await()
 
       if (watchContext.fetchInitialResponses) {
-        proceedRecordingData(initialRequest).collect { response ->
-          if (response.isLast) {
-            /**
-             * If we ever come here it means some interceptors built a new Flow and forgot to reset the isLast flag
-             * Better safe than sorry: emit them when we realize that. This will introduce a delay in the response.
-             */
-            lastResponse?.let { emit(it) }
-            lastResponse = response
-          } else {
-            emit(response)
-          }
-        }
+        proceedRecordingData(initialRequest).collect { send(it) }
+      } else {
+        send(ApolloResponse.Builder(request.operation, request.requestUuid).exception(WatcherSentinel).build())
       }
 
-      emitAll(
-          (cacheManager.changedKeys as SharedFlow<Any>)
-              .onSubscription {
-                emit(Unit)
-              }
-              .transform { event ->
-                if (event !is Set<*>) {
-                  // The marker emitted by `onSubscription`: subscribed, so the withheld response can
-                  // be released. Reaching this point costs a `SharedFlow` subscription and nothing
-                  // else, because the initial responses were fetched from this same execution of the
-                  // interceptor chain.
-                  val held = lastResponse
-                  if (held != null) {
-                    lastResponse = null
-                    emit(held)
-                  } else if (!watchContext.fetchInitialResponses) {
-                    emit(ApolloResponse.Builder(request.operation, request.requestUuid).exception(WatcherSentinel).build())
-                  }
-                  return@transform
-                }
-                if (!isWatched(event)) {
-                  return@transform
-                }
-                emitAll(proceedRecordingData(refetchRequest))
-              }
-      )
+      while (true) {
+        // Changes that piled up, such as the ones made during the initial fetch, are handled with a
+        // single refetch. Every change is checked, so that the watcher's own ones are all consumed.
+        var watched = isWatched(changes.receive())
+        while (true) {
+          val next = changes.tryReceive().getOrNull() ?: break
+          if (isWatched(next)) {
+            watched = true
+          }
+        }
+        if (watched) {
+          proceedRecordingData(refetchRequest).collect { send(it) }
+        }
+      }
     }
   }
 }

@@ -21,18 +21,22 @@ import com.apollographql.cache.normalized.watch
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import optimistic.GetAnimalQuery
 import optimistic.UpdateAnimalNameMutation
 import optimistic.type.AnimalInput
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -121,6 +125,72 @@ class WatchInitialFetchTest {
     }
   }
 
+  @Test
+  fun optimisticMutationDuringInitialFetchIsEmitted() = test {
+    watch(FetchPolicy.CacheAndNetwork).test {
+      assertEquals("Noushka", awaitItem().name)
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitSettled().last().name)
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitSettled().last().name)
+    }
+  }
+
+  @Test
+  fun optimisticMutationDuringInitialFetchIsRolledBackOnFailure() = test {
+    watch(FetchPolicy.CacheAndNetwork).test {
+      assertEquals("Noushka", awaitItem().name)
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitSettled().last().name)
+
+      mutation.fail()
+      assertEquals("Noushka", awaitSettled().last().name)
+    }
+  }
+
+  @Test
+  fun storeWriteDuringInitialFetchIsEmittedWhenTheNetworkFails() = test {
+    watch(FetchPolicy.CacheAndNetwork).test {
+      assertEquals("Noushka", awaitItem().name)
+      val network = transport.awaitRequest("GetAnimal")
+
+      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
+      network.fail()
+
+      val responses = awaitSettled()
+      // The network failure is emitted too
+      assertTrue(responses.any { it.exception is ApolloNetworkException })
+      assertEquals("Written", responses.last { it.data != null }.name)
+    }
+  }
+
+  /**
+   * The first emission is the network response itself, so the change is made before the watcher has emitted anything.
+   */
+  @Test
+  fun optimisticMutationDuringCacheMissNetworkFetchIsEmitted() = test(seed = false) {
+    watch(FetchPolicy.CacheFirst).test {
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitSettled().last().name)
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitSettled().last().name)
+    }
+  }
+
   /**
    * The mutation completes while the watcher's network fetch is in flight, and that fetch was served by the server before
    * the mutation was applied. Its older data overwrites the mutation's result in the cache.
@@ -184,6 +254,8 @@ class WatchInitialFetchTest {
     try {
       fixture.block()
     } finally {
+      // A mutation whose request the test left pending
+      coroutineContext.cancelChildren()
       fixture.apolloClient.close()
     }
   }
@@ -212,6 +284,18 @@ internal suspend fun ReceiveTurbine<ApolloResponse<GetAnimalQuery.Data>>.awaitNa
     seen += awaitItem().name
   }
   return seen
+}
+
+/**
+ * Awaits at least one item, then every item until none comes for a while, for when only where the watcher settles matters.
+ */
+internal suspend fun <T> ReceiveTurbine<T>.awaitSettled(): List<T> {
+  val items = mutableListOf(awaitItem())
+  while (true) {
+    // Not awaitItem(), which reports the cancellation of the timeout as a failure
+    items += withTimeoutOrNull(300.milliseconds) { asChannel().receive() } ?: break
+  }
+  return items
 }
 
 /**
