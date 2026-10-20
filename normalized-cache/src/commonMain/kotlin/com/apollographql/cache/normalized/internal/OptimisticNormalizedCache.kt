@@ -18,6 +18,23 @@ internal class OptimisticNormalizedCache(
   /**
    * Guards [recordJournals] and the journals it holds, so that creating a journal on the first patch and dropping it after
    * the last patch is removed are atomic with respect to concurrent mutations on the same record.
+   *
+   * [recordJournals] alone can't provide this: [ConcurrentMap] is a plain [MutableMap] in common code, so only single
+   * `get`/`put`/`remove` calls are atomic, while both operations above are compound (get-then-put, and remove the patch
+   * then remove the key if the journal is empty).
+   *
+   * Tradeoffs and possible follow-ups:
+   * - Every [loadRecord]/[loadRecords] takes the read lock in [mergeJournalRecord], which puts a lock on the cache's hot
+   *   read path. On the JVM even an uncontended `ReentrantReadWriteLock` read does a CAS on shared lock state.
+   * - With this lock in place, [ConcurrentMap] is redundant, and on native it locks a second time inside
+   *   `CommonConcurrentMap`.
+   * - TODO: make reads lock-free. Either:
+   *   - Map-only: add `compute`/`computeIfPresent` to the `ConcurrentMap` expect/actual (`ConcurrentHashMap` on the JVM,
+   *     `CommonConcurrentMap` under its lock on native, a plain map on JS) and drop this lock. [RecordJournal] must then
+   *     become immutable (a new instance per patch), because `ConcurrentHashMap` only publishes the values it stores,
+   *     not in-place changes to them. This gives lock-free reads and per-key write atomicity.
+   *   - Smaller: keep this lock for writes only, mark [RecordJournal.current] `@Volatile`, and read without the lock. A
+   *     bare `get` is safe because [recordJournals] is still a [ConcurrentMap].
    */
   private val lock = Lock()
 
