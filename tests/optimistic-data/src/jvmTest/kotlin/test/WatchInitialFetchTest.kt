@@ -20,6 +20,7 @@ import com.apollographql.cache.normalized.optimisticUpdates
 import com.apollographql.cache.normalized.testing.runTest
 import com.apollographql.cache.normalized.watch
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
@@ -43,7 +44,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * How `watch()` reacts to cache changes made while its initial responses are being fetched, typically an optimistic mutation
- * started after the cache emission of [FetchPolicy.CacheAndNetwork] but before its network response.
+ * started after the cache emission of [FetchPolicy.CacheAndNetwork] but before its network response. The scenarios about
+ * the initial fetch run for each way it goes to the network: see [InitialFetch].
  *
  * The network is a [GatedNetworkTransport]: each request waits until the test responds to it, so the interleavings are
  * deterministic rather than timing based.
@@ -114,29 +116,57 @@ class WatchInitialFetchTest {
   }
 
   @Test
-  fun unrelatedChangeDuringInitialFetchIsNotEmitted() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
+  fun optimisticMutationDuringInitialFetchIsNotHiddenByTheNetworkResponse() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
 
-      apolloClient.apolloStore.writeOperation(GetAnimalQuery("2"), animal("Other", id = "2"), publish = true)
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      awaitOptimisticDataBeforeTheNetworkResponse(initialFetch)
 
-      network.respond(animal("FromNetwork"))
-      assertEquals("FromNetwork", awaitItem().name)
+      // Not the raw network response, which doesn't have the optimistic data
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitItem().name)
+      expectNoEventsAfterSettling()
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitItem().name)
       expectNoEventsAfterSettling()
     }
   }
 
   @Test
-  fun optimisticMutationDuringInitialFetchIsEmitted() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
+  fun optimisticMutationDuringInitialFetchIsRolledBackOnFailure() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
 
       launchMutation("Medor")
       val mutation = transport.awaitRequest("UpdateAnimalName")
+      awaitOptimisticDataBeforeTheNetworkResponse(initialFetch)
+
       network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitSettled().last().name)
+      assertEquals("Medor", awaitItem().name)
+      expectNoEventsAfterSettling()
+
+      mutation.fail()
+      assertEquals("Noushka", awaitItem().name)
+      expectNoEventsAfterSettling()
+    }
+  }
+
+  @Test
+  fun optimisticMutationDuringInitialFetchIsNotHiddenWithAsynchronousWrites() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy, writeAsynchronously = true).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      awaitOptimisticDataBeforeTheNetworkResponse(initialFetch)
+
+      // Whether or not the network response's write has landed when the cache is read back in its place. On an empty
+      // cache, the optimistic data alone isn't enough until it has.
+      network.respond(animal("Noushka"))
+      assertEquals(listOf<String?>("Medor"), awaitSettled().map { it.name }.distinct())
 
       mutation.respond(mutationResult("ServerMedor"))
       assertEquals("ServerMedor", awaitSettled().last().name)
@@ -144,26 +174,30 @@ class WatchInitialFetchTest {
   }
 
   @Test
-  fun optimisticMutationDuringInitialFetchIsRolledBackOnFailure() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
+  fun storeWriteDuringInitialFetchIsEmittedOnce() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
 
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitSettled().last().name)
+      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
+      if (initialFetch.emitsBeforeTheNetworkResponse) {
+        // The watcher's network request is still pending
+        assertEquals("Written", awaitItem().name)
+      } else {
+        expectNoEventsAfterSettling()
+      }
 
-      mutation.fail()
-      assertEquals("Noushka", awaitSettled().last().name)
+      // The network response overwrites the write. Without the read back in its place, a refetch for the write would
+      // emit the same data again.
+      network.respond(animal("FromNetwork"))
+      assertEquals("FromNetwork", awaitItem().name)
+      expectNoEventsAfterSettling()
     }
   }
 
   @Test
-  fun storeWriteDuringInitialFetchIsEmittedWhenTheNetworkFails() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
+  fun storeWriteDuringInitialFetchIsEmittedWhenTheNetworkFails() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
 
       apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
       network.fail()
@@ -176,194 +210,13 @@ class WatchInitialFetchTest {
   }
 
   @Test
-  fun optimisticMutationDuringInitialFetchIsEmittedBeforeTheNetworkResponse() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      transport.awaitRequest("UpdateAnimalName")
-      // The watcher's network request is still pending
-      assertEquals("Medor", awaitItem().name)
-
-      network.respond(animal("Noushka"))
-      cancelAndIgnoreRemainingEvents()
-    }
-  }
-
-  @Test
-  fun networkResponseDoesNotHideOptimisticData() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      assertEquals("Medor", awaitItem().name)
-
-      // The raw network response doesn't have the optimistic data, the cache does
-      network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitItem().name)
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  @Test
-  fun networkResponseDoesNotHideOptimisticDataWithAsynchronousWrites() = test {
-    watch(FetchPolicy.CacheAndNetwork, writeAsynchronously = true).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      assertEquals("Medor", awaitItem().name)
-
-      // Read back from the cache whether or not the network response's write has landed yet
-      network.respond(animal("Noushka"))
-      assertEquals(listOf<String?>("Medor"), awaitSettled().map { it.name }.distinct())
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitSettled().last().name)
-    }
-  }
-
-  @Test
-  fun storeWriteDuringInitialFetchIsEmittedBeforeTheNetworkResponse() = test {
-    watch(FetchPolicy.CacheAndNetwork).test {
-      assertEquals("Noushka", awaitItem().name)
-      val network = transport.awaitRequest("GetAnimal")
-
-      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
-      assertEquals("Written", awaitItem().name)
-
-      network.respond(animal("FromNetwork"))
-      assertEquals("FromNetwork", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  /**
-   * [FetchPolicy.CacheFirst] on an empty cache emits a cache miss, then fetches from the network.
-   */
-  @Test
-  fun optimisticMutationDuringCacheMissNetworkFetchIsEmitted() = test(seed = false) {
-    watch(FetchPolicy.CacheFirst).test {
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitSettled().last().name)
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitSettled().last().name)
-    }
-  }
-
-  @Test
-  fun cacheMissNetworkFetchDoesNotHideOptimisticData() = test(seed = false) {
-    watch(FetchPolicy.CacheFirst).test {
-      assertIs<CacheMissException>(awaitItem().exception)
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      // The optimistic data alone doesn't make the query a cache hit, and another cache miss would only be noise
-      expectNoEventsAfterSettling()
-
-      network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitItem().name)
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  @Test
-  fun cacheMissNetworkFetchDoesNotHideOptimisticDataWithAsynchronousWrites() = test(seed = false) {
-    watch(FetchPolicy.CacheFirst, writeAsynchronously = true).test {
-      assertIs<CacheMissException>(awaitItem().exception)
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      expectNoEventsAfterSettling()
-
-      // Until the network response's write lands, the cache only has the optimistic data, which isn't enough
-      network.respond(animal("Noushka"))
-      assertEquals(listOf<String?>("Medor"), awaitSettled().map { it.name })
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitSettled().last().name)
-    }
-  }
-
-  @Test
-  fun storeWriteDuringCacheMissNetworkFetchIsEmittedBeforeTheNetworkResponse() = test(seed = false) {
-    watch(FetchPolicy.CacheFirst).test {
-      assertIs<CacheMissException>(awaitItem().exception)
-      val network = transport.awaitRequest("GetAnimal")
-
-      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
-      assertEquals("Written", awaitItem().name)
-
-      network.respond(animal("FromNetwork"))
-      assertEquals("FromNetwork", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  @Test
-  fun unrelatedChangeDuringCacheMissNetworkFetchIsNotEmitted() = test(seed = false) {
-    watch(FetchPolicy.CacheFirst).test {
-      assertIs<CacheMissException>(awaitItem().exception)
-      val network = transport.awaitRequest("GetAnimal")
+  fun unrelatedChangeDuringInitialFetchIsNotEmitted() = testEachInitialFetch { initialFetch ->
+    watch(initialFetch.fetchPolicy).test {
+      val network = awaitInitialNetworkRequest(initialFetch)
 
       apolloClient.apolloStore.writeOperation(GetAnimalQuery("2"), animal("Other", id = "2"), publish = true)
       expectNoEventsAfterSettling()
 
-      network.respond(animal("FromNetwork"))
-      assertEquals("FromNetwork", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  /**
-   * [FetchPolicy.NetworkOnly] emits nothing before its network response, so changes made during the fetch wait for it.
-   */
-  @Test
-  fun networkOnlyFetchDoesNotHideOptimisticData() = test {
-    watch(FetchPolicy.NetworkOnly).test {
-      val network = transport.awaitRequest("GetAnimal")
-
-      launchMutation("Medor")
-      val mutation = transport.awaitRequest("UpdateAnimalName")
-      expectNoEventsAfterSettling()
-
-      // Not the raw network response first, which doesn't have the optimistic data
-      network.respond(animal("Noushka"))
-      assertEquals("Medor", awaitItem().name)
-      expectNoEventsAfterSettling()
-
-      mutation.respond(mutationResult("ServerMedor"))
-      assertEquals("ServerMedor", awaitItem().name)
-      expectNoEventsAfterSettling()
-    }
-  }
-
-  @Test
-  fun storeWriteDuringNetworkOnlyFetchIsEmittedOnce() = test {
-    watch(FetchPolicy.NetworkOnly).test {
-      val network = transport.awaitRequest("GetAnimal")
-
-      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
-      expectNoEventsAfterSettling()
-
-      // The network response overwrites the write, and a refetch for the write would emit the same data again
       network.respond(animal("FromNetwork"))
       assertEquals("FromNetwork", awaitItem().name)
       expectNoEventsAfterSettling()
@@ -423,9 +276,85 @@ class WatchInitialFetchTest {
     suspend fun cachedName(): String? {
       return apolloClient.query(GetAnimalQuery("1")).fetchPolicy(FetchPolicy.CacheOnly).execute().data?.animal?.name
     }
+
+    /**
+     * Awaits what [initialFetch] emits before going to the network, then its network request.
+     */
+    suspend fun ReceiveTurbine<ApolloResponse<GetAnimalQuery.Data>>.awaitInitialNetworkRequest(
+        initialFetch: InitialFetch,
+    ): GatedNetworkTransport.PendingRequest {
+      when (initialFetch) {
+        InitialFetch.CacheAndNetwork -> assertEquals("Noushka", awaitItem().name)
+        InitialFetch.CacheMiss -> assertIs<CacheMissException>(awaitItem().exception)
+        InitialFetch.NetworkOnly -> {}
+      }
+      return transport.awaitRequest("GetAnimal")
+    }
+
+    /**
+     * Awaits the optimistic data while the watcher's network request is still pending, when [initialFetch] can show it.
+     */
+    suspend fun ReceiveTurbine<ApolloResponse<GetAnimalQuery.Data>>.awaitOptimisticDataBeforeTheNetworkResponse(
+        initialFetch: InitialFetch,
+    ) {
+      if (initialFetch.emitsOptimisticDataBeforeTheNetworkResponse) {
+        assertEquals("Medor", awaitItem().name)
+      } else {
+        // Nothing to show yet, not even another cache miss
+        expectNoEventsAfterSettling()
+      }
+    }
+  }
+
+  /**
+   * The ways a watcher's initial fetch goes to the network, which [testEachInitialFetch] runs a test for.
+   */
+  private enum class InitialFetch(
+      val fetchPolicy: FetchPolicy,
+      val seeded: Boolean,
+      /**
+       * Whether a change made while the network request is pending is emitted before its response.
+       */
+      val emitsBeforeTheNetworkResponse: Boolean,
+      /**
+       * Whether optimistic data is emitted before the network response, which also needs the cache to have the rest of
+       * the query.
+       */
+      val emitsOptimisticDataBeforeTheNetworkResponse: Boolean = emitsBeforeTheNetworkResponse && seeded,
+  ) {
+    /**
+     * Emits the cached data, then fetches.
+     */
+    CacheAndNetwork(FetchPolicy.CacheAndNetwork, seeded = true, emitsBeforeTheNetworkResponse = true),
+
+    /**
+     * [FetchPolicy.CacheFirst] on an empty cache: emits a cache miss, then fetches.
+     */
+    CacheMiss(FetchPolicy.CacheFirst, seeded = false, emitsBeforeTheNetworkResponse = true),
+
+    /**
+     * Emits nothing before the network response, so changes made during the fetch wait for it.
+     */
+    NetworkOnly(FetchPolicy.NetworkOnly, seeded = true, emitsBeforeTheNetworkResponse = false),
   }
 
   private fun test(seed: Boolean = true, block: suspend Fixture.() -> Unit) = runTest {
+    withFixture(seed, block)
+  }
+
+  private fun testEachInitialFetch(block: suspend Fixture.(InitialFetch) -> Unit) = runTest {
+    for (initialFetch in InitialFetch.entries) {
+      try {
+        withFixture(initialFetch.seeded) { block(initialFetch) }
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Throwable) {
+        throw AssertionError("With $initialFetch: $e", e)
+      }
+    }
+  }
+
+  private suspend fun CoroutineScope.withFixture(seed: Boolean, block: suspend Fixture.() -> Unit) {
     val fixture = Fixture(this)
     if (seed) {
       fixture.apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Noushka"))
