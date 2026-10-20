@@ -15,6 +15,12 @@ internal class OptimisticNormalizedCache(
 ) : NormalizedCache {
   private val recordJournals = ConcurrentMap<CacheKey, RecordJournal>()
 
+  /**
+   * Guards [recordJournals] and the journals it holds, so that creating a journal on the first patch and dropping it after
+   * the last patch is removed are atomic with respect to concurrent mutations on the same record.
+   */
+  private val lock = Lock()
+
   override suspend fun loadRecord(key: CacheKey, cacheHeaders: CacheHeaders): Record? {
     val nonOptimisticRecord = nextCache.loadRecord(key, cacheHeaders)
     return nonOptimisticRecord.mergeJournalRecord(key)
@@ -44,7 +50,7 @@ internal class OptimisticNormalizedCache(
 
   override suspend fun clearAll() {
     nextCache.clearAll()
-    recordJournals.clear()
+    lock.write { recordJournals.clear() }
   }
 
   override suspend fun remove(cacheKey: CacheKey, cascade: Boolean): Boolean {
@@ -52,7 +58,7 @@ internal class OptimisticNormalizedCache(
   }
 
   override suspend fun remove(cacheKeys: Collection<CacheKey>, cascade: Boolean): Int {
-    return nextCache.remove(cacheKeys, cascade) + internalRemove(cacheKeys, cascade)
+    return nextCache.remove(cacheKeys, cascade) + lock.write { internalRemove(cacheKeys, cascade) }
   }
 
   override suspend fun trim(maxSizeBytes: Long, trimFactor: Float): Long {
@@ -79,15 +85,17 @@ internal class OptimisticNormalizedCache(
     return total
   }
 
-  fun addOptimisticUpdates(recordSet: Collection<Record>): Set<String> {
-    return buildSet {
+  fun addOptimisticUpdates(recordSet: Collection<Record>): Set<String> = lock.write {
+    buildSet {
       for (record in recordSet) {
-        addAll(addOptimisticUpdate(record))
+        addAll(addOptimisticUpdateLocked(record))
       }
     }
   }
 
-  fun addOptimisticUpdate(record: Record): Set<String> {
+  fun addOptimisticUpdate(record: Record): Set<String> = lock.write { addOptimisticUpdateLocked(record) }
+
+  private fun addOptimisticUpdateLocked(record: Record): Set<String> {
     val journal = recordJournals[record.key]
     return if (journal == null) {
       recordJournals[record.key] = RecordJournal(record)
@@ -97,7 +105,7 @@ internal class OptimisticNormalizedCache(
     }
   }
 
-  fun removeOptimisticUpdates(mutationId: Uuid): Set<String> {
+  fun removeOptimisticUpdates(mutationId: Uuid): Set<String> = lock.write {
     val changedCacheKeys = mutableSetOf<String>()
     val keys = HashSet(recordJournals.keys) // local copy to avoid concurrent modification
     keys.forEach {
@@ -108,11 +116,12 @@ internal class OptimisticNormalizedCache(
         recordJournals.remove(it)
       }
     }
-    return changedCacheKeys
+    changedCacheKeys
   }
 
   override suspend fun dump(): Map<KClass<*>, Map<CacheKey, Record>> {
-    return mapOf(this::class to recordJournals.mapValues { (_, journal) -> journal.current }) + nextCache.dump()
+    val journals = lock.read { recordJournals.mapValues { (_, journal) -> journal.current } }
+    return mapOf(this::class to journals) + nextCache.dump()
   }
 
   override fun sizeOfRecord(record: Record): Int {
@@ -124,9 +133,9 @@ internal class OptimisticNormalizedCache(
   }
 
   private fun Record?.mergeJournalRecord(key: CacheKey): Record? {
-    val journal = recordJournals[key]
-    return if (journal != null) {
-      this?.mergeWith(journal.current)?.first ?: journal.current
+    val journalRecord = lock.read { recordJournals[key]?.current }
+    return if (journalRecord != null) {
+      this?.mergeWith(journalRecord)?.first ?: journalRecord
     } else {
       this
     }
@@ -137,9 +146,10 @@ internal class OptimisticNormalizedCache(
       val isEmpty: Boolean,
   )
 
+  /**
+   * Not thread-safe on its own: every access goes through [OptimisticNormalizedCache.lock].
+   */
   private class RecordJournal(record: Record) {
-    private val lock = Lock()
-
     /**
      * The latest value of the record made by applying all the patches.
      */
@@ -154,11 +164,11 @@ internal class OptimisticNormalizedCache(
     /**
      * Adds a new patch on top of all the previous ones.
      */
-    fun addPatch(record: Record): Set<String> = lock.write {
+    fun addPatch(record: Record): Set<String> {
       val (mergedRecord, changedKeys) = current.mergeWith(record)
       current = mergedRecord
       patches.add(record)
-      changedKeys
+      return changedKeys
     }
 
     /**
@@ -167,16 +177,16 @@ internal class OptimisticNormalizedCache(
      *
      * @return the changed keys or null if
      */
-    fun removePatch(mutationId: Uuid): RemovalResult = lock.write {
+    fun removePatch(mutationId: Uuid): RemovalResult {
       val recordIndex = patches.indexOfFirst { mutationId == it.mutationId }
       if (recordIndex == -1) {
         // The mutation did not impact this Record
-        return@write RemovalResult(emptySet(), false)
+        return RemovalResult(emptySet(), false)
       }
 
       if (patches.size == 1) {
         // The mutation impacted this Record and it was the only one in the history
-        return@write RemovalResult(current.fieldKeys(), true)
+        return RemovalResult(current.fieldKeys(), true)
       }
 
       /**
@@ -189,7 +199,7 @@ internal class OptimisticNormalizedCache(
         val (mergedRecord, _) = acc.mergeWith(record)
         mergedRecord
       }
-      RemovalResult(changedKeys(oldRecord, current), false)
+      return RemovalResult(changedKeys(oldRecord, current), false)
     }
   }
 }
