@@ -7,6 +7,7 @@ import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
 import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.exception.ApolloNetworkException
+import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.network.NetworkTransport
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.apolloStore
@@ -35,6 +36,7 @@ import optimistic.type.AnimalInput
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -244,7 +246,7 @@ class WatchInitialFetchTest {
   }
 
   /**
-   * The first emission is the network response itself, so the change is made before the watcher has emitted anything.
+   * [FetchPolicy.CacheFirst] on an empty cache emits a cache miss, then fetches from the network.
    */
   @Test
   fun optimisticMutationDuringCacheMissNetworkFetchIsEmitted() = test(seed = false) {
@@ -258,6 +260,56 @@ class WatchInitialFetchTest {
 
       mutation.respond(mutationResult("ServerMedor"))
       assertEquals("ServerMedor", awaitSettled().last().name)
+    }
+  }
+
+  @Test
+  fun cacheMissNetworkFetchDoesNotHideOptimisticData() = test(seed = false) {
+    watch(FetchPolicy.CacheFirst).test {
+      assertIs<CacheMissException>(awaitItem().exception)
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      // The optimistic data alone doesn't make the query a cache hit, and another cache miss would only be noise
+      expectNoEventsAfterSettling()
+
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitItem().name)
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitItem().name)
+      expectNoEventsAfterSettling()
+    }
+  }
+
+  @Test
+  fun storeWriteDuringCacheMissNetworkFetchIsEmittedBeforeTheNetworkResponse() = test(seed = false) {
+    watch(FetchPolicy.CacheFirst).test {
+      assertIs<CacheMissException>(awaitItem().exception)
+      val network = transport.awaitRequest("GetAnimal")
+
+      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
+      assertEquals("Written", awaitItem().name)
+
+      network.respond(animal("FromNetwork"))
+      assertEquals("FromNetwork", awaitItem().name)
+      expectNoEventsAfterSettling()
+    }
+  }
+
+  @Test
+  fun unrelatedChangeDuringCacheMissNetworkFetchIsNotEmitted() = test(seed = false) {
+    watch(FetchPolicy.CacheFirst).test {
+      assertIs<CacheMissException>(awaitItem().exception)
+      val network = transport.awaitRequest("GetAnimal")
+
+      apolloClient.apolloStore.writeOperation(GetAnimalQuery("2"), animal("Other", id = "2"), publish = true)
+      expectNoEventsAfterSettling()
+
+      network.respond(animal("FromNetwork"))
+      assertEquals("FromNetwork", awaitItem().name)
+      expectNoEventsAfterSettling()
     }
   }
 
