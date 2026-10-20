@@ -284,6 +284,25 @@ class WatchInitialFetchTest {
   }
 
   @Test
+  fun cacheMissNetworkFetchDoesNotHideOptimisticDataWithAsynchronousWrites() = test(seed = false) {
+    watch(FetchPolicy.CacheFirst, writeAsynchronously = true).test {
+      assertIs<CacheMissException>(awaitItem().exception)
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      expectNoEventsAfterSettling()
+
+      // Until the network response's write lands, the cache only has the optimistic data, which isn't enough
+      network.respond(animal("Noushka"))
+      assertEquals(listOf<String?>("Medor"), awaitSettled().map { it.name })
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitSettled().last().name)
+    }
+  }
+
+  @Test
   fun storeWriteDuringCacheMissNetworkFetchIsEmittedBeforeTheNetworkResponse() = test(seed = false) {
     watch(FetchPolicy.CacheFirst).test {
       assertIs<CacheMissException>(awaitItem().exception)
