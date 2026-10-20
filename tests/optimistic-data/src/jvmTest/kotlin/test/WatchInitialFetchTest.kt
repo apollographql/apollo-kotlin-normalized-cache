@@ -314,6 +314,44 @@ class WatchInitialFetchTest {
   }
 
   /**
+   * [FetchPolicy.NetworkOnly] emits nothing before its network response, so changes made during the fetch wait for it.
+   */
+  @Test
+  fun networkOnlyFetchDoesNotHideOptimisticData() = test {
+    watch(FetchPolicy.NetworkOnly).test {
+      val network = transport.awaitRequest("GetAnimal")
+
+      launchMutation("Medor")
+      val mutation = transport.awaitRequest("UpdateAnimalName")
+      expectNoEventsAfterSettling()
+
+      // Not the raw network response first, which doesn't have the optimistic data
+      network.respond(animal("Noushka"))
+      assertEquals("Medor", awaitItem().name)
+      expectNoEventsAfterSettling()
+
+      mutation.respond(mutationResult("ServerMedor"))
+      assertEquals("ServerMedor", awaitItem().name)
+      expectNoEventsAfterSettling()
+    }
+  }
+
+  @Test
+  fun storeWriteDuringNetworkOnlyFetchIsEmittedOnce() = test {
+    watch(FetchPolicy.NetworkOnly).test {
+      val network = transport.awaitRequest("GetAnimal")
+
+      apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Written"), publish = true)
+      expectNoEventsAfterSettling()
+
+      // The network response overwrites the write, and a refetch for the write would emit the same data again
+      network.respond(animal("FromNetwork"))
+      assertEquals("FromNetwork", awaitItem().name)
+      expectNoEventsAfterSettling()
+    }
+  }
+
+  /**
    * The mutation completes while the watcher's network fetch is in flight, and that fetch was served by the server before
    * the mutation was applied. Its older data overwrites the mutation's result in the cache.
    *

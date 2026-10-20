@@ -223,15 +223,31 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       }
 
       var initialFetchInFlight = watchContext.fetchInitialResponses
+      // Whether a watched change was made while the initial fetch was in flight. A network response
+      // of the fetch doesn't have it, so the cache is read back in its place.
+      var changedDuringInitialFetch = false
       // Changes made before the first emission wait for it: refetching earlier could emit data ahead
       // of an initial response that is older than it.
       var hasEmitted = !watchContext.fetchInitialResponses
-      val changesBeforeFirstEmission = mutableListOf<Set<*>>()
-      // Whether a refetch was emitted while the initial fetch was in flight, which a later network
-      // response of that fetch must not hide.
-      var refetchedDuringInitialFetch = false
+      var refetchOnFirstEmission = false
       // Whether an asynchronous write of the initial fetch is to be read back when it lands.
       var readBackOnInitialWrite = false
+
+      suspend fun refetch() {
+        chain.proceed(refetchRequest).collect { response ->
+          if (initialFetchInFlight && response.data == null) {
+            // Nothing to show, typically a cache miss while the initial fetch is still to deliver
+            // its network response: emitting it would only be noise.
+            return@collect
+          }
+          record(response)
+          send(response)
+        }
+      }
+
+      suspend fun readBack() {
+        proceedRecordingData(cacheReadRequest).collect { send(it) }
+      }
 
       suspend fun handleChanges(changes: List<Set<*>>) {
         var watched = false
@@ -249,39 +265,38 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
             watched = true
           }
         }
-        if (watched) {
-          if (initialFetchInFlight) {
-            refetchedDuringInitialFetch = true
-          }
-          chain.proceed(refetchRequest).collect { response ->
-            if (initialFetchInFlight && response.data == null) {
-              // Nothing to show, typically a cache miss while the initial fetch is still to deliver
-              // its network response: emitting it would only be noise.
-              return@collect
+        when {
+          watched -> {
+            if (initialFetchInFlight) {
+              changedDuringInitialFetch = true
             }
-            record(response)
-            send(response)
+            if (hasEmitted) {
+              refetch()
+            } else {
+              refetchOnFirstEmission = true
+            }
           }
-        } else if (readBack) {
-          proceedRecordingData(cacheReadRequest).collect { send(it) }
+
+          readBack -> readBack()
         }
       }
 
       suspend fun handleInitialResponse(response: ApolloResponse<D>) {
         val fromNetwork = response.executionContext[DependentKeysContext] == null
         val written = fromNetwork && response.data != null && !request.doNotStore
-        if (!written || !refetchedDuringInitialFetch) {
+        if (written && changedDuringInitialFetch) {
+          // The cache has the changes on top of the response, including any a refetch was waiting for.
+          readBack()
+          refetchOnFirstEmission = false
+          if (request.writeToCacheAsynchronously) {
+            // The write may not have landed yet. If it changes anything when it does, its
+            // notification triggers another read. If it changes nothing, it publishes nothing, but
+            // then the read above is already up to date.
+            readBackOnInitialWrite = true
+          }
+        } else {
           record(response)
           send(response)
-          return
-        }
-        // Read the cache in its place, which has the changes made during the fetch on top of it.
-        proceedRecordingData(cacheReadRequest).collect { send(it) }
-        if (request.writeToCacheAsynchronously) {
-          // The write may not have landed yet. If it changes anything when it does, its
-          // notification triggers another read. If it changes nothing, it publishes nothing, but
-          // then the read above is already up to date.
-          readBackOnInitialWrite = true
         }
       }
 
@@ -297,7 +312,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
 
           InitialFetchDone -> {
             initialFetchInFlight = false
-            refetchedDuringInitialFetch = false
+            changedDuringInitialFetch = false
           }
 
           else -> {
@@ -311,18 +326,16 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
               }
               changes += next
             }
-            if (hasEmitted) {
-              handleChanges(changes)
-            } else {
-              changesBeforeFirstEmission += changes
-            }
+            handleChanges(changes)
             continue
           }
         }
         if (!hasEmitted) {
           hasEmitted = true
-          handleChanges(changesBeforeFirstEmission.toList())
-          changesBeforeFirstEmission.clear()
+          if (refetchOnFirstEmission) {
+            refetchOnFirstEmission = false
+            refetch()
+          }
         }
       }
     }
