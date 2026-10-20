@@ -253,7 +253,15 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
           if (initialFetchInFlight) {
             refetchedDuringInitialFetch = true
           }
-          proceedRecordingData(refetchRequest).collect { send(it) }
+          chain.proceed(refetchRequest).collect { response ->
+            if (initialFetchInFlight && response.data == null) {
+              // Nothing to show, typically a cache miss while the initial fetch is still to deliver
+              // its network response: emitting it would only be noise.
+              return@collect
+            }
+            record(response)
+            send(response)
+          }
         } else if (readBack) {
           proceedRecordingData(cacheReadRequest).collect { send(it) }
         }
