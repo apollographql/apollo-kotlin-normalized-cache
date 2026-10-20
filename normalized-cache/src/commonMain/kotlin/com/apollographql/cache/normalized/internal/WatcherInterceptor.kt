@@ -284,17 +284,29 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       suspend fun handleInitialResponse(response: ApolloResponse<D>) {
         val fromNetwork = response.executionContext[DependentKeysContext] == null
         val written = fromNetwork && response.data != null && !request.doNotStore
-        if (written && changedDuringInitialFetch) {
-          // The cache has the changes on top of the response, including any a refetch was waiting for.
-          readBack()
-          refetchOnFirstEmission = false
-          if (request.writeToCacheAsynchronously) {
-            // The write may not have landed yet. If it changes anything when it does, its
-            // notification triggers another read. If it changes nothing, it publishes nothing, but
-            // then the read above is already up to date.
-            readBackOnInitialWrite = true
+        if (!written || !changedDuringInitialFetch) {
+          record(response)
+          send(response)
+          return
+        }
+        // The cache has the changes on top of the response, including any a refetch was waiting for.
+        refetchOnFirstEmission = false
+        var readBackHasData = false
+        chain.proceed(cacheReadRequest).collect {
+          if (it.data != null) {
+            readBackHasData = true
+            record(it)
+            send(it)
           }
-        } else {
+        }
+        if (request.writeToCacheAsynchronously) {
+          // The write may not have landed yet. If it changes anything when it does, its
+          // notification triggers another read. If it changes nothing, it publishes nothing, but then
+          // the cache already had the response's data and the read above is up to date. And if that
+          // read had no data, the write is bound to change something.
+          readBackOnInitialWrite = true
+        } else if (!readBackHasData) {
+          // Not expected right after the response was written, but better the response than nothing.
           record(response)
           send(response)
         }
