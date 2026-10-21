@@ -2,6 +2,11 @@
 
 PUT_CHANGELOG_HERE
 
+## RecordWeighter is now more realistic
+
+RecordWeighter has been patched to make a more realistic computation. The reported size is now larger. 
+If you tuned your `MemoryCache.maxSizeBytes`, you'll need to take another look. 
+
 # v1.0.9
 _2026-09-28_
 

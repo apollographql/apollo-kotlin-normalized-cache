@@ -42,5 +42,15 @@ kotlin {
         implementation(project(":test-utils"))
       }
     }
+
+    getByName("jvmTest") {
+      dependencies {
+        implementation(libs.jol)
+      }
+    }
   }
+}
+
+tasks.named<Test>("jvmTest") {
+  systemProperty("jol.magicFieldOffset", "true")
 }
