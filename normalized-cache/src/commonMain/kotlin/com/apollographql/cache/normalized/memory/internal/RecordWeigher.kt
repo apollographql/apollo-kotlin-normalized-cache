@@ -5,6 +5,7 @@ import com.apollographql.apollo.api.json.JsonNumber
 import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordValue
+import com.benasher44.uuid.Uuid
 
 /**
  * A [RecordWeigher] estimates the size of a [Record].
@@ -88,6 +89,12 @@ internal object RecordWeigher {
             weighField(field.path) +
             weighField(field.extensions) +
             weighField(field.nonStandardFields)
+      }
+      is Error.Location -> {
+        12 + 32
+      }
+      is Uuid -> {
+        32
       }
 
       else -> error("Unknown field type in Record: '$field'")
