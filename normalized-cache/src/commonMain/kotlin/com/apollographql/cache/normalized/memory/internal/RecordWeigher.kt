@@ -10,7 +10,8 @@ import com.benasher44.uuid.Uuid
 /**
  * A [RecordWeigher] estimates the size of a [Record].
  *
- * The estimation is a best effort estimation. Depending on the JVM and options, an error margin is expected.
+ * The estimation is a best effort estimation loosely based on Hotspot numbers.
+ * Depending on the JVM and options, an error margin is expected.
  */
 internal object RecordWeigher {
   fun calculateBytes(record: Record): Int {
