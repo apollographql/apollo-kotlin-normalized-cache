@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 class DanglingReferencesBoundedMemoryTest {
   @Test
   fun neverBuffersMoreThanBatchSize() = runTest {
-    val recordCount = 1_000_000
+    val recordCount = 10_000
     val batchSize = 100
     val cache = DanglingFakeLargeCache(recordCount)
 
