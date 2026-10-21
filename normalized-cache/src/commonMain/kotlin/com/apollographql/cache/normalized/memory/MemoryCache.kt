@@ -22,8 +22,8 @@ import kotlin.reflect.KClass
 /**
  * Memory (multiplatform) cache implementation based on recently used property (LRU).
  *
- * [maxSizeBytes] - the maximum size in bytes the cache may occupy.
- * [expireAfterMillis] - after what timeout each entry in the cache treated as expired. By default there is no timeout.
+ * [maxSizeBytes] - the maximum size in bytes the cache may occupy. This max size is a target and is not hard enforced. The cache may sometimes grow slightly beyond that limit.
+ * [expireAfterMillis] - after what timeout each entry in the cache treated as expired. By default, there is no timeout.
  *
  * Expired entries removed from the cache only on cache miss ([loadRecord] operation) and not removed from the cache automatically
  * (there is no any sort of GC that runs in the background).

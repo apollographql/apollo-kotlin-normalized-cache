@@ -6,65 +6,85 @@ import com.apollographql.cache.normalized.api.CacheKey
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.api.RecordValue
 
+/**
+ * A [RecordWeigher] estimates the size of a [Record].
+ *
+ * The estimation is a best effort estimation. Depending on the JVM and options, an error margin is expected.
+ */
 internal object RecordWeigher {
-  private const val SIZE_OF_BOOLEAN = 16
-  private const val SIZE_OF_INT = 4
-  private const val SIZE_OF_LONG = 8
-  private const val SIZE_OF_DOUBLE = 8
-  private const val SIZE_OF_ARRAY_OVERHEAD = 16
-  private const val SIZE_OF_MAP_OVERHEAD = 16
-  private const val SIZE_OF_RECORD_OVERHEAD = 16
-  private const val SIZE_OF_CACHE_KEY_OVERHEAD = 16
-  private const val SIZE_OF_NULL = 4
-  private const val SIZE_OF_ERROR_OVERHEAD = 16
-
   fun calculateBytes(record: Record): Int {
-    var size = SIZE_OF_RECORD_OVERHEAD + record.key.key.length
-    for ((key, value) in record.fields) {
-      size += key.length + weighField(value)
-    }
-    size += weighField(record.metadata)
-    return size
+    return 32 +
+        weighField(record.fields) +
+        weighField(record.key) +
+        weighField(record.metadata) +
+        weighField(record.mutationId) +
+        weighField(record.sizeInBytes)
   }
 
   private fun weighField(field: RecordValue): Int {
-    /*
-     * Note: for Strings we use the character length where we should use the UTF-8 size,
-     * but this is a good enough estimation for the weight, and avoids a bit of overhead.
-     */
+
     return when (field) {
-      null -> SIZE_OF_NULL
-      is String -> field.length
-      is Boolean -> SIZE_OF_BOOLEAN
+      null -> 4
+      is String -> {
+        /**
+         * String
+         *   12 header
+         *   4 hash
+         *   1 coder
+         *   1 hashIsZero
+         *   4 value ref
+         *   2 padding
+         * byte[]
+         *   12 header
+         *   length data // This assumes 1 byte/char, which is only valid in certain circumstances.
+         **/
+        46 + field.length
+      }
+      is Boolean -> {
+        16
+      }
       is Number -> {
         // Using `is` on numbers always return true in JS, so we use the class instead
         when (field::class) {
-          Int::class -> SIZE_OF_INT
-          Long::class -> SIZE_OF_LONG
-          else -> SIZE_OF_DOUBLE
+          Int::class -> {
+            16
+          }
+          Long::class -> {
+            24
+          }
+          else -> {
+            24
+          }
         }
       }
 
-      is JsonNumber -> field.value.length + SIZE_OF_LONG
+      is JsonNumber -> 16 + weighField(field.value)
       /**
-       * Custom scalars with a json object representation are stored directly in the record
+       * Custom scalars with a JSON object representation are stored directly in the record
        */
       is Map<*, *> -> {
-        SIZE_OF_MAP_OVERHEAD + field.keys.sumOf { weighField(it) } + field.values.sumOf { weighField(it) }
+        /**
+         * 56 LinkedHashMap
+         * 40 LinkedHashMap.Entry
+         */
+        56 + field.keys.sumOf { weighField(it) } + field.values.sumOf { weighField(it) } + field.size * 40
       }
 
       is List<*> -> {
-        SIZE_OF_ARRAY_OVERHEAD + field.sumOf { weighField(it) }
+        /**
+         * 24 Arraylist
+         */
+        24 + field.sumOf { weighField(it) }
       }
 
       is CacheKey -> {
-        SIZE_OF_CACHE_KEY_OVERHEAD + field.key.length
+        16 + weighField(field.key)
       }
 
       is Error -> {
-        SIZE_OF_ERROR_OVERHEAD +
-            field.message.length +
-            (field.locations?.size ?: 0) * SIZE_OF_INT * 2 +
+        32 +
+            weighField(field.message) +
+            weighField(field.locations) +
             weighField(field.path) +
             weighField(field.extensions) +
             weighField(field.nonStandardFields)
