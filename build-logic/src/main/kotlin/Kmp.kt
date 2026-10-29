@@ -1,6 +1,9 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 
 enum class AppleTargets {
   All,
@@ -93,6 +96,24 @@ fun KotlinMultiplatformExtension.configureKmp(
   if (withAndroid) {
     androidTarget {
       publishLibraryVariants("release", "debug")
+    }
+  }
+
+  // Only run native tests on macosArm64. Simulator tests are slow and flaky on CI.
+  targets.withType(KotlinNativeTarget::class.java).configureEach {
+    if (name != "macosArm64") {
+      compilations.getByName("test").compileTaskProvider.configure {
+        enabled = false
+      }
+      binaries.matching { it is TestExecutable }.configureEach {
+        linkTaskProvider.configure {
+          enabled = false
+        }
+      }
+      val testTaskName = "${name}Test"
+      project.tasks.withType(KotlinNativeTest::class.java).named { it == testTaskName }.configureEach {
+        enabled = false
+      }
     }
   }
 
