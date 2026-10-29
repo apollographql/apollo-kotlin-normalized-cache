@@ -11,7 +11,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class RecordweighterTest {
+class RecordWeighterTest {
   @Test
   fun reachableSize() {
     val random = Random(0)
