@@ -53,4 +53,6 @@ kotlin {
 
 tasks.named<Test>("jvmTest") {
   systemProperty("jol.magicFieldOffset", "true")
+  // The Serviceability Agent attach spawns child JVMs without timeouts and can hang on CI
+  systemProperty("jol.skipHotspotSAAttach", "true")
 }
