@@ -11,8 +11,16 @@ import com.apollographql.apollo.exception.CacheMissException
 import com.apollographql.apollo.network.NetworkTransport
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.apolloStore
+import com.apollographql.cache.normalized.api.CacheHeaders
+import com.apollographql.cache.normalized.api.CacheKey
+import com.apollographql.cache.normalized.api.CacheResolver
+import com.apollographql.cache.normalized.api.DefaultCacheResolver
 import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
 import com.apollographql.cache.normalized.api.IdCacheResolver
+import com.apollographql.cache.normalized.api.NormalizedCache
+import com.apollographql.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.cache.normalized.api.Record
+import com.apollographql.cache.normalized.api.RecordMerger
 import com.apollographql.cache.normalized.fetchPolicy
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
@@ -34,6 +42,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import optimistic.GetAnimalQuery
 import optimistic.UpdateAnimalNameMutation
 import optimistic.type.AnimalInput
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -224,6 +233,40 @@ class WatchInitialFetchTest {
   }
 
   /**
+   * A change made after the initial fetch, but before its asynchronous write has landed, refetches from a cache that
+   * doesn't have the network response yet: the query's root field is missing, so the whole query misses. Runs for each
+   * way the missing root field is resolved: see [MissingRootField].
+   */
+  @Test
+  fun changeBeforeTheInitialAsynchronousWriteLandsDoesNotEmitACacheMiss() = testEachMissingRootField {
+    // Another animal, so that the query root exists but not with the watched field
+    apolloClient.apolloStore.writeOperation(GetAnimalQuery("2"), animal("Other", id = "2"))
+
+    watch(FetchPolicy.NetworkOnly, writeAsynchronously = true).test {
+      val initialWrite = cache.holdNextQueryWrite()
+      transport.awaitRequest("GetAnimal").respond(animal("FromNetwork"))
+      assertEquals("FromNetwork", awaitItem().name)
+      initialWrite.awaitHeld()
+
+      // Touches the watched animal but not the query's root field
+      apolloClient.apolloStore.writeOperation(
+          UpdateAnimalNameMutation(AnimalInput("1")),
+          mutationResult("Renamed"),
+          publish = true,
+      )
+      val beforeTheWrite = receiveUntilSettled()
+      initialWrite.release()
+      val responses = beforeTheWrite + receiveUntilSettled()
+
+      assertEquals(emptyList<Throwable>(), responses.mapNotNull { it.exception })
+      // Nothing to show until the write lands, which the change is on top of
+      assertEquals(emptyList(), beforeTheWrite.map { it.name })
+      // Wherever the watcher settles, it is on what the cache has
+      assertEquals(cachedName(), responses.lastOrNull()?.name ?: "FromNetwork")
+    }
+  }
+
+  /**
    * The mutation completes while the watcher's network fetch is in flight, and that fetch was served by the server before
    * the mutation was applied. Its older data overwrites the mutation's result in the cache.
    *
@@ -246,14 +289,15 @@ class WatchInitialFetchTest {
     }
   }
 
-  private class Fixture(val scope: CoroutineScope) {
+  private class Fixture(val scope: CoroutineScope, cacheResolver: CacheResolver) {
     val transport = GatedNetworkTransport()
+    val cache = WriteGatingCacheFactory(MemoryCacheFactory())
     val apolloClient = ApolloClient.Builder()
         .networkTransport(transport)
         .normalizedCache(
-            MemoryCacheFactory(),
+            cache,
             cacheKeyGenerator = IdCacheKeyGenerator(),
-            cacheResolver = IdCacheResolver(),
+            cacheResolver = cacheResolver,
             enableOptimisticUpdates = true,
         )
         .build()
@@ -338,8 +382,50 @@ class WatchInitialFetchTest {
     NetworkOnly(FetchPolicy.NetworkOnly, seeded = true, emitsBeforeTheNetworkResponse = false),
   }
 
-  private fun test(seed: Boolean = true, block: suspend Fixture.() -> Unit) = runTest {
-    withFixture(seed, block)
+  private fun test(
+      seed: Boolean = true,
+      cacheResolver: CacheResolver = IdCacheResolver(),
+      block: suspend Fixture.() -> Unit,
+  ) = runTest {
+    withFixture(seed, cacheResolver, block)
+  }
+
+  /**
+   * The ways the watched query's root field is resolved when the cache doesn't have it, which decide where a read of the
+   * query misses. [testEachMissingRootField] runs a test for each.
+   */
+  private enum class MissingRootField(val cacheResolver: CacheResolver) {
+    /**
+     * [IdCacheResolver] derives the record from the field's id argument, and that record is what misses.
+     */
+    DerivedFromId(IdCacheResolver()),
+
+    /**
+     * [DefaultCacheResolver] only follows the field, so the field itself misses.
+     */
+    NotDerived(DefaultCacheResolver),
+  }
+
+  /**
+   * Runs [block] on an empty cache for each [MissingRootField], and reports how it fails with each rather than only with
+   * the first.
+   */
+  private fun testEachMissingRootField(block: suspend Fixture.() -> Unit) = runTest {
+    val failures = MissingRootField.entries.mapNotNull { missingRootField ->
+      try {
+        withFixture(seed = false, missingRootField.cacheResolver, block)
+        null
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Throwable) {
+        AssertionError("With $missingRootField: $e", e)
+      }
+    }
+    if (failures.isNotEmpty()) {
+      throw AssertionError(failures.joinToString("\n") { it.message.orEmpty() }).apply {
+        failures.forEach { addSuppressed(it) }
+      }
+    }
   }
 
   private fun testEachInitialFetch(block: suspend Fixture.(InitialFetch) -> Unit) = runTest {
@@ -354,8 +440,12 @@ class WatchInitialFetchTest {
     }
   }
 
-  private suspend fun CoroutineScope.withFixture(seed: Boolean, block: suspend Fixture.() -> Unit) {
-    val fixture = Fixture(this)
+  private suspend fun CoroutineScope.withFixture(
+      seed: Boolean,
+      cacheResolver: CacheResolver = IdCacheResolver(),
+      block: suspend Fixture.() -> Unit,
+  ) {
+    val fixture = Fixture(this, cacheResolver)
     if (seed) {
       fixture.apolloClient.apolloStore.writeOperation(GetAnimalQuery("1"), animal("Noushka"))
     }
@@ -407,6 +497,17 @@ internal suspend fun <T> ReceiveTurbine<T>.awaitSettled(): List<T> {
 }
 
 /**
+ * Receives every item until none comes for a while, possibly none at all.
+ */
+internal suspend fun <T> ReceiveTurbine<T>.receiveUntilSettled(): List<T> {
+  val items = mutableListOf<T>()
+  while (true) {
+    items += withTimeoutOrNull(300.milliseconds) { asChannel().receive() } ?: break
+  }
+  return items
+}
+
+/**
  * Lets in-flight work, such as a refetch the watcher shouldn't do, run before asserting that nothing was emitted.
  */
 internal suspend fun ReceiveTurbine<*>.expectNoEventsAfterSettling() {
@@ -451,4 +552,52 @@ internal class GatedNetworkTransport : NetworkTransport {
   }
 
   override fun dispose() {}
+}
+
+/**
+ * A [NormalizedCacheFactory] whose cache can hold back the write of a query's response, so that the test controls when
+ * an asynchronous cache write lands.
+ */
+internal class WriteGatingCacheFactory(private val delegate: NormalizedCacheFactory) : NormalizedCacheFactory() {
+  private val nextHeldWrite = AtomicReference<HeldWrite?>(null)
+
+  class HeldWrite {
+    internal val held = CompletableDeferred<Unit>()
+    internal val released = CompletableDeferred<Unit>()
+
+    suspend fun awaitHeld() = withTimeout(3.seconds) { held.await() }
+
+    fun release() {
+      released.complete(Unit)
+    }
+  }
+
+  /**
+   * Holds the next write that includes the query root, typically the write of a query's network response, until
+   * [HeldWrite.release]. Other writes go through.
+   */
+  fun holdNextQueryWrite(): HeldWrite = HeldWrite().also { nextHeldWrite.set(it) }
+
+  override fun create(): NormalizedCache = GatingCache(delegate.create())
+
+  private inner class GatingCache(private val cache: NormalizedCache) : NormalizedCache by cache {
+    override suspend fun merge(record: Record, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+      awaitRelease(listOf(record))
+      return cache.merge(record, cacheHeaders, recordMerger)
+    }
+
+    override suspend fun merge(records: Collection<Record>, cacheHeaders: CacheHeaders, recordMerger: RecordMerger): Set<String> {
+      awaitRelease(records)
+      return cache.merge(records, cacheHeaders, recordMerger)
+    }
+
+    private suspend fun awaitRelease(records: Collection<Record>) {
+      if (records.none { it.key == CacheKey.QUERY_ROOT }) {
+        return
+      }
+      val heldWrite = nextHeldWrite.getAndSet(null) ?: return
+      heldWrite.held.complete(Unit)
+      heldWrite.released.await()
+    }
+  }
 }
