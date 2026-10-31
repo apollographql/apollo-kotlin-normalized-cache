@@ -41,6 +41,8 @@ private class InitialResponse<D : Operation.Data>(val response: ApolloResponse<D
 
 private object InitialFetchDone
 
+private object InitialWriteLanded
+
 internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterceptor {
   override fun <D : Operation.Data> intercept(request: ApolloRequest<D>, chain: ApolloInterceptorChain): Flow<ApolloResponse<D>> {
     val watchContext = request.watchContext ?: return chain.proceed(request)
@@ -97,30 +99,6 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
     val watchedRequest = request.newBuilder()
         .addCacheHeader(COLLECT_DEPENDENT_KEYS, "true")
         .build()
-
-    /**
-     * The keys published by the cache writes of the initial fetch.
-     *
-     * The subscription below is established before the initial fetch, so the watcher is notified of
-     * the changes the fetch makes itself and would refetch to emit data it has already emitted. Its
-     * own notifications are recognized here and dropped.
-     */
-    val ownPublishedKeys = if (watchContext.fetchInitialResponses) {
-      PublishedKeysContext()
-    } else {
-      null
-    }
-
-    /**
-     * The request used for the initial fetch.
-     */
-    val initialRequest = if (ownPublishedKeys == null) {
-      watchedRequest
-    } else {
-      watchedRequest.newBuilder()
-          .addExecutionContext(ownPublishedKeys)
-          .build()
-    }
 
     /**
      * The request used when the cache changes.
@@ -209,6 +187,35 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       subscribed.await()
 
       /**
+       * The keys published by the cache writes of the initial fetch, and whether those writes have
+       * landed.
+       *
+       * The subscription above is established before the initial fetch, so the watcher is notified of
+       * the changes the fetch makes itself and would refetch to emit data it has already emitted. Its
+       * own notifications are recognized here and dropped.
+       *
+       * An asynchronous write lands after its response has been emitted, and a refetch until then
+       * would read a cache that doesn't have the response: it is held back until the write lands,
+       * which [events] is told of.
+       */
+      val ownPublishedKeys = if (watchContext.fetchInitialResponses) {
+        PublishedKeysContext(onWriteLanded = { events.trySend(InitialWriteLanded) })
+      } else {
+        null
+      }
+
+      /**
+       * The request used for the initial fetch.
+       */
+      val initialRequest = if (ownPublishedKeys == null) {
+        watchedRequest
+      } else {
+        watchedRequest.newBuilder()
+            .addExecutionContext(ownPublishedKeys)
+            .build()
+      }
+
+      /**
        * The initial fetch runs alongside the handling of cache changes, so that a change made while
        * it is in flight is emitted right away rather than after its network response. Both go
        * through [events], so that they are handled one at a time, in the order they happened.
@@ -232,6 +239,9 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
       var refetchOnFirstEmission = false
       // Whether an asynchronous write of the initial fetch is to be read back when it lands.
       var readBackOnInitialWrite = false
+      // Whether a change waits for the asynchronous writes of the initial fetch to land: refetching
+      // before would read a cache that doesn't have their responses, typically a cache miss.
+      var refetchOnInitialWrite = false
 
       suspend fun refetch() {
         chain.proceed(refetchRequest).collect { response ->
@@ -242,6 +252,14 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
           }
           record(response)
           send(response)
+        }
+      }
+
+      suspend fun refetchOnceInitialWritesLand() {
+        if (ownPublishedKeys?.hasPendingWrites == true) {
+          refetchOnInitialWrite = true
+        } else {
+          refetch()
         }
       }
 
@@ -271,13 +289,14 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
               changedDuringInitialFetch = true
             }
             if (hasEmitted) {
-              refetch()
+              refetchOnceInitialWritesLand()
             } else {
               refetchOnFirstEmission = true
             }
           }
 
-          readBack -> readBack()
+          // A refetch waiting for the write reads it as well.
+          readBack && !refetchOnInitialWrite -> readBack()
         }
       }
 
@@ -327,6 +346,16 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
             changedDuringInitialFetch = false
           }
 
+          InitialWriteLanded -> {
+            if (refetchOnInitialWrite && ownPublishedKeys?.hasPendingWrites != true) {
+              refetchOnInitialWrite = false
+              // The refetch reads the write as well.
+              readBackOnInitialWrite = false
+              refetch()
+            }
+            continue
+          }
+
           else -> {
             // Changes that piled up while the watcher was busy are handled with a single refetch.
             val changes = mutableListOf(event as Set<*>)
@@ -346,7 +375,7 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
           hasEmitted = true
           if (refetchOnFirstEmission) {
             refetchOnFirstEmission = false
-            refetch()
+            refetchOnceInitialWritesLand()
           }
         }
       }
