@@ -37,7 +37,7 @@ class ChainedTest {
         c = c.nextCache
       }
     }
-    assertContentEquals(listOf(43, 43, 12288), sizes)
+    assertContentEquals(listOf(369, 369, 12288), sizes)
   }
 
   @Test

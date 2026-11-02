@@ -9,6 +9,7 @@ import com.apollographql.cache.normalized.api.NormalizedCache
 import com.apollographql.cache.normalized.api.Record
 import com.apollographql.cache.normalized.memory.MemoryCache
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
+import com.apollographql.cache.normalized.memory.internal.RecordWeigher
 import com.apollographql.cache.normalized.testing.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,7 +69,7 @@ class MemoryCacheTest {
 
     val lruCache = createCache(
         // all records won't fit as there is timestamp that stored with each record
-        maxSizeBytes = 600
+        maxSizeBytes = 2400
     )
 
     val records = listOf(testRecord1, testRecord2, testRecord3)
@@ -88,7 +89,7 @@ class MemoryCacheTest {
     val testRecord3 = createTestRecord("3")
 
     val lruCache = createCache(
-        maxSizeBytes = 800
+        maxSizeBytes = 5000
     )
 
     val records = listOf(testRecord1, testRecord2, testRecord3)
@@ -334,6 +335,6 @@ class MemoryCacheTest {
 
     val normalizedCache = MemoryCacheFactory().create()
     val sizeOfRecord = normalizedCache.sizeOfRecord(record)
-    assertEquals(262, sizeOfRecord)
+    assertEquals(1522, sizeOfRecord)
   }
 }
