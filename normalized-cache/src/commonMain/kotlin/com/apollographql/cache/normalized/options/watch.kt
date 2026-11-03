@@ -39,8 +39,8 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
 /**
  * Gets initial response(s) then observes the cache for any changes.
  *
- * The cache subscription is established before the last initial response is collected, so any external cache update made
- * after collecting it will be received.
+ * The cache subscription is established before the initial responses are fetched, so cache updates made while they are in
+ * flight, and any made after collecting the last of them, will be received.
  *
  * Note: when using [writeToCacheAsynchronously], the cache updates are postponed until after the response they come from has been emitted.
  * They do not trigger an emission of their own: the data they store has already been emitted. Cache updates made anywhere else still do.
@@ -54,14 +54,12 @@ internal val <D : Operation.Data> ApolloRequest<D>.watchContext: WatchContext?
  */
 fun <D : Query.Data> ApolloCall<D>.watch(): Flow<ApolloResponse<D>> {
   /**
-   * The initial responses are fetched by the interceptor, which subscribes to the cache right after
-   * and only then releases the last of them.
+   * The initial responses are fetched by the interceptor, which subscribes to the cache right
+   * before, so that it observes the changes made while they are in flight.
    *
    * Executing them here instead would mean a second trip through the interceptor chain to subscribe,
-   * and that last response would be withheld until the trip finished - delaying it by the teardown
-   * of the first flow, a dispatch, and a re-run of every interceptor ahead of the cache. Done from
-   * the interceptor, the wait is a [kotlinx.coroutines.flow.SharedFlow] subscription and nothing
-   * else, while the synchronisation point callers rely on is unchanged.
+   * delaying the last response by the teardown of the first flow, a dispatch, and a re-run of every
+   * interceptor ahead of the cache, and missing the changes made in between.
    *
    * See https://github.com/apollographql/apollo-kotlin/pull/3853
    */

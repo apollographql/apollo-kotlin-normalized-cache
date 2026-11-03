@@ -66,21 +66,29 @@ internal class ApolloCacheInterceptor(
     if (response.data == null) {
       return
     }
+    val publishedKeysContext = request.executionContext[PublishedKeysContext]
+    publishedKeysContext?.writeStarted()
     maybeAsync(request) {
-      val cacheKeys = if (response.data != null) {
-        var cacheHeaders = request.cacheHeaders + response.cacheHeaders
-        if (request.storeReceivedDate) {
-          cacheHeaders += nowReceivedDateCacheHeaders(request.clock)
+      try {
+        val cacheKeys = if (response.data != null) {
+          var cacheHeaders = request.cacheHeaders + response.cacheHeaders
+          if (request.storeReceivedDate) {
+            cacheHeaders += nowReceivedDateCacheHeaders(request.clock)
+          }
+          cacheManager.writeOperation(request.operation, response.data!!, response.errors, customScalarAdapters, cacheHeaders)
+        } else {
+          emptySet()
         }
-        cacheManager.writeOperation(request.operation, response.data!!, response.errors, customScalarAdapters, cacheHeaders)
-      } else {
-        emptySet()
+        val publishedKeys = cacheKeys + extraKeys
+        // Recorded before publishing, so that a watcher collecting the event can already tell that it
+        // comes from a write of its own. An empty set isn't published, so there is no event to tell.
+        if (publishedKeys.isNotEmpty()) {
+          publishedKeysContext?.record(publishedKeys)
+        }
+        cacheManager.publish(publishedKeys)
+      } finally {
+        publishedKeysContext?.writeLanded()
       }
-      val publishedKeys = cacheKeys + extraKeys
-      // Recorded before publishing, so that a watcher collecting the event can already tell that it
-      // comes from a write of its own.
-      request.executionContext[PublishedKeysContext]?.record(publishedKeys)
-      cacheManager.publish(publishedKeys)
     }
   }
 
