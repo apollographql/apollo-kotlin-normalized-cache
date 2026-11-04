@@ -14,6 +14,7 @@ import com.apollographql.apollo.testing.QueueTestNetworkTransport
 import com.apollographql.apollo.testing.enqueueTestNetworkError
 import com.apollographql.apollo.testing.enqueueTestResponse
 import com.apollographql.cache.normalized.CacheManager
+import com.apollographql.cache.normalized.DefaultFetchPolicyInterceptor
 import com.apollographql.cache.normalized.FetchPolicy
 import com.apollographql.cache.normalized.api.DefaultCacheKeyGenerator
 import com.apollographql.cache.normalized.api.DefaultCacheResolver
@@ -21,6 +22,7 @@ import com.apollographql.cache.normalized.api.IdCacheKeyGenerator
 import com.apollographql.cache.normalized.api.IdCacheResolver
 import com.apollographql.cache.normalized.cacheManager
 import com.apollographql.cache.normalized.fetchPolicy
+import com.apollographql.cache.normalized.fetchPolicyInterceptor
 import com.apollographql.cache.normalized.memory.MemoryCacheFactory
 import com.apollographql.cache.normalized.normalizedCache
 import com.apollographql.cache.normalized.refetchPolicy
@@ -38,6 +40,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -452,6 +456,81 @@ class WatcherTest {
     assertNull(channel.awaitElement())
     assertEquals("R2-D2", channel.awaitElement()?.hero?.name)
 
+    channel.assertEmpty()
+
+    job.cancel()
+  }
+
+  /**
+   * A write made elsewhere after the watcher's initial cache read, but before the watcher has
+   * subscribed to the cache, must still reach the watcher. This is what happens when a screen
+   * executes a query on the network while watching it from the cache.
+   */
+  @Test
+  fun writeBetweenInitialReadAndSubscriptionTriggersWatcher() = runTest(before = { setUp() }) {
+    val query = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+    cacheManager.writeOperation(query, episodeHeroNameWithIdData)
+
+    // Reads from the cache, then writes "ArTwo" before the watcher gets what was read
+    val writeAfterReadInterceptor = object : ApolloInterceptor {
+      override fun <D : Operation.Data> intercept(
+          request: ApolloRequest<D>,
+          chain: ApolloInterceptorChain,
+      ): Flow<ApolloResponse<D>> {
+        return DefaultFetchPolicyInterceptor.intercept(request, chain).onEach {
+          cacheManager.writeOperation(query, episodeHeroNameWithIdChangedData, publish = true)
+        }
+      }
+    }
+    val job = launch {
+      apolloClient.query(query)
+          .fetchPolicy(FetchPolicy.CacheOnly)
+          .fetchPolicyInterceptor(writeAfterReadInterceptor)
+          .watch()
+          .collect {
+            channel.send(it.data)
+          }
+    }
+
+    assertEquals("R2-D2", channel.awaitElement()?.hero?.name)
+    assertEquals("ArTwo", channel.awaitElement()?.hero?.name)
+
+    job.cancel()
+  }
+
+  /**
+   * A write made elsewhere while the watcher fetches its initial responses, but before the initial
+   * fetch reads the cache, is in what was read: the watcher must not emit the same data twice.
+   */
+  @Test
+  fun writeBeforeInitialReadIsEmittedOnce() = runTest(before = { setUp() }) {
+    val query = EpisodeHeroNameWithIdQuery(Episode.EMPIRE)
+    val channel = Channel<EpisodeHeroNameWithIdQuery.Data?>()
+    cacheManager.writeOperation(query, episodeHeroNameWithIdData)
+
+    // Writes "ArTwo", then reads from the cache
+    val writeBeforeReadInterceptor = object : ApolloInterceptor {
+      override fun <D : Operation.Data> intercept(
+          request: ApolloRequest<D>,
+          chain: ApolloInterceptorChain,
+      ): Flow<ApolloResponse<D>> {
+        return DefaultFetchPolicyInterceptor.intercept(request, chain).onStart {
+          cacheManager.writeOperation(query, episodeHeroNameWithIdChangedData, publish = true)
+        }
+      }
+    }
+    val job = launch {
+      apolloClient.query(query)
+          .fetchPolicy(FetchPolicy.CacheOnly)
+          .fetchPolicyInterceptor(writeBeforeReadInterceptor)
+          .watch()
+          .collect {
+            channel.send(it.data)
+          }
+    }
+
+    assertEquals("ArTwo", channel.awaitElement()?.hero?.name)
     channel.assertEmpty()
 
     job.cancel()

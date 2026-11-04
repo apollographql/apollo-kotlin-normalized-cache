@@ -26,7 +26,9 @@ import com.apollographql.cache.normalized.writeToCacheAsynchronously
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.transform
@@ -94,18 +96,30 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
         .build()
 
     /**
-     * The keys published by the cache writes of the initial fetch, when those writes are
-     * asynchronous.
+     * The keys published by the cache writes of the initial fetch.
      *
-     * Such a write lands after its response has been emitted and after the subscription below is
-     * established, so the watcher is notified of a change it has itself just made and would refetch
-     * to emit data it has already emitted. Its own notifications are recognized here and dropped.
+     * An asynchronous write can land after its response has been emitted and after the subscription
+     * below is established, so the watcher is notified of a change it has itself just made and would
+     * refetch to emit data it has already emitted. Its own notifications are recognized here and
+     * dropped. [missedChanges] drops them the same way.
      *
      * A synchronous write publishes before its response is emitted, which is before the subscription
-     * exists, so there is nothing to recognize and nothing to record.
+     * exists, so only [missedChanges] needs to recognize it.
      */
-    val ownPublishedKeys = if (watchContext.fetchInitialResponses && request.writeToCacheAsynchronously) {
+    val ownPublishedKeys = if (watchContext.fetchInitialResponses &&
+        (request.writeToCacheAsynchronously || cacheManager is DefaultCacheManager)
+    ) {
       PublishedKeysContext()
+    } else {
+      null
+    }
+
+    /**
+     * The changes published by others during the initial fetch, which the subscription below is
+     * established too late to receive. They are caught up on once it is.
+     */
+    val missedChanges = if (ownPublishedKeys != null && cacheManager is DefaultCacheManager) {
+      MissedChanges(ownPublishedKeys, ownWritesAreSynchronous = !request.writeToCacheAsynchronously)
     } else {
       null
     }
@@ -189,6 +203,9 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
        */
       var lastResponse: ApolloResponse<D>? = null
 
+      // Registered before the initial fetch reads the cache, so that any change published after
+      // that read is either recorded here or received by the subscription.
+      missedChanges?.let { (cacheManager as DefaultCacheManager).addPublishListener(it) }
       if (watchContext.fetchInitialResponses) {
         proceedRecordingData(initialRequest).collect { response ->
           if (response.isLast) {
@@ -215,12 +232,19 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
                   // be released. Reaching this point costs a `SharedFlow` subscription and nothing
                   // else, because the initial responses were fetched from this same execution of the
                   // interceptor chain.
+                  missedChanges?.let { (cacheManager as DefaultCacheManager).removePublishListener(it) }
                   val held = lastResponse
                   if (held != null) {
                     lastResponse = null
                     emit(held)
                   } else if (!watchContext.fetchInitialResponses) {
                     emit(ApolloResponse.Builder(request.operation, request.requestUuid).exception(WatcherSentinel).build())
+                  }
+                  if (missedChanges != null && missedChanges.value.any { isWatched(it) }) {
+                    // A change published before the subscription may have been read already, if
+                    // it landed before the initial fetch read the cache: don't emit the same data
+                    // twice.
+                    emitAll(proceedRecordingData(refetchRequest).filter { it.data == null || it.data != held?.data })
                   }
                   return@transform
                 }
@@ -230,6 +254,9 @@ internal class WatcherInterceptor(val cacheManager: CacheManager) : ApolloInterc
                 emitAll(proceedRecordingData(refetchRequest))
               }
       )
+    }.onCompletion {
+      // In case the watcher stops before subscribing
+      missedChanges?.let { (cacheManager as DefaultCacheManager).removePublishListener(it) }
     }
   }
 }
