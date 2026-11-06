@@ -26,12 +26,14 @@ import com.apollographql.cache.normalized.nowReceivedDateCacheHeaders
 import com.apollographql.cache.normalized.optimisticData
 import com.apollographql.cache.normalized.storeReceivedDate
 import com.apollographql.cache.normalized.writeToCacheAsynchronously
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 internal class ApolloCacheInterceptor(
     val cacheManager: CacheManager,
@@ -133,51 +135,61 @@ internal class ApolloCacheInterceptor(
 
     return flow {
       val optimisticData = request.optimisticData
-      if (optimisticData != null) {
-        @Suppress("UNCHECKED_CAST")
-        cacheManager.writeOptimisticUpdates(
-            operation = request.operation,
-            data = optimisticData as D,
-            mutationId = request.requestUuid,
-            customScalarAdapters = customScalarAdapters,
-        ).also { cacheManager.publish(it) }
-      }
+      var optimisticKeys: Set<String>? = null
+      try {
+        if (optimisticData != null) {
+          @Suppress("UNCHECKED_CAST")
+          cacheManager.writeOptimisticUpdates(
+              operation = request.operation,
+              data = optimisticData as D,
+              mutationId = request.requestUuid,
+              customScalarAdapters = customScalarAdapters,
+          ).also { cacheManager.publish(it) }
+        }
 
-      /**
-       * This doesn't use [readFromNetwork] so that we can publish all keys all at once after the keys have been rolled back
-       */
-      var networkException: ApolloException? = null
-      val networkResponses: Flow<ApolloResponse<D>> = chain.proceed(request)
-          .onEach {
-            networkException = it.exception
+        /**
+         * This doesn't use [readFromNetwork] so that we can publish all keys all at once after the keys have been rolled back
+         */
+        var networkException: ApolloException? = null
+        val networkResponses: Flow<ApolloResponse<D>> = chain.proceed(request)
+            .onEach {
+              networkException = it.exception
+            }
+
+        var previousResponse: ApolloResponse<D>? = null
+        networkResponses.collect { response ->
+          if (optimisticData != null && previousResponse != null) {
+            throw DefaultApolloException("Apollo: optimistic updates can only be applied with one network response")
+          }
+          previousResponse = response
+          if (optimisticKeys == null) optimisticKeys = if (optimisticData != null) {
+            cacheManager.rollbackOptimisticUpdates(request.requestUuid)
+          } else {
+            emptySet()
           }
 
-      var optimisticKeys: Set<String>? = null
-
-      var previousResponse: ApolloResponse<D>? = null
-      networkResponses.collect { response ->
-        if (optimisticData != null && previousResponse != null) {
-          throw DefaultApolloException("Apollo: optimistic updates can only be applied with one network response")
-        }
-        previousResponse = response
-        if (optimisticKeys == null) optimisticKeys = if (optimisticData != null) {
-          cacheManager.rollbackOptimisticUpdates(request.requestUuid)
-        } else {
-          emptySet()
+          maybeWriteToCache(request, response, customScalarAdapters, optimisticKeys!!)
+          emit(response)
         }
 
-        maybeWriteToCache(request, response, customScalarAdapters, optimisticKeys!!)
-        emit(response)
-      }
+        if (networkException != null) {
+          if (optimisticKeys == null) optimisticKeys = if (optimisticData != null) {
+            cacheManager.rollbackOptimisticUpdates(request.requestUuid)
+          } else {
+            emptySet()
+          }
 
-      if (networkException != null) {
-        if (optimisticKeys == null) optimisticKeys = if (optimisticData != null) {
-          cacheManager.rollbackOptimisticUpdates(request.requestUuid)
-        } else {
-          emptySet()
+          cacheManager.publish(optimisticKeys)
         }
-
-        cacheManager.publish(optimisticKeys)
+      } finally {
+        if (optimisticData != null && optimisticKeys == null) {
+          // No network response rolled the optimistic data back: the call was cancelled, failed with a non-Apollo
+          // exception, or completed without a response. Roll back anyway so the optimistic data doesn't outlive the mutation
+          // and shadow every later write to the same records.
+          withContext(NonCancellable) {
+            cacheManager.rollbackOptimisticUpdates(request.requestUuid, publish = true)
+          }
+        }
       }
     }
   }
